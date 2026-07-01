@@ -11,8 +11,11 @@ import { PaymentConfirm } from './PaymentConfirm';
 export const dynamic = 'force-dynamic';
 
 function formatMoney(minor: number, currency: string): string {
-  try { return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(minor / 100); }
-  catch { return `${(minor / 100).toFixed(2)} ${currency}`; }
+  try {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(minor / 100);
+  } catch {
+    return `${(minor / 100).toFixed(2)} ${currency}`;
+  }
 }
 
 function Shell({ title, children }: { title: string; children: React.ReactNode }) {
@@ -20,7 +23,7 @@ function Shell({ title, children }: { title: string; children: React.ReactNode }
     <main className="mx-auto max-w-md p-6">
       <h1 className="font-heading text-2xl">{title}</h1>
       {children}
-      <footer className="mt-10 text-xs text-on-surface-variant">Powered by Maralito Labs</footer>
+      <footer className="text-on-surface-variant mt-10 text-xs">Powered by Maralito Labs</footer>
     </main>
   );
 }
@@ -30,7 +33,11 @@ export default async function PayPage({ params }: { params: Promise<{ orderId: s
   const res = await getMyOrderPaymentSummary(orderId);
   if (!res.ok) {
     if (res.error.code === 'not_found') notFound();
-    return <Shell title="Payment"><p className="mt-2 text-on-surface-variant">{res.error.message}</p></Shell>;
+    return (
+      <Shell title="Payment">
+        <p className="text-on-surface-variant mt-2">{res.error.message}</p>
+      </Shell>
+    );
   }
   const s = res.data!;
   const amount = formatMoney(s.amount_due_minor, s.currency);
@@ -42,13 +49,18 @@ export default async function PayPage({ params }: { params: Promise<{ orderId: s
   let paymentsConfigured = false;
   if (shouldShowPaymentForm(s.display_state)) {
     const init = await initiateQuotePayment({ quote_id: s.quote.quote_id });
-    if (init.ok && init.data?.client_secret) { clientSecret = init.data.client_secret; paymentsConfigured = true; }
+    if (init.ok && init.data?.client_secret) {
+      clientSecret = init.data.client_secret;
+      paymentsConfigured = true;
+    }
   }
 
   return (
     <Shell title="Payment">
       {shouldShowPaymentForm(s.display_state) && (
-        <p className="mt-1 text-on-surface-variant">Amount due: <span className="font-semibold">{amount}</span></p>
+        <p className="text-on-surface-variant mt-1">
+          Amount due: <span className="font-semibold">{amount}</span>
+        </p>
       )}
       <PaymentConfirm
         orderId={orderId}

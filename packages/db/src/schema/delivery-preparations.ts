@@ -14,16 +14,31 @@ import { orders } from './orders';
  * phone, postal code, address body, RFC/KYC/document content, or sensitive logistics details. Real
  * address/PII storage is deferred until KMS/secret-management is confirmed.
  */
-export const DELIVERY_PREP_STATUSES = ['pending', 'preparing', 'ready', 'scheduled', 'handed_off'] as const;
+export const DELIVERY_PREP_STATUSES = [
+  'pending',
+  'preparing',
+  'ready',
+  'scheduled',
+  'handed_off',
+] as const;
 
 export const deliveryPreparations = pgTable(
   'delivery_preparations',
   {
     id: text('id').primaryKey(), // dlp_<id>
-    orgId: text('org_id').notNull().references(() => organizations.id),
-    customerId: text('customer_id').notNull().references(() => customerProfiles.id),
-    orderId: text('order_id').notNull().references(() => orders.id),
-    status: text('status').$type<(typeof DELIVERY_PREP_STATUSES)[number]>().notNull().default('pending'),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id),
+    customerId: text('customer_id')
+      .notNull()
+      .references(() => customerProfiles.id),
+    orderId: text('order_id')
+      .notNull()
+      .references(() => orders.id),
+    status: text('status')
+      .$type<(typeof DELIVERY_PREP_STATUSES)[number]>()
+      .notNull()
+      .default('pending'),
     deliveryAddressRef: text('delivery_address_ref'), // OPAQUE reference only — no address content/PII
     scheduledWindowStart: timestamp('scheduled_window_start', { withTimezone: true }), // non-PII slot
     scheduledWindowEnd: timestamp('scheduled_window_end', { withTimezone: true }), // non-PII slot
@@ -45,9 +60,15 @@ export const deliveryPrepStatusHistory = pgTable(
   'delivery_prep_status_history',
   {
     id: text('id').primaryKey(), // dph_<id>
-    orgId: text('org_id').notNull().references(() => organizations.id),
-    deliveryPrepId: text('delivery_prep_id').notNull().references(() => deliveryPreparations.id),
-    orderId: text('order_id').notNull().references(() => orders.id),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id),
+    deliveryPrepId: text('delivery_prep_id')
+      .notNull()
+      .references(() => deliveryPreparations.id),
+    orderId: text('order_id')
+      .notNull()
+      .references(() => orders.id),
     fromStatus: text('from_status').$type<(typeof DELIVERY_PREP_STATUSES)[number]>(),
     toStatus: text('to_status').$type<(typeof DELIVERY_PREP_STATUSES)[number]>().notNull(),
     actorUserId: text('actor_user_id'),

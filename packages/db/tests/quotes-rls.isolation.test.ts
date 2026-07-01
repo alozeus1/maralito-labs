@@ -14,12 +14,18 @@ let db: PGlite;
 async function asTenant<T>(sub: string | null, fn: () => Promise<T>): Promise<T> {
   await db.query('begin');
   try {
-    if (sub) await db.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify({ sub, role: 'authenticated' })]);
+    if (sub)
+      await db.query("select set_config('request.jwt.claims',$1,true)", [
+        JSON.stringify({ sub, role: 'authenticated' }),
+      ]);
     await db.query('set local role authenticated');
     return await fn();
-  } finally { await db.query('commit').catch(() => {}); }
+  } finally {
+    await db.query('commit').catch(() => {});
+  }
 }
-const rows = (sql: string, p: unknown[] = []) => db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
+const rows = (sql: string, p: unknown[] = []) =>
+  db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
 
 beforeAll(async () => {
   db = new PGlite();
@@ -75,9 +81,13 @@ describe('quotes RLS isolation (real policy files on PGlite)', () => {
     expect(await asTenant(A, () => rows("select * from quotes where id='qte_b'"))).toHaveLength(0);
   });
   it('customer sees only customer-visible, non-internal line items', async () =>
-    expect(await asTenant(A, () => rows('select id from quote_line_items'))).toEqual([{ id: 'qli_a1' }]));
+    expect(await asTenant(A, () => rows('select id from quote_line_items'))).toEqual([
+      { id: 'qli_a1' },
+    ]));
   it('staff sees all line items incl internal', async () =>
-    expect(await asTenant(OPS, () => rows('select id from quote_line_items order by id'))).toHaveLength(2));
+    expect(
+      await asTenant(OPS, () => rows('select id from quote_line_items order by id')),
+    ).toHaveLength(2));
   it('customer cannot read quote_status_history or approvals', async () => {
     expect(await asTenant(A, () => rows('select * from quote_status_history'))).toHaveLength(0);
     expect(await asTenant(A, () => rows('select * from quote_approvals'))).toHaveLength(0);

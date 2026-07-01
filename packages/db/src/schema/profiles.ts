@@ -6,7 +6,9 @@ export const customerProfiles = pgTable(
   {
     id: text('id').primaryKey(),
     authUserId: uuid('auth_user_id').notNull().unique(),
-    orgId: text('org_id').notNull().references(() => organizations.id),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id),
     displayName: text('display_name').notNull(),
     language: text('language').$type<'en' | 'es'>().notNull().default('es'),
     notificationPrefs: jsonb('notification_prefs').$type<{
@@ -24,7 +26,9 @@ export const staffProfiles = pgTable(
   {
     id: text('id').primaryKey(),
     authUserId: uuid('auth_user_id').notNull().unique(),
-    orgId: text('org_id').notNull().references(() => organizations.id),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id),
     displayName: text('display_name').notNull(),
     roleKeys: jsonb('role_keys').$type<string[]>().notNull().default([]),
     status: text('status').$type<'active' | 'inactive' | 'on_leave'>().notNull().default('active'),

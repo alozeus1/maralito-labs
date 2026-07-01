@@ -1,6 +1,6 @@
 /** Phase 3 placeholder thresholds (configurable constants). Real rules engine = later phase. */
 export const HIGH_VALUE_THRESHOLD_MINOR = 100_000; // $1,000.00 — ⚠️ VERIFY w/ finance
-export const DISCOUNT_THRESHOLD_MINOR = 20_000;    // $200.00 — ⚠️ VERIFY
+export const DISCOUNT_THRESHOLD_MINOR = 20_000; // $200.00 — ⚠️ VERIFY
 
 export interface ApprovalInput {
   total_minor: number;

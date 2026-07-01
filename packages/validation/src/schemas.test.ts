@@ -8,10 +8,22 @@ describe('phase 1 schemas', () => {
     expect(p.language).toBe('es');
   });
   it('RoleAssignment validates uuid + org_ + role enum', () => {
-    expect(() => RoleAssignment.parse({ auth_user_id: 'not-uuid', org_id: 'org_1', role_key: 'customer' })).toThrow();
-    const ok = RoleAssignment.parse({ auth_user_id: '00000000-0000-4000-8000-000000000000', org_id: 'org_1', role_key: 'compliance_admin' });
+    expect(() =>
+      RoleAssignment.parse({ auth_user_id: 'not-uuid', org_id: 'org_1', role_key: 'customer' }),
+    ).toThrow();
+    const ok = RoleAssignment.parse({
+      auth_user_id: '00000000-0000-4000-8000-000000000000',
+      org_id: 'org_1',
+      role_key: 'compliance_admin',
+    });
     expect(ok.role_key).toBe('compliance_admin');
-    expect(() => RoleAssignment.parse({ auth_user_id: '00000000-0000-4000-8000-000000000000', org_id: 'org_1', role_key: 'wizard' })).toThrow();
+    expect(() =>
+      RoleAssignment.parse({
+        auth_user_id: '00000000-0000-4000-8000-000000000000',
+        org_id: 'org_1',
+        role_key: 'wizard',
+      }),
+    ).toThrow();
   });
   it('PaginationParams clamps + defaults', () => {
     expect(PaginationParams.parse({}).limit).toBe(20);

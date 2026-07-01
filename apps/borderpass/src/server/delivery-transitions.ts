@@ -1,7 +1,16 @@
 import 'server-only';
 import { eq } from 'drizzle-orm';
-import { withPrivilegedDbAccess, deliveryPreparations, deliveryPrepStatusHistory, orders, newId } from '@maralito/db';
-import { assertDeliveryPrepTransition, type DeliveryPrepStatus } from '@/domain/delivery/state-machine';
+import {
+  withPrivilegedDbAccess,
+  deliveryPreparations,
+  deliveryPrepStatusHistory,
+  orders,
+  newId,
+} from '@maralito/db';
+import {
+  assertDeliveryPrepTransition,
+  type DeliveryPrepStatus,
+} from '@/domain/delivery/state-machine';
 import { deliveryOrderJoinTarget, shouldNotifyDelivery } from '@/domain/delivery/rules';
 import type { OrderStatus } from '@/domain/orders/state-machine';
 import { writeAudit } from './audit';
@@ -44,31 +53,57 @@ export async function transitionDeliveryPrep(
   await withPrivilegedDbAccess(`delivery_prep.transition:${d.status}->${to}`, async (db) => {
     const patch: Record<string, unknown> = { status: to, updatedAt: new Date() };
     if (meta?.customerSummary !== undefined) patch.customerSummary = meta.customerSummary;
-    if (meta?.scheduledWindowStart !== undefined) patch.scheduledWindowStart = meta.scheduledWindowStart;
+    if (meta?.scheduledWindowStart !== undefined)
+      patch.scheduledWindowStart = meta.scheduledWindowStart;
     if (meta?.scheduledWindowEnd !== undefined) patch.scheduledWindowEnd = meta.scheduledWindowEnd;
     if (meta?.deliveryAddressRef !== undefined) patch.deliveryAddressRef = meta.deliveryAddressRef;
     await db.update(deliveryPreparations).set(patch).where(eq(deliveryPreparations.id, d.id));
     await db.insert(deliveryPrepStatusHistory).values({
-      id: newId('dph'), orgId: d.orgId, deliveryPrepId: d.id, orderId: d.orderId,
-      fromStatus: d.status, toStatus: to, actorUserId: actor.userId, actorRole: actor.role, reason: meta?.reason ?? null,
+      id: newId('dph'),
+      orgId: d.orgId,
+      deliveryPrepId: d.id,
+      orderId: d.orderId,
+      fromStatus: d.status,
+      toStatus: to,
+      actorUserId: actor.userId,
+      actorRole: actor.role,
+      reason: meta?.reason ?? null,
     });
   });
 
   await writeAudit({
-    action: AUDIT_ACTION[to], orgId: d.orgId, actorUserId: actor.userId, actorRole: actor.role,
-    entityType: 'delivery_preparation', entityId: d.id, before: { status: d.status }, after: { status: to },
+    action: AUDIT_ACTION[to],
+    orgId: d.orgId,
+    actorUserId: actor.userId,
+    actorRole: actor.role,
+    entityType: 'delivery_preparation',
+    entityId: d.id,
+    before: { status: d.status },
+    after: { status: to },
   });
   // Event placeholder (refs + status only; no staff_notes/address/PII). Emitted only after success.
-  await emitDeliveryEvent(AUDIT_ACTION[to], { delivery_prep_id: d.id, order_id: d.orderId, status: to });
+  await emitDeliveryEvent(AUDIT_ACTION[to], {
+    delivery_prep_id: d.id,
+    order_id: d.orderId,
+    status: to,
+  });
 
   // Order join — existing legal edge only, only-if-expected.
   const order = await withPrivilegedDbAccess('delivery_prep.join.read_order', async (db) => {
-    const rows = await db.select({ status: orders.status }).from(orders).where(eq(orders.id, d.orderId)).limit(1);
+    const rows = await db
+      .select({ status: orders.status })
+      .from(orders)
+      .where(eq(orders.id, d.orderId))
+      .limit(1);
     return rows[0] ?? null;
   });
   const target = order ? deliveryOrderJoinTarget(to, order.status as OrderStatus) : null;
   if (target) {
-    await transitionOrderPrivileged({ id: d.orderId, orgId: d.orgId, status: 'arrived_juarez' }, target, actor);
+    await transitionOrderPrivileged(
+      { id: d.orderId, orgId: d.orgId, status: 'arrived_juarez' },
+      target,
+      actor,
+    );
   }
 
   // Scoped milestone notification placeholder (idempotent; no provider/send/body/PII/address).

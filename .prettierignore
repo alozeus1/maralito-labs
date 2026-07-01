@@ -4,3 +4,5 @@
 **/.turbo/**
 pnpm-lock.yaml
 docs/design/**/*.html
+docs/**/*.md
+packages/db/migrations/meta/**

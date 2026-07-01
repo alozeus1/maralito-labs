@@ -1,7 +1,17 @@
 import 'server-only';
 import { eq } from 'drizzle-orm';
-import { withPrivilegedDbAccess, inspections, inspectionStatusHistory, orders, newId } from '@maralito/db';
-import { assertInspectionTransition, inspectionResultFor, type InspectionStatus } from '@/domain/inspections/state-machine';
+import {
+  withPrivilegedDbAccess,
+  inspections,
+  inspectionStatusHistory,
+  orders,
+  newId,
+} from '@maralito/db';
+import {
+  assertInspectionTransition,
+  inspectionResultFor,
+  type InspectionStatus,
+} from '@/domain/inspections/state-machine';
 import { inspectionOrderJoinTarget, shouldNotifyInspection } from '@/domain/inspections/rules';
 import type { OrderStatus } from '@/domain/orders/state-machine';
 import { writeAudit } from './audit';
@@ -39,31 +49,59 @@ export async function transitionInspection(
 
   await withPrivilegedDbAccess(`inspection.transition:${i.status}->${to}`, async (db) => {
     const patch: Record<string, unknown> = { status: to, updatedAt: new Date() };
-    if (result) { patch.result = result; patch.completedAt = new Date(); }
+    if (result) {
+      patch.result = result;
+      patch.completedAt = new Date();
+    }
     if (meta?.customerSummary !== undefined) patch.customerSummary = meta.customerSummary;
     await db.update(inspections).set(patch).where(eq(inspections.id, i.id));
     await db.insert(inspectionStatusHistory).values({
-      id: newId('ish'), orgId: i.orgId, inspectionId: i.id, orderId: i.orderId,
-      fromStatus: i.status, toStatus: to, actorUserId: actor.userId, actorRole: actor.role, reason: meta?.reason ?? null,
+      id: newId('ish'),
+      orgId: i.orgId,
+      inspectionId: i.id,
+      orderId: i.orderId,
+      fromStatus: i.status,
+      toStatus: to,
+      actorUserId: actor.userId,
+      actorRole: actor.role,
+      reason: meta?.reason ?? null,
     });
   });
 
   await writeAudit({
-    action: auditAction(i.status, to), orgId: i.orgId, actorUserId: actor.userId, actorRole: actor.role,
-    entityType: 'inspection', entityId: i.id, before: { status: i.status }, after: { status: to },
+    action: auditAction(i.status, to),
+    orgId: i.orgId,
+    actorUserId: actor.userId,
+    actorRole: actor.role,
+    entityType: 'inspection',
+    entityId: i.id,
+    before: { status: i.status },
+    after: { status: to },
   });
   // Event placeholder (refs + status only; no staff_notes/PII). Emitted only after success.
-  await emitInspectionEvent(auditAction(i.status, to), { inspection_id: i.id, order_id: i.orderId, status: to });
+  await emitInspectionEvent(auditAction(i.status, to), {
+    inspection_id: i.id,
+    order_id: i.orderId,
+    status: to,
+  });
 
   // Order join — existing legal edges only, only-if-expected.
   if (result) {
     const order = await withPrivilegedDbAccess('inspection.join.read_order', async (db) => {
-      const rows = await db.select({ status: orders.status }).from(orders).where(eq(orders.id, i.orderId)).limit(1);
+      const rows = await db
+        .select({ status: orders.status })
+        .from(orders)
+        .where(eq(orders.id, i.orderId))
+        .limit(1);
       return rows[0] ?? null;
     });
     const target = order ? inspectionOrderJoinTarget(to, order.status as OrderStatus) : null;
     if (target) {
-      await transitionOrderPrivileged({ id: i.orderId, orgId: i.orgId, status: 'inspection_pending' }, target, actor);
+      await transitionOrderPrivileged(
+        { id: i.orderId, orgId: i.orgId, status: 'inspection_pending' },
+        target,
+        actor,
+      );
     }
   }
 

@@ -1,12 +1,25 @@
 import { describe, it, expect } from 'vitest';
 import {
-  toPaymentDisplayState, shouldShowPaymentForm, shouldPollPaymentStatus,
-  isSettledDisplayState, canRetryPayment, isPaidView, type PaymentDisplayState,
+  toPaymentDisplayState,
+  shouldShowPaymentForm,
+  shouldPollPaymentStatus,
+  isSettledDisplayState,
+  canRetryPayment,
+  isPaidView,
+  type PaymentDisplayState,
 } from './display';
 import type { PaymentStatus } from './state-machine';
 import type { OrderStatus } from '@/domain/orders/state-machine';
 
-const ALL_DISPLAY: PaymentDisplayState[] = ['none', 'ready_to_pay', 'processing', 'requires_action', 'succeeded', 'failed', 'canceled'];
+const ALL_DISPLAY: PaymentDisplayState[] = [
+  'none',
+  'ready_to_pay',
+  'processing',
+  'requires_action',
+  'succeeded',
+  'failed',
+  'canceled',
+];
 
 describe('toPaymentDisplayState', () => {
   it('order awaiting_payment + no payment → ready_to_pay', () =>
@@ -42,7 +55,13 @@ describe('toPaymentDisplayState', () => {
   });
 
   it('INVARIANT: never returns succeeded for failed/canceled/requires_action while awaiting_payment', () => {
-    for (const ps of ['failed', 'canceled', 'requires_action', 'processing', 'requires_payment'] as PaymentStatus[])
+    for (const ps of [
+      'failed',
+      'canceled',
+      'requires_action',
+      'processing',
+      'requires_payment',
+    ] as PaymentStatus[])
       expect(toPaymentDisplayState(ps, 'awaiting_payment')).not.toBe('succeeded');
   });
 });
@@ -59,19 +78,30 @@ describe('shouldShowPaymentForm', () => {
 describe('5.4 flow helpers', () => {
   it('polls only while processing', () => {
     expect(shouldPollPaymentStatus('processing')).toBe(true);
-    for (const st of ALL_DISPLAY.filter((s) => s !== 'processing')) expect(shouldPollPaymentStatus(st)).toBe(false);
+    for (const st of ALL_DISPLAY.filter((s) => s !== 'processing'))
+      expect(shouldPollPaymentStatus(st)).toBe(false);
   });
   it('settled states are succeeded/failed/canceled/none', () => {
-    for (const st of ['succeeded', 'failed', 'canceled', 'none'] as PaymentDisplayState[]) expect(isSettledDisplayState(st)).toBe(true);
-    for (const st of ['ready_to_pay', 'processing', 'requires_action'] as PaymentDisplayState[]) expect(isSettledDisplayState(st)).toBe(false);
+    for (const st of ['succeeded', 'failed', 'canceled', 'none'] as PaymentDisplayState[])
+      expect(isSettledDisplayState(st)).toBe(true);
+    for (const st of ['ready_to_pay', 'processing', 'requires_action'] as PaymentDisplayState[])
+      expect(isSettledDisplayState(st)).toBe(false);
   });
   it('retry only for failed or ready_to_pay', () => {
     expect(canRetryPayment('failed')).toBe(true);
     expect(canRetryPayment('ready_to_pay')).toBe(true);
-    for (const st of ['none', 'processing', 'requires_action', 'succeeded', 'canceled'] as PaymentDisplayState[]) expect(canRetryPayment(st)).toBe(false);
+    for (const st of [
+      'none',
+      'processing',
+      'requires_action',
+      'succeeded',
+      'canceled',
+    ] as PaymentDisplayState[])
+      expect(canRetryPayment(st)).toBe(false);
   });
   it('INVARIANT: the paid/success view renders ONLY for succeeded', () => {
     expect(isPaidView('succeeded')).toBe(true);
-    for (const st of ALL_DISPLAY.filter((s) => s !== 'succeeded')) expect(isPaidView(st)).toBe(false);
+    for (const st of ALL_DISPLAY.filter((s) => s !== 'succeeded'))
+      expect(isPaidView(st)).toBe(false);
   });
 });

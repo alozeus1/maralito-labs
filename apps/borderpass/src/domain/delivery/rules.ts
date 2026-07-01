@@ -10,8 +10,12 @@ import type { DeliveryPrepStatus } from './state-machine';
  * passed) up to (but not past) the Juárez handoff. Prefers requiring inspection passed.
  */
 const DELIVERY_ELIGIBLE_ORDER: readonly OrderStatus[] = [
-  'inspection_passed', 'border_documentation_ready', 'ready_for_crossing',
-  'border_crossing', 'customs_processing', 'arrived_juarez',
+  'inspection_passed',
+  'border_documentation_ready',
+  'ready_for_crossing',
+  'border_crossing',
+  'customs_processing',
+  'arrived_juarez',
 ];
 
 /** Delivery prep can be created only once the order has passed inspection (post-inspection chain). */

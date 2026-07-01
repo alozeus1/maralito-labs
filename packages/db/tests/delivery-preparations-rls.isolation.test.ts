@@ -15,12 +15,18 @@ let db: PGlite;
 async function asTenant<T>(sub: string | null, fn: () => Promise<T>): Promise<T> {
   await db.query('begin');
   try {
-    if (sub) await db.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify({ sub, role: 'authenticated' })]);
+    if (sub)
+      await db.query("select set_config('request.jwt.claims',$1,true)", [
+        JSON.stringify({ sub, role: 'authenticated' }),
+      ]);
     await db.query('set local role authenticated');
     return await fn();
-  } finally { await db.query('commit').catch(() => {}); }
+  } finally {
+    await db.query('commit').catch(() => {});
+  }
 }
-const rows = (sql: string, p: unknown[] = []) => db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
+const rows = (sql: string, p: unknown[] = []) =>
+  db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
 
 beforeAll(async () => {
   db = new PGlite();
@@ -60,7 +66,15 @@ beforeAll(async () => {
     grant select, insert, update on all tables in schema public to authenticated;
     grant execute on all functions in schema auth to authenticated;
   `);
-  for (const f of ['policies.sql', 'orders-policies.sql', 'quotes-policies.sql', 'payments-policies.sql', 'notifications-policies.sql', 'inspections-policies.sql', 'delivery-preparations-policies.sql']) {
+  for (const f of [
+    'policies.sql',
+    'orders-policies.sql',
+    'quotes-policies.sql',
+    'payments-policies.sql',
+    'notifications-policies.sql',
+    'inspections-policies.sql',
+    'delivery-preparations-policies.sql',
+  ]) {
     await db.exec(readFileSync(new URL(`../src/rls/${f}`, import.meta.url), 'utf8'));
   }
   await db.exec('grant execute on all functions in schema public to authenticated;');
@@ -78,26 +92,44 @@ beforeAll(async () => {
 
 describe('delivery_preparations RLS isolation (real policy files on PGlite)', () => {
   it('customer A sees own delivery-prep, not others', async () =>
-    expect(await asTenant(A, () => rows('select id from delivery_preparations'))).toEqual([{ id: 'dlp_a' }]));
+    expect(await asTenant(A, () => rows('select id from delivery_preparations'))).toEqual([
+      { id: 'dlp_a' },
+    ]));
   it('customer B (no record) sees none', async () =>
     expect(await asTenant(B, () => rows('select * from delivery_preparations'))).toHaveLength(0));
   it('staff/ops reads org delivery-preps', async () =>
-    expect(await asTenant(OPS, () => rows('select id from delivery_preparations'))).toHaveLength(1));
+    expect(await asTenant(OPS, () => rows('select id from delivery_preparations'))).toHaveLength(
+      1,
+    ));
   it('customer CANNOT insert a delivery-prep (no write policy → rejected)', async () => {
-    await expect(asTenant(A, () => rows(
-      "insert into delivery_preparations(id,org_id,customer_id,order_id,status) values('dlp_x','org_a','cust_a','ord_a','pending') returning id",
-    ))).rejects.toThrow();
+    await expect(
+      asTenant(A, () =>
+        rows(
+          "insert into delivery_preparations(id,org_id,customer_id,order_id,status) values('dlp_x','org_a','cust_a','ord_a','pending') returning id",
+        ),
+      ),
+    ).rejects.toThrow();
   });
   it('customer CANNOT update a delivery-prep (no write policy → 0 rows)', async () => {
-    const updated = await asTenant(A, () => rows("update delivery_preparations set status='ready' where id='dlp_a' returning id"));
+    const updated = await asTenant(A, () =>
+      rows("update delivery_preparations set status='ready' where id='dlp_a' returning id"),
+    );
     expect(updated).toHaveLength(0);
-    const after = await asTenant(OPS, () => rows("select status from delivery_preparations where id='dlp_a'"));
+    const after = await asTenant(OPS, () =>
+      rows("select status from delivery_preparations where id='dlp_a'"),
+    );
     expect(after[0]).toEqual({ status: 'preparing' });
   });
   it('customer cannot read the status-history; staff can', async () => {
-    expect(await asTenant(A, () => rows('select * from delivery_prep_status_history'))).toHaveLength(0);
-    expect(await asTenant(OPS, () => rows('select id from delivery_prep_status_history'))).toHaveLength(1);
+    expect(
+      await asTenant(A, () => rows('select * from delivery_prep_status_history')),
+    ).toHaveLength(0);
+    expect(
+      await asTenant(OPS, () => rows('select id from delivery_prep_status_history')),
+    ).toHaveLength(1);
   });
   it('missing claims → no delivery-preps', async () =>
-    expect(await asTenant(null, () => rows('select * from delivery_preparations'))).toHaveLength(0));
+    expect(await asTenant(null, () => rows('select * from delivery_preparations'))).toHaveLength(
+      0,
+    ));
 });

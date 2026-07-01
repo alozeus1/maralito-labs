@@ -9,7 +9,12 @@ export async function emitInspectionEvent(
   data: { inspection_id: string; order_id: string; status?: string; [k: string]: unknown },
 ): Promise<void> {
   void {
-    id: `evt_${Date.now()}`, type, version: 1, source: 'borderpass',
-    correlation_id: data.order_id, data, occurred_at: new Date().toISOString(),
+    id: `evt_${Date.now()}`,
+    type,
+    version: 1,
+    source: 'borderpass',
+    correlation_id: data.order_id,
+    data,
+    occurred_at: new Date().toISOString(),
   };
 }

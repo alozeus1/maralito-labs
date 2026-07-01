@@ -33,7 +33,10 @@ export interface PaymentEventEnvelope {
  * Placeholder emitter. Builds the envelope and drops it (no transport). Callers pass ids + a minimal,
  * non-sensitive summary (never client_secret, card data, secrets, or raw payloads).
  */
-export async function emitPaymentEvent(type: string, data: Record<string, unknown> = {}): Promise<void> {
+export async function emitPaymentEvent(
+  type: string,
+  data: Record<string, unknown> = {},
+): Promise<void> {
   const envelope: PaymentEventEnvelope = {
     id: `evt_${Date.now()}`,
     type,

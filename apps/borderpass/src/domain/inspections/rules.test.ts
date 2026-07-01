@@ -5,11 +5,28 @@ import type { InspectionStatus } from './state-machine';
 
 describe('canStartInspection', () => {
   it('allows paid + post-paid pre-inspection order states', () => {
-    for (const os of ['paid', 'purchasing', 'purchased', 'awaiting_package', 'received_el_paso', 'inspection_pending'] as OrderStatus[])
+    for (const os of [
+      'paid',
+      'purchasing',
+      'purchased',
+      'awaiting_package',
+      'received_el_paso',
+      'inspection_pending',
+    ] as OrderStatus[])
       expect(canStartInspection(os)).toBe(true);
   });
   it('rejects pre-paid and unrelated states', () => {
-    for (const os of ['draft', 'submitted', 'under_review', 'quote_ready', 'awaiting_payment', 'inspection_passed', 'delivered', 'cancelled', 'refunded'] as OrderStatus[])
+    for (const os of [
+      'draft',
+      'submitted',
+      'under_review',
+      'quote_ready',
+      'awaiting_payment',
+      'inspection_passed',
+      'delivered',
+      'cancelled',
+      'refunded',
+    ] as OrderStatus[])
       expect(canStartInspection(os)).toBe(false);
   });
 });
@@ -20,7 +37,12 @@ describe('inspectionOrderJoinTarget — only drives the existing inspection_pend
     expect(inspectionOrderJoinTarget('failed', 'inspection_pending')).toBe('inspection_failed');
   });
   it('no join when the order is NOT at inspection_pending', () => {
-    for (const os of ['paid', 'received_el_paso', 'inspection_passed', 'delivered'] as OrderStatus[]) {
+    for (const os of [
+      'paid',
+      'received_el_paso',
+      'inspection_passed',
+      'delivered',
+    ] as OrderStatus[]) {
       expect(inspectionOrderJoinTarget('passed', os)).toBeNull();
       expect(inspectionOrderJoinTarget('failed', os)).toBeNull();
     }

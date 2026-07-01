@@ -1,4 +1,12 @@
-import { pgTable, text, uuid, timestamp, primaryKey, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  text,
+  uuid,
+  timestamp,
+  primaryKey,
+  index,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 import { organizations } from './identity';
 
 export const roles = pgTable('roles', {
@@ -15,8 +23,12 @@ export const permissions = pgTable('permissions', {
 export const rolePermissions = pgTable(
   'role_permissions',
   {
-    roleKey: text('role_key').notNull().references(() => roles.key),
-    permissionKey: text('permission_key').notNull().references(() => permissions.key),
+    roleKey: text('role_key')
+      .notNull()
+      .references(() => roles.key),
+    permissionKey: text('permission_key')
+      .notNull()
+      .references(() => permissions.key),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.roleKey, t.permissionKey] }),
@@ -30,8 +42,12 @@ export const userRoles = pgTable(
   {
     id: text('id').primaryKey(),
     authUserId: uuid('auth_user_id').notNull(),
-    orgId: text('org_id').notNull().references(() => organizations.id),
-    roleKey: text('role_key').notNull().references(() => roles.key),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id),
+    roleKey: text('role_key')
+      .notNull()
+      .references(() => roles.key),
     assignedBy: uuid('assigned_by'),
     assignedAt: timestamp('assigned_at', { withTimezone: true }).defaultNow().notNull(),
   },

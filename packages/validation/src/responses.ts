@@ -11,5 +11,6 @@ export const ApiError = z.object({
 });
 export type ApiError = z.infer<typeof ApiError>;
 
-export const apiSuccess = <T extends z.ZodTypeAny>(data: T) => z.object({ ok: z.literal(true), data });
+export const apiSuccess = <T extends z.ZodTypeAny>(data: T) =>
+  z.object({ ok: z.literal(true), data });
 export type ApiSuccess<T> = { ok: true; data: T };

@@ -17,7 +17,9 @@ export interface PaymentIntentResult {
 }
 
 /** Create a PaymentIntent idempotently (Stripe returns the same intent for the same idempotency key). */
-export async function createPaymentIntent(input: CreatePaymentIntentInput): Promise<PaymentIntentResult> {
+export async function createPaymentIntent(
+  input: CreatePaymentIntentInput,
+): Promise<PaymentIntentResult> {
   const stripe = getStripeClient();
   const pi = await stripe.paymentIntents.create(
     { amount: input.amountMinor, currency: input.currency, metadata: input.metadata },

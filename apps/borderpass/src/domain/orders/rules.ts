@@ -18,12 +18,18 @@ export interface OrderForSubmit {
 /** Submit-rule check (PRD 08 subset). Returns missing-field keys; empty = ok to submit. */
 export function submitMissingFields(o: OrderForSubmit): string[] {
   const missing: string[] = [];
-  if (o.status !== 'draft' && o.status !== 'missing_information') missing.push('status_not_submittable');
+  if (o.status !== 'draft' && o.status !== 'missing_information')
+    missing.push('status_not_submittable');
   if (o.itemCount < 1) missing.push('items');
   if (!o.purpose) missing.push('purpose');
   if (!o.declaredValue || o.declaredValue.amount_minor <= 0) missing.push('declared_value');
   if (o.serviceType === 'package_reception' && !o.hubAddressId) missing.push('hub_address');
-  if ((o.serviceType === 'buy_for_me' || o.serviceType === 'local_pickup' || o.serviceType === 'business_delivery') && !o.deliveryAddressId)
+  if (
+    (o.serviceType === 'buy_for_me' ||
+      o.serviceType === 'local_pickup' ||
+      o.serviceType === 'business_delivery') &&
+    !o.deliveryAddressId
+  )
     missing.push('delivery_address');
   return missing;
 }

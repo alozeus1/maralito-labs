@@ -17,14 +17,19 @@ type TxRunner<T> = (tx: Parameters<Parameters<Db['transaction']>[0]>[0]) => Prom
  * Fallback strategies (direct conn / claims-only / Supabase-client executor) swap HERE — see
  * docs/phase-1.6/live-supabase-rls-gate.md — without changing domain code.
  */
-export async function withTenant<T>(ctx: TenantContext, fn: TxRunner<T>, mode: EnforcementMode = 'strict'): Promise<T> {
+export async function withTenant<T>(
+  ctx: TenantContext,
+  fn: TxRunner<T>,
+  mode: EnforcementMode = 'strict',
+): Promise<T> {
   const db = getDb();
   const role = ctx.role ?? 'authenticated';
   const claims = JSON.stringify({ sub: ctx.authUserId, role, org_id: ctx.orgId ?? null });
   return db.transaction(async (tx) => {
     await tx.execute(sql`select set_config('request.jwt.claims', ${claims}, true)`);
     await tx.execute(sql`select set_config('request.jwt.claim.sub', ${ctx.authUserId}, true)`);
-    if (ctx.orgId) await tx.execute(sql`select set_config('app.current_org_id', ${ctx.orgId}, true)`);
+    if (ctx.orgId)
+      await tx.execute(sql`select set_config('app.current_org_id', ${ctx.orgId}, true)`);
     if (mode === 'strict') await tx.execute(sql`set local role authenticated`);
     return fn(tx);
   });
@@ -49,7 +54,10 @@ export async function canAssumeAuthenticatedRole(): Promise<boolean> {
  * seed/bootstrap, audit writes, role/admin maintenance, new-user provisioning, system ops that
  * can't run as the tenant. Requires a `reason`; callers SHOULD emit an audit record. Server-only.
  */
-export async function withPrivilegedDbAccess<T>(reason: string, fn: (db: Db) => Promise<T>): Promise<T> {
+export async function withPrivilegedDbAccess<T>(
+  reason: string,
+  fn: (db: Db) => Promise<T>,
+): Promise<T> {
   if (!reason || reason.trim().length < 3) {
     throw new Error('withPrivilegedDbAccess requires a justification reason');
   }

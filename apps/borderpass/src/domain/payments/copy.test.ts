@@ -2,7 +2,15 @@ import { describe, it, expect } from 'vitest';
 import { paymentStatusCopy, paymentStatusLabel, PAID_TITLE } from './copy';
 import type { PaymentDisplayState } from './display';
 
-const ALL: PaymentDisplayState[] = ['none', 'ready_to_pay', 'processing', 'requires_action', 'succeeded', 'failed', 'canceled'];
+const ALL: PaymentDisplayState[] = [
+  'none',
+  'ready_to_pay',
+  'processing',
+  'requires_action',
+  'succeeded',
+  'failed',
+  'canceled',
+];
 
 describe('paymentStatusCopy', () => {
   it('returns non-empty title + body for every state', () => {
@@ -30,7 +38,8 @@ describe('paymentStatusLabel', () => {
   it('gives a short label for every state; only succeeded is "Paid"', () => {
     for (const st of ALL) expect(paymentStatusLabel(st).length).toBeGreaterThan(0);
     expect(paymentStatusLabel('succeeded')).toBe('Paid');
-    for (const st of ALL.filter((s) => s !== 'succeeded')) expect(paymentStatusLabel(st)).not.toBe('Paid');
+    for (const st of ALL.filter((s) => s !== 'succeeded'))
+      expect(paymentStatusLabel(st)).not.toBe('Paid');
     expect(paymentStatusLabel('ready_to_pay')).toBe('Awaiting payment');
     expect(paymentStatusLabel('requires_action')).toBe('Action required');
   });

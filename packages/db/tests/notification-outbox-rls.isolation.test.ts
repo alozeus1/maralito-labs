@@ -15,12 +15,18 @@ let db: PGlite;
 async function asTenant<T>(sub: string | null, fn: () => Promise<T>): Promise<T> {
   await db.query('begin');
   try {
-    if (sub) await db.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify({ sub, role: 'authenticated' })]);
+    if (sub)
+      await db.query("select set_config('request.jwt.claims',$1,true)", [
+        JSON.stringify({ sub, role: 'authenticated' }),
+      ]);
     await db.query('set local role authenticated');
     return await fn();
-  } finally { await db.query('commit').catch(() => {}); }
+  } finally {
+    await db.query('commit').catch(() => {});
+  }
 }
-const rows = (sql: string, p: unknown[] = []) => db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
+const rows = (sql: string, p: unknown[] = []) =>
+  db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
 
 beforeAll(async () => {
   db = new PGlite();
@@ -60,7 +66,9 @@ beforeAll(async () => {
   await db.exec(readFileSync(new URL('../src/rls/orders-policies.sql', import.meta.url), 'utf8'));
   await db.exec(readFileSync(new URL('../src/rls/quotes-policies.sql', import.meta.url), 'utf8'));
   await db.exec(readFileSync(new URL('../src/rls/payments-policies.sql', import.meta.url), 'utf8'));
-  await db.exec(readFileSync(new URL('../src/rls/notifications-policies.sql', import.meta.url), 'utf8'));
+  await db.exec(
+    readFileSync(new URL('../src/rls/notifications-policies.sql', import.meta.url), 'utf8'),
+  );
   await db.exec('grant execute on all functions in schema public to authenticated;');
   await db.exec(`
     insert into organizations(id,name) values('org_a','A');
@@ -77,16 +85,22 @@ beforeAll(async () => {
 
 describe('notification_outbox RLS isolation (real policy files on PGlite)', () => {
   it('customer A sees own receipt metadata, not others', async () => {
-    expect(await asTenant(A, () => rows('select id from notification_outbox'))).toEqual([{ id: 'nob_a' }]);
+    expect(await asTenant(A, () => rows('select id from notification_outbox'))).toEqual([
+      { id: 'nob_a' },
+    ]);
   });
   it('customer B (no receipt) sees none', async () =>
     expect(await asTenant(B, () => rows('select * from notification_outbox'))).toHaveLength(0));
   it('staff/ops reads org-scoped receipts', async () =>
     expect(await asTenant(OPS, () => rows('select id from notification_outbox'))).toHaveLength(1));
   it('customer CANNOT insert a notification row (no write policy → rejected)', async () => {
-    await expect(asTenant(A, () => rows(
-      "insert into notification_outbox(id,org_id,customer_id,order_id,payment_id,channel,template_key,idempotency_key) values('nob_x','org_a','cust_a','ord_a','pay_a','receipt_placeholder','payment_receipt','receipt:hack') returning id",
-    ))).rejects.toThrow();
+    await expect(
+      asTenant(A, () =>
+        rows(
+          "insert into notification_outbox(id,org_id,customer_id,order_id,payment_id,channel,template_key,idempotency_key) values('nob_x','org_a','cust_a','ord_a','pay_a','receipt_placeholder','payment_receipt','receipt:hack') returning id",
+        ),
+      ),
+    ).rejects.toThrow();
   });
   it('missing claims → no receipts', async () =>
     expect(await asTenant(null, () => rows('select * from notification_outbox'))).toHaveLength(0));
@@ -99,7 +113,9 @@ describe('notification_outbox idempotency (privileged enqueue dedupe)', () => {
       "insert into notification_outbox(id,org_id,customer_id,order_id,payment_id,channel,template_key,idempotency_key) values('nob_dup','org_a','cust_a','ord_a','pay_a','receipt_placeholder','payment_receipt','receipt:pay_a') on conflict (idempotency_key) do nothing returning id",
     );
     expect(dup).toEqual([]); // conflict → no second row
-    const all = await rows("select count(*)::int as n from notification_outbox where idempotency_key='receipt:pay_a'");
+    const all = await rows(
+      "select count(*)::int as n from notification_outbox where idempotency_key='receipt:pay_a'",
+    );
     expect(all[0]).toEqual({ n: 1 });
   });
 });

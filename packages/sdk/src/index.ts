@@ -16,16 +16,31 @@ export interface IdentityService {
 }
 export interface AuditService {
   write(entry: {
-    action: string; actorUserId?: string; actorRole?: string;
-    entityType?: string; entityId?: string; before?: unknown; after?: unknown;
+    action: string;
+    actorUserId?: string;
+    actorRole?: string;
+    entityType?: string;
+    entityId?: string;
+    before?: unknown;
+    after?: unknown;
     metadata?: Record<string, unknown>;
   }): Promise<void>;
 }
-export interface PaymentsService { readonly _placeholder: true }
-export interface NotificationsService { readonly _placeholder: true }
-export interface FilesService { readonly _placeholder: true }
-export interface AiGatewayService { readonly _placeholder: true }
-export interface AutomationService { readonly _placeholder: true }
+export interface PaymentsService {
+  readonly _placeholder: true;
+}
+export interface NotificationsService {
+  readonly _placeholder: true;
+}
+export interface FilesService {
+  readonly _placeholder: true;
+}
+export interface AiGatewayService {
+  readonly _placeholder: true;
+}
+export interface AutomationService {
+  readonly _placeholder: true;
+}
 
 export interface MaralitoSdk {
   identity: IdentityService;
@@ -38,5 +53,7 @@ export interface MaralitoSdk {
 }
 
 export function createMaralitoSdk(_ctx: MaralitoContext): MaralitoSdk {
-  throw new Error('TODO(pre-phase1-confirm): @maralito/sdk not implemented; BorderPass-local foundation in use (ADR-0005).');
+  throw new Error(
+    'TODO(pre-phase1-confirm): @maralito/sdk not implemented; BorderPass-local foundation in use (ADR-0005).',
+  );
 }

@@ -3,7 +3,13 @@
  * layer enforces staff authorization). This is a DOMAIN machine on the inspection record — it does NOT add
  * order states. The order is driven only at its existing join points via transitionOrder (Increment 6.2).
  */
-export const INSPECTION_STATUSES = ['scheduled', 'in_progress', 'on_hold', 'passed', 'failed'] as const;
+export const INSPECTION_STATUSES = [
+  'scheduled',
+  'in_progress',
+  'on_hold',
+  'passed',
+  'failed',
+] as const;
 export type InspectionStatus = (typeof INSPECTION_STATUSES)[number];
 
 export type InspectionResult = 'passed' | 'failed';
@@ -35,7 +41,10 @@ export function inspectionResultFor(status: InspectionStatus): InspectionResult 
   return null;
 }
 export class IllegalInspectionTransitionError extends Error {
-  constructor(readonly from: InspectionStatus, readonly to: InspectionStatus) {
+  constructor(
+    readonly from: InspectionStatus,
+    readonly to: InspectionStatus,
+  ) {
     super(`illegal inspection transition: ${from} → ${to}`);
     this.name = 'IllegalInspectionTransitionError';
   }

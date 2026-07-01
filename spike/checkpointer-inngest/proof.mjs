@@ -7,8 +7,12 @@ const THREAD_ID = 'ord_demo_0001';
 const CKPT = new URL('./.checkpoint.json', import.meta.url);
 const sideEffects = []; // proves a node runs at most once
 
-function saveCheckpoint(cp) { writeFileSync(CKPT, JSON.stringify(cp, null, 2)); }
-function loadCheckpoint() { return existsSync(CKPT) ? JSON.parse(readFileSync(CKPT, 'utf8')) : null; }
+function saveCheckpoint(cp) {
+  writeFileSync(CKPT, JSON.stringify(cp, null, 2));
+}
+function loadCheckpoint() {
+  return existsSync(CKPT) ? JSON.parse(readFileSync(CKPT, 'utf8')) : null;
+}
 
 // "nodes"
 function nodeRecommend(state) {
@@ -28,12 +32,17 @@ if (mode === 'phase1') {
   state = nodeRecommend(state);
   // INTERRUPT: human approval required. Inngest step.waitForEvent durably waits here.
   saveCheckpoint({ thread_id: THREAD_ID, next: 'finalize', state, completed_nodes: ['recommend'] });
-  console.log('[phase1] reached approval interrupt; checkpoint persisted; process exiting (pause).');
+  console.log(
+    '[phase1] reached approval interrupt; checkpoint persisted; process exiting (pause).',
+  );
   console.log('[phase1] side-effects this process:', JSON.stringify(sideEffects));
 } else if (mode === 'approve') {
   // Simulated RESTART: brand-new process. Resume strictly from the checkpoint.
   const cp = loadCheckpoint();
-  if (!cp) { console.error('NO CHECKPOINT — fail'); process.exit(1); }
+  if (!cp) {
+    console.error('NO CHECKPOINT — fail');
+    process.exit(1);
+  }
   console.log('[approve] loaded checkpoint for', cp.thread_id, '— resuming at node:', cp.next);
   console.log('[approve] completed_nodes restored:', JSON.stringify(cp.completed_nodes));
   let state = cp.state;
@@ -44,12 +53,17 @@ if (mode === 'phase1') {
   // ASSERTIONS
   const ok =
     state.status === 'completed' &&
-    state.recommendation && state.recommendation.risk_band === 'LOW' && // state survived restart
-    !sideEffects.includes('recommend') &&                              // recommend NOT re-run
+    state.recommendation &&
+    state.recommendation.risk_band === 'LOW' && // state survived restart
+    !sideEffects.includes('recommend') && // recommend NOT re-run
     sideEffects.includes('finalize');
-  console.log(ok ? '\nRESULT: PASS — resumed mid-graph, state preserved, no duplicate side effects.'
-                 : '\nRESULT: FAIL');
+  console.log(
+    ok
+      ? '\nRESULT: PASS — resumed mid-graph, state preserved, no duplicate side effects.'
+      : '\nRESULT: FAIL',
+  );
   process.exit(ok ? 0 : 1);
 } else {
-  console.error('usage: node proof.mjs phase1|approve'); process.exit(2);
+  console.error('usage: node proof.mjs phase1|approve');
+  process.exit(2);
 }

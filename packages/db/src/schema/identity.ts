@@ -13,7 +13,9 @@ export const userIdentities = pgTable(
   {
     id: text('id').primaryKey(),
     authUserId: uuid('auth_user_id').notNull().unique(),
-    orgId: text('org_id').notNull().references(() => organizations.id),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id),
     status: text('status').$type<'active' | 'suspended' | 'deleted'>().notNull().default('active'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },

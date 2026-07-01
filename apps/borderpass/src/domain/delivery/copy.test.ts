@@ -4,7 +4,8 @@ import { DELIVERY_PREP_STATUSES } from './state-machine';
 
 describe('deliveryPrepStatusLabel', () => {
   it('gives a non-empty label for every status', () => {
-    for (const s of DELIVERY_PREP_STATUSES) expect(deliveryPrepStatusLabel(s).length).toBeGreaterThan(0);
+    for (const s of DELIVERY_PREP_STATUSES)
+      expect(deliveryPrepStatusLabel(s).length).toBeGreaterThan(0);
   });
   it('maps the key statuses', () => {
     expect(deliveryPrepStatusLabel('preparing')).toBe('Preparing');

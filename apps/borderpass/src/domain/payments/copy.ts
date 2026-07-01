@@ -16,30 +16,55 @@ export const PAID_TITLE = 'Payment confirmed';
 /** Short read-only status label (admin + customer detail views). Pure. */
 export function paymentStatusLabel(state: PaymentDisplayState): string {
   switch (state) {
-    case 'ready_to_pay': return 'Awaiting payment';
-    case 'processing': return 'Processing';
-    case 'requires_action': return 'Action required';
-    case 'succeeded': return 'Paid';
-    case 'failed': return 'Failed';
-    case 'canceled': return 'Canceled';
-    case 'none': return 'Not at payment step';
+    case 'ready_to_pay':
+      return 'Awaiting payment';
+    case 'processing':
+      return 'Processing';
+    case 'requires_action':
+      return 'Action required';
+    case 'succeeded':
+      return 'Paid';
+    case 'failed':
+      return 'Failed';
+    case 'canceled':
+      return 'Canceled';
+    case 'none':
+      return 'Not at payment step';
   }
 }
 
 export function paymentStatusCopy(state: PaymentDisplayState): PaymentCopy {
   switch (state) {
     case 'ready_to_pay':
-      return { title: 'Complete your payment', body: 'Enter your payment details to pay securely with Stripe.' };
+      return {
+        title: 'Complete your payment',
+        body: 'Enter your payment details to pay securely with Stripe.',
+      };
     case 'processing':
-      return { title: 'Confirming your payment', body: 'Your payment is being confirmed. This can take a moment — please do not pay again.' };
+      return {
+        title: 'Confirming your payment',
+        body: 'Your payment is being confirmed. This can take a moment — please do not pay again.',
+      };
     case 'requires_action':
-      return { title: 'One more step', body: 'Your bank needs an extra step to approve this payment. Please complete it to continue.' };
+      return {
+        title: 'One more step',
+        body: 'Your bank needs an extra step to approve this payment. Please complete it to continue.',
+      };
     case 'succeeded':
-      return { title: PAID_TITLE, body: 'Thank you. Your payment is confirmed and your order is moving forward.' };
+      return {
+        title: PAID_TITLE,
+        body: 'Thank you. Your payment is confirmed and your order is moving forward.',
+      };
     case 'failed':
-      return { title: 'Payment did not go through', body: 'Your last attempt did not complete. You can try again — you will not be charged twice.' };
+      return {
+        title: 'Payment did not go through',
+        body: 'Your last attempt did not complete. You can try again — you will not be charged twice.',
+      };
     case 'canceled':
-      return { title: 'Payment canceled', body: 'This payment was canceled. Please contact support if you need help.' };
+      return {
+        title: 'Payment canceled',
+        body: 'This payment was canceled. Please contact support if you need help.',
+      };
     case 'none':
       return { title: 'Not ready for payment', body: 'This order is not ready for payment yet.' };
   }

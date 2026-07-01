@@ -16,14 +16,17 @@ export const MarkDeliveryPrep = z.object({
   delivery_prep_id: DeliveryPrepId,
   customer_summary: z.string().max(500).optional(),
 });
-export const ScheduleDelivery = z.object({
-  delivery_prep_id: DeliveryPrepId,
-  scheduled_window_start: z.string().datetime(),
-  scheduled_window_end: z.string().datetime(),
-  customer_summary: z.string().max(500).optional(),
-}).refine((v) => new Date(v.scheduled_window_end) > new Date(v.scheduled_window_start), {
-  message: 'scheduled_window_end must be after scheduled_window_start', path: ['scheduled_window_end'],
-});
+export const ScheduleDelivery = z
+  .object({
+    delivery_prep_id: DeliveryPrepId,
+    scheduled_window_start: z.string().datetime(),
+    scheduled_window_end: z.string().datetime(),
+    customer_summary: z.string().max(500).optional(),
+  })
+  .refine((v) => new Date(v.scheduled_window_end) > new Date(v.scheduled_window_start), {
+    message: 'scheduled_window_end must be after scheduled_window_start',
+    path: ['scheduled_window_end'],
+  });
 export const HandOffDelivery = z.object({
   delivery_prep_id: DeliveryPrepId,
   reason: z.string().max(1000).optional(),

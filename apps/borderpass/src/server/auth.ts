@@ -15,7 +15,9 @@ export async function getAppSession(): Promise<AppSession | null> {
     if (!getServerEnv().DATABASE_URL) return null;
 
     return await withTenant({ authUserId: user.id }, async (tx) => {
-      const identity = await tx.query.userIdentities.findFirst({ where: eq(userIdentities.authUserId, user.id) });
+      const identity = await tx.query.userIdentities.findFirst({
+        where: eq(userIdentities.authUserId, user.id),
+      });
       if (!identity) return null;
       const roleRows = await tx.select().from(userRoles).where(eq(userRoles.authUserId, user.id));
       const roles = roleRows.map((r) => r.roleKey as Role);
@@ -24,7 +26,12 @@ export async function getAppSession(): Promise<AppSession | null> {
         const perms = await tx.select().from(rolePermissions).where(eq(rolePermissions.roleKey, r));
         perms.forEach((p) => permissions.add(p.permissionKey));
       }
-      return buildSession({ authUserId: user.id, orgId: identity.orgId, roles, permissions: [...permissions] });
+      return buildSession({
+        authUserId: user.id,
+        orgId: identity.orgId,
+        roles,
+        permissions: [...permissions],
+      });
     });
   } catch {
     return null;

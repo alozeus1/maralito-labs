@@ -32,7 +32,10 @@ export function requireRole(session: AppSession | null | undefined, role: Role):
   if (!hasRole(s, role) && !isSuperAdmin(s)) throw new AuthError('forbidden');
   return s;
 }
-export function requirePermission(session: AppSession | null | undefined, permission: Permission): AppSession {
+export function requirePermission(
+  session: AppSession | null | undefined,
+  permission: Permission,
+): AppSession {
   const s = requireAuth(session);
   if (!hasPermission(s, permission)) throw new AuthError('forbidden');
   return s;

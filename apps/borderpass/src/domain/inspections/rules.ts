@@ -7,7 +7,12 @@ import type { InspectionStatus } from './state-machine';
 
 /** Order statuses for which the inspection lifecycle may begin (paid + post-paid pre-inspection chain). */
 const INSPECTION_ELIGIBLE_ORDER: readonly OrderStatus[] = [
-  'paid', 'purchasing', 'purchased', 'awaiting_package', 'received_el_paso', 'inspection_pending',
+  'paid',
+  'purchasing',
+  'purchased',
+  'awaiting_package',
+  'received_el_paso',
+  'inspection_pending',
 ];
 
 /** Post-payment lifecycle gate: an inspection can be created only once the order is paid (or beyond). */

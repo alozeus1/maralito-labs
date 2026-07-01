@@ -1,4 +1,13 @@
-import { pgTable, text, integer, boolean, jsonb, timestamp, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  text,
+  integer,
+  boolean,
+  jsonb,
+  timestamp,
+  index,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { organizations } from './identity';
 import { customerProfiles } from './profiles';
@@ -12,8 +21,13 @@ import { quotes } from './quotes';
  */
 export const PAYMENT_PROVIDERS = ['stripe'] as const;
 export const PAYMENT_STATUSES = [
-  'requires_payment', 'processing', 'requires_action',
-  'succeeded', 'failed', 'canceled', 'refunded_placeholder',
+  'requires_payment',
+  'processing',
+  'requires_action',
+  'succeeded',
+  'failed',
+  'canceled',
+  'refunded_placeholder',
 ] as const;
 export const WEBHOOK_PROCESSING_STATUSES = ['received', 'completed', 'ignored', 'failed'] as const;
 export const REFUND_STATUSES = ['placeholder'] as const;
@@ -23,12 +37,26 @@ export const payments = pgTable(
   'payments',
   {
     id: text('id').primaryKey(), // pay_<id>
-    orgId: text('org_id').notNull().references(() => organizations.id),
-    customerId: text('customer_id').notNull().references(() => customerProfiles.id),
-    orderId: text('order_id').notNull().references(() => orders.id),
-    quoteId: text('quote_id').notNull().references(() => quotes.id),
-    provider: text('provider').$type<(typeof PAYMENT_PROVIDERS)[number]>().notNull().default('stripe'),
-    status: text('status').$type<(typeof PAYMENT_STATUSES)[number]>().notNull().default('requires_payment'),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id),
+    customerId: text('customer_id')
+      .notNull()
+      .references(() => customerProfiles.id),
+    orderId: text('order_id')
+      .notNull()
+      .references(() => orders.id),
+    quoteId: text('quote_id')
+      .notNull()
+      .references(() => quotes.id),
+    provider: text('provider')
+      .$type<(typeof PAYMENT_PROVIDERS)[number]>()
+      .notNull()
+      .default('stripe'),
+    status: text('status')
+      .$type<(typeof PAYMENT_STATUSES)[number]>()
+      .notNull()
+      .default('requires_payment'),
     amountMinor: integer('amount_minor').notNull(), // = accepted quote total_minor
     currency: text('currency').$type<'USD' | 'MXN'>().notNull().default('USD'),
     // Stripe references only — no sensitive payment-method data.
@@ -48,7 +76,9 @@ export const payments = pgTable(
     // Idempotent creation: one logical payment per provider idempotency key.
     providerKeyUq: uniqueIndex('payments_provider_key_uq').on(t.provider, t.idempotencyKey),
     // One payment row per Stripe PaymentIntent (partial — only when set).
-    intentUq: uniqueIndex('payments_intent_uq').on(t.stripePaymentIntentId).where(sql`${t.stripePaymentIntentId} is not null`),
+    intentUq: uniqueIndex('payments_intent_uq')
+      .on(t.stripePaymentIntentId)
+      .where(sql`${t.stripePaymentIntentId} is not null`),
   }),
 );
 
@@ -60,14 +90,25 @@ export const paymentEvents = pgTable(
   'payment_events',
   {
     id: text('id').primaryKey(), // pme_<id>
-    orgId: text('org_id').notNull().references(() => organizations.id),
-    paymentId: text('payment_id').notNull().references(() => payments.id),
-    orderId: text('order_id').notNull().references(() => orders.id),
-    quoteId: text('quote_id').notNull().references(() => quotes.id),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id),
+    paymentId: text('payment_id')
+      .notNull()
+      .references(() => payments.id),
+    orderId: text('order_id')
+      .notNull()
+      .references(() => orders.id),
+    quoteId: text('quote_id')
+      .notNull()
+      .references(() => quotes.id),
     eventType: text('event_type').notNull(), // e.g. payment.status_changed, payment.webhook_received
     fromStatus: text('from_status').$type<(typeof PAYMENT_STATUSES)[number]>(),
     toStatus: text('to_status').$type<(typeof PAYMENT_STATUSES)[number]>(),
-    provider: text('provider').$type<(typeof PAYMENT_PROVIDERS)[number]>().notNull().default('stripe'),
+    provider: text('provider')
+      .$type<(typeof PAYMENT_PROVIDERS)[number]>()
+      .notNull()
+      .default('stripe'),
     providerEventId: text('provider_event_id'), // Stripe event id (evt_...) when applicable
     payloadSummary: jsonb('payload_summary').$type<Record<string, unknown>>(), // minimal, non-sensitive
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -90,7 +131,10 @@ export const stripeWebhookEvents = pgTable(
     eventType: text('event_type').notNull(),
     apiVersion: text('api_version'),
     livemode: boolean('livemode').notNull().default(false),
-    processingStatus: text('processing_status').$type<(typeof WEBHOOK_PROCESSING_STATUSES)[number]>().notNull().default('received'),
+    processingStatus: text('processing_status')
+      .$type<(typeof WEBHOOK_PROCESSING_STATUSES)[number]>()
+      .notNull()
+      .default('received'),
     processedAt: timestamp('processed_at', { withTimezone: true }),
     errorMessage: text('error_message'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -109,12 +153,19 @@ export const refunds = pgTable(
   'refunds',
   {
     id: text('id').primaryKey(), // ref_<id>
-    orgId: text('org_id').notNull().references(() => organizations.id),
-    paymentId: text('payment_id').notNull().references(() => payments.id),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id),
+    paymentId: text('payment_id')
+      .notNull()
+      .references(() => payments.id),
     stripeRefundId: text('stripe_refund_id'),
     amountMinor: integer('amount_minor').notNull(),
     currency: text('currency').$type<'USD' | 'MXN'>().notNull().default('USD'),
-    status: text('status').$type<(typeof REFUND_STATUSES)[number]>().notNull().default('placeholder'),
+    status: text('status')
+      .$type<(typeof REFUND_STATUSES)[number]>()
+      .notNull()
+      .default('placeholder'),
     reason: text('reason'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),

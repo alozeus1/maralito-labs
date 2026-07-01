@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Money } from './index';
+import { Money } from './primitives';
 
 export const ServiceType = z.enum(['buy_for_me', 'package_reception', 'local_pickup', 'business_delivery']);
 export const Purpose = z.enum(['personal', 'gift', 'business', 'resale']);

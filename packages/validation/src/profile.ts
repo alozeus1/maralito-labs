@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Locale } from './index';
+import { Locale } from './primitives';
 
 const NotificationPrefs = z.object({
   channels: z.array(z.enum(['email', 'sms', 'whatsapp', 'in_app'])).optional(),

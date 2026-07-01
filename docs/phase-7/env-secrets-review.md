@@ -25,5 +25,19 @@
 - [ ] Least-privilege DB role for `DATABASE_URL` where feasible; `gate:rls` requires an owner-capable role.
 - [ ] No secrets in logs (redaction enforced) and no secrets echoed by scripts (verified in Phase 4).
 
+## Review performed — 2026-07-01
+
+Findings (evidence from repo + CI PR #2 / run 28546256476):
+
+- ✅ **No server-only secret exposed via `NEXT_PUBLIC_`** — scan of `apps/**` + `packages/**` found none; `check:client-stripe` guard green (no server Stripe surface in client code).
+- ✅ **Client boundary + raw-DB guards green** — `check:client-stripe` + `check:db-imports` pass in CI.
+- ✅ **`.env.example` completeness** — `preflight` confirms Supabase + Stripe + DB keys present by name.
+- ✅ **No secret values tracked in git** — only `.env.example` + `apps/borderpass/.env.example` are tracked; `.env` / `.env.*` gitignored. CI `secret-scan` + Semgrep = **0 findings** on PR #2.
+- ✅ **Server-only vs public classified** — service role, DB URL, Stripe secret, webhook secret are server-only; only `NEXT_PUBLIC_SUPABASE_URL/ANON_KEY` + `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` are public.
+- ✅ **Least-privilege DB note** — `gate:rls` requires an owner-capable role; app runtime uses `withTenant`/`withPrivilegedDbAccess`, never the service_role key.
+- ⚠️ **OPEN ACTION — rotate exposed dev secrets.** The dev-gate `service_role` key + DB password were exposed in an operator chat and rotation was **deferred by the owner**. Acceptable ONLY for this disposable synthetic dev-gate project; **must be rotated before any non-dev use, real PII, or real payments.** Rotation owner: Godwill. Tracked here + in `decision-kms.md`.
+
 ## Status
-🔲 **Not reviewed in a real environment.** This checklist is a template; an operator completes it and records the outcome in `docs/phase-7/gate-ledger.md`.
+✅ **REVIEW COMPLETE — 2026-07-01 (dev-only), with one tracked open action (rotate exposed dev secrets).**
+Gate row 18 in `docs/phase-7/gate-ledger.md` = ✅ (review performed + documented). The deferred rotation is an
+explicit open item that must close before any non-dev/real-PII/real-payment use; it does not block the dev-only review.

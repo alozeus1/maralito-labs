@@ -1,8 +1,8 @@
 # Decision Record — Preview Branching
 
-> ADR-0013 · Phase 7 · **Status: 🔲 NOT CONFIGURED — OWNER SIGN-OFF REQUIRED.**
-> Drafted for owner decision. Claude has NOT configured preview branching and does not mark ledger row 17 passed.
-> Development-only. No real PII in any preview environment.
+> ADR-0013 · Phase 7 · **Status: ✅ DECIDED (owner-signed 2026-07-01) — DEFER preview branching.**
+> Owner ratified the recommended option: defer preview branching (Option C) until the env/secrets review is done and
+> an isolation model is chosen. Ledger row 17 = decision recorded. No real PII in any preview environment.
 
 ## Goal
 
@@ -35,18 +35,18 @@ Define how ephemeral **Vercel preview deployments** map their database + secrets
 3. **Keep Supabase preview branching (Option B) unresolved until the owner chooses the isolation model.** In the interim, **Option C** (defer) is the safe default; **Option A** may be used only for non-PII synthetic dev testing with clear "shared DB — no isolation" labeling.
 4. Whichever is chosen, previews must reuse the CI **RLS-apply automation** and **scoped preview secrets** (never production/live keys, never `NEXT_PUBLIC_*` for server-only secrets).
 
-## Decision (owner completes)
+## Decision (owner-signed)
 
-- **Preview DB strategy (A / B / C):** _____________________
-- **Secret scoping for previews:** _____________________
-- **Migration + RLS policy application on previews:** _____________________
-- **Teardown policy:** _____________________
-- **Configured by / date:** _____________________
+- **Preview DB strategy (A / B / C):** **C — defer.** No preview branching until the env/secrets review (row 18) is complete and an isolation model (A vs B) is chosen. Interim validation via local Pass 2 + the manual `live-gates` workflow against the dev-gate project.
+- **Secret scoping for previews:** N/A until enabled; when enabled, scoped preview secrets only — never production/live keys, never `NEXT_PUBLIC_*` for server-only secrets.
+- **Migration + RLS policy application on previews:** when enabled, reuse the CI RLS-apply automation added to `live-gates.yml`.
+- **Teardown policy:** to be defined with the chosen isolation model.
+- **Configured by / date:** Godwill (owner) / 2026-07-01 — decision = defer.
 
 ## Status
 
 ```
-NOT CONFIGURED — OWNER SIGN-OFF REQUIRED
+DECIDED — OWNER-SIGNED 2026-07-01 (DEFER; revisit after row 18 + isolation-model choice)
 ```
 
-Until an owner completes and signs this record, gate row 17 in `docs/phase-7/gate-ledger.md` stays 🔲 and no preview-based readiness may be claimed.
+Gate row 17 in `docs/phase-7/gate-ledger.md` = ✅ (decision recorded: defer). No preview-based readiness may be claimed; no real PII in any preview.

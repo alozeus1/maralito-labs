@@ -1,8 +1,8 @@
 # Decision Record — KMS / Secret-Management
 
-> ADR-0013 · Phase 7 · **Status: 🔲 NOT DECIDED — OWNER SIGN-OFF REQUIRED.**
-> Drafted for owner decision. Claude has NOT made this decision and does not mark ledger row 16 passed.
-> Development-only until an owner signs off and (for real PII) the chosen approach is implemented + validated.
+> ADR-0013 · Phase 7 · **Status: ✅ DECIDED (owner-signed 2026-07-01) — dev-only posture ratified.**
+> Owner ratified the recommended option. Ledger row 16 = decision recorded. **This does NOT authorize real PII** —
+> a KMS/envelope-encryption implementation + validation is still required *before* any real PII/RFC/KYC/address is stored.
 
 ## Scope
 
@@ -45,18 +45,18 @@ Deferred features will require storing real customer PII/address content that is
 2. **Before any real PII / RFC / KYC / address content:** require a **KMS / envelope-encryption decision (Option B)**, implemented and validated, with key custody + rotation + access logging + break-glass defined. Consider **Option C** at the same time if Maralito wants org-wide secret custody.
 3. **Immediate hygiene (independent of the above):** rotate any exposed dev secrets, keep all server-only secrets out of `NEXT_PUBLIC_*`, and define a rotation owner for `SUPABASE_SERVICE_ROLE_KEY`, DB password, and Stripe keys (see `env-secrets-review.md`, row 18).
 
-## Decision (owner completes)
+## Decision (owner-signed)
 
-- **Chosen secret-custody approach:** _____________________
-- **Chosen PII-at-rest approach (before real PII):** _____________________
-- **Key custody + rotation policy:** _____________________
-- **Access / audit controls + break-glass:** _____________________
-- **Decided by / date:** _____________________
+- **Chosen secret-custody approach (now):** Managed platform secrets — Supabase project settings + Vercel env + local secrets manager (**Option A**), development/test only, synthetic data.
+- **Chosen PII-at-rest approach (before real PII):** **Cloud KMS envelope encryption (Option B) is REQUIRED** — must be implemented + validated before any real PII/RFC/KYC/address is stored. External secrets manager (Option C) to be reconsidered if Maralito standardizes org-wide secret custody.
+- **Key custody + rotation policy:** to be defined as part of the Option B implementation (CMK owner, data-key rotation, KMS audit logging, least-privilege encrypt/decrypt IAM, dual-control break-glass). Interim: rotate exposed dev secrets (tracked in `env-secrets-review.md`).
+- **Access / audit controls + break-glass:** defined at Option B implementation time; not required for the current synthetic-only dev posture.
+- **Decided by / date:** Godwill (owner) / 2026-07-01.
 
 ## Status
 
 ```
-NOT DECIDED — OWNER SIGN-OFF REQUIRED
+DECIDED — OWNER-SIGNED 2026-07-01 (dev-only posture; Option B required before real PII)
 ```
 
-Until an owner completes and signs this record (and, for real PII, the approach is implemented + validated), gate row 16 in `docs/phase-7/gate-ledger.md` stays 🔲 and BorderPass stores **no real address/PII/RFC/KYC** content.
+Gate row 16 in `docs/phase-7/gate-ledger.md` = ✅ (decision recorded). **Guardrail still in force:** BorderPass stores **no real address/PII/RFC/KYC** content until the Option B KMS approach is implemented + validated. That implementation is a future increment (not Phase 7).

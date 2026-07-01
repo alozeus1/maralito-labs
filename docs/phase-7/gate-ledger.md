@@ -10,7 +10,7 @@
 | 2 | Full app-server typecheck | `pnpm typecheck` | ✅ PASS (operator-attested) | operator / 2026-07-01 | Pass 2: workspace typecheck PASS. |
 | 3 | Full Next app build | `pnpm build` | ✅ PASS (operator-attested) | operator / 2026-07-01 | Pass 2: Next.js build PASS. |
 | 4 | Full Vitest suite | `pnpm test` | ✅ PASS (operator-attested) | operator / 2026-07-01 | Pass 2: Vitest PASS (real toolchain; resolves the sandbox Rollup limitation). |
-| 5 | Normal PR CI green | GitHub Actions `ci.yml` | 🔲 UNRUN | | Push to `main` to confirm via CI. |
+| 5 | Normal PR CI green | GitHub Actions `ci.yml` | ✅ PASS | operator / 2026-07-01 | PR [#2](https://github.com/alozeus1/maralito-labs/pull/2), main `f7cd5a5`, [run 28546256476](https://github.com/alozeus1/maralito-labs/actions/runs/28546256476). Green: quality, deps, SAST, secret-scan, Semgrep (0 findings), pnpm audit / OSV (0 vulns), tests, build. Non-blocking: Node20 action-deprecation warnings (checkout/gitleaks) — tracked for cleanup. |
 | 6 | Live Supabase provisioned | operator | ✅ PASS (connection-verified) | operator / 2026-07-01 | Project `borderpass-dev-gate`, ref `rupqejwzmwfspvbmkmai`, us-east-2. Reachability confirmed: `select 1` returned 1 row (session pooler 5432). |
 | 7 | Migrations applied (live) | `db:migrate` | ✅ PASS | operator / 2026-07-01 | Pass 2: 1 migration applied (`0000_nebulous_black_widow`). |
 | 8 | All 7 RLS policies applied (live) | apply `rls/*.sql` | ✅ PASS | operator / 2026-07-01 | Pass 2: all 7 policy files applied → 48 policies, RLS enabled on 26 tables. Required grant fix committed `e741a41` (least-privilege grants to `authenticated` only; no anon/public). |
@@ -21,9 +21,9 @@
 | 13 | Stripe TEST-mode live round-trip | Stripe CLI (runbook) | 🔲 UNRUN | | |
 | 14 | Stripe API-version validation | dashboard vs pinned | 🔲 UNRUN | | |
 | 15 | Stripe LIVE validation (before real payments) | operator | 🔲 UNRUN | | |
-| 16 | KMS / secret-management decision | `decision-kms.md` | 🔲 UNRUN | | |
-| 17 | Preview-branching decision | `decision-preview-branching.md` | 🔲 UNRUN | | |
-| 18 | Env/secrets review | `env-secrets-review.md` | 🔲 UNRUN | | |
+| 16 | KMS / secret-management decision | `decision-kms.md` | ✅ PASS (owner-signed) | Godwill / 2026-07-01 | Ratified: managed secrets dev-only; **Cloud KMS envelope encryption required before any real PII/RFC/KYC/address**. Decision recorded; implementation is a future increment. |
+| 17 | Preview-branching decision | `decision-preview-branching.md` | ✅ PASS (owner-signed) | Godwill / 2026-07-01 | Ratified: **defer** preview branching (Option C) until row 18 + isolation-model choice. No real PII in previews. |
+| 18 | Env/secrets review | `env-secrets-review.md` | ✅ PASS (dev-only; 1 open action) | Godwill / 2026-07-01 | Review performed: guards green, no server secret in `NEXT_PUBLIC_`, `.env*` gitignored, CI secret-scan + Semgrep 0 findings. **Open action: rotate exposed dev secrets before any non-dev/real-PII/real-payment use.** |
 | 19 | Deployment readiness sign-off | `deployment-readiness-checklist.md` | 🔲 UNRUN | | |
 
 **Rule:** do not claim staging/pilot/production/real-payment/real-PII readiness while any required box is 🔲.
@@ -72,3 +72,10 @@ themselves are unrun.
 - **Live finding fixed:** the real Supabase environment required explicit table grants to the `authenticated` role that PGlite's harness had hard-coded but the policy files lacked — committed `e741a41 fix(rls): grant authenticated policy privileges`. Agent verified the grants are least-privilege (all to `authenticated`, none to anon/public; history/notification select-only; payments no customer insert). This is exactly the class of gap only a live gate catches.
 - **Ledger rows 6, 7, 8, 9, 10 → ✅ PASS** (evidence in table above). This is the core live RLS release gate.
 - Still 🔲: row 5 (PR CI green — push `main`), row 11 (OTP smoke — Supabase auth-redirect incident), 12–15 Stripe, 16 KMS, 17 preview-branching, 18 env/secrets review, 19 sign-off. Secrets rotation still owed. Development-only until all required rows pass + owner sign-off.
+
+### 2026-07-01 — Row 5 (PR CI) PASSED
+- PR [#2](https://github.com/alozeus1/maralito-labs/pull/2) → main `f7cd5a5`; [CI run 28546256476](https://github.com/alozeus1/maralito-labs/actions/runs/28546256476).
+- Green jobs: quality, deps, SAST, secret-scan, Semgrep (**0 findings**), pnpm audit / OSV (**0 vulnerabilities**), tests, build.
+- **Non-blocking follow-up:** `actions/checkout` + gitleaks emit Node20 action-deprecation warnings (the action runtime, not our Node 22 engine). Not a release blocker; track a bump of those action versions.
+- KMS (`decision-kms.md`) + preview-branching (`decision-preview-branching.md`) records drafted this session, owner-ready — rows 16/17 remain 🔲 pending sign-off.
+- **Rows now PASS: 1–10 + 5** (i.e. 1,2,3,4,5,6,7,8,9,10). Remaining 🔲: 11 (OTP, Supabase incident), 12–15 (Stripe), 16 (KMS sign-off), 17 (preview sign-off), 18 (env/secrets review), 19 (owner sign-off).

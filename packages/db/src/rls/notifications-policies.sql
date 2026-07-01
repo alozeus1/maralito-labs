@@ -13,3 +13,5 @@ create policy notification_outbox_customer_select on notification_outbox for sel
 -- Staff/admin/ops read org-scoped.
 create policy notification_outbox_staff_select on notification_outbox for select
   using (org_id = app_current_org_id() and app_is_staff());
+
+grant select on notification_outbox to authenticated;

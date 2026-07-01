@@ -28,4 +28,7 @@ create policy order_items_customer_write on order_items for insert
 create policy order_items_staff_select on order_items for select
   using (order_id in (select id from orders where org_id = app_current_org_id() and app_is_staff()));
 
+grant select, insert, update on orders to authenticated;
+grant select, insert on order_items to authenticated;
+
 -- Privileged writes (system transitions, seed) go via withPrivilegedDbAccess (RLS bypassed, audited).

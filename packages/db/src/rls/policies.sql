@@ -83,5 +83,12 @@ create policy cust_self_insert on customer_profiles for insert
 create policy staff_self_update on staff_profiles for update
   using (auth_user_id = auth.uid()) with check (auth_user_id = auth.uid());
 
+-- SQL privileges are required before Postgres evaluates RLS policies. Keep these aligned with the
+-- policy operations above; privileged writes continue to use the owner-capable server connection.
+grant select on organizations, user_identities, roles, permissions, role_permissions, user_roles,
+  audit_logs, platform_config, feature_flags to authenticated;
+grant select, insert, update on customer_profiles to authenticated;
+grant select, update on staff_profiles to authenticated;
+
 -- Reminder: privileged writes (roles, audit, config, seed) run via withServiceRole (RLS bypassed,
 -- audited). Domain-table (orders, …) policies are authored WITH those tables in Phase 2 (ADR-0007).

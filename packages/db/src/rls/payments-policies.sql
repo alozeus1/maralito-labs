@@ -31,3 +31,6 @@ create policy refunds_customer_select on refunds for select
       (select id from customer_profiles where auth_user_id = auth.uid())));
 create policy refunds_staff_select on refunds for select
   using (org_id = app_current_org_id() and app_is_staff());
+
+grant select, update on payments to authenticated;
+grant select on payment_events, refunds to authenticated;

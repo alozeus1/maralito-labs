@@ -23,4 +23,7 @@ create policy delivery_prep_staff_update on delivery_preparations for update
 create policy delivery_prep_history_staff_select on delivery_prep_status_history for select
   using (org_id = app_current_org_id() and app_is_staff());
 
+grant select, insert, update on delivery_preparations to authenticated;
+grant select on delivery_prep_status_history to authenticated;
+
 -- History writes run via the privileged/staff seam (audited). No customer access to history.

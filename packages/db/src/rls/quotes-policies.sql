@@ -33,5 +33,9 @@ create policy qsh_staff_select on quote_status_history for select
 create policy qap_staff_select on quote_approvals for select
   using (quote_id in (select id from quotes where org_id = app_current_org_id() and app_is_staff()));
 
+grant select, insert, update on quotes to authenticated;
+grant select, insert on quote_line_items to authenticated;
+grant select on quote_status_history, quote_approvals to authenticated;
+
 -- Quote/order status transitions + history/approval writes run via withPrivilegedDbAccess (audited).
 -- internal_notes (a quotes column) is hidden from customers by APP PROJECTION (RLS is row-level).

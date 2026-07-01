@@ -23,4 +23,7 @@ create policy inspections_staff_update on inspections for update
 create policy inspection_history_staff_select on inspection_status_history for select
   using (org_id = app_current_org_id() and app_is_staff());
 
+grant select, insert, update on inspections to authenticated;
+grant select on inspection_status_history to authenticated;
+
 -- History writes run via the privileged/staff seam (audited). No customer access to history.

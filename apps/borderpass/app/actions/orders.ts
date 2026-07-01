@@ -1,6 +1,6 @@
 'use server';
-import { and, desc, eq } from 'drizzle-orm';
-import { OrderCreate, OrderDraftPatch, OrderSubmit, OrderItemInput } from '@maralito/schemas';
+import { desc, eq } from 'drizzle-orm';
+import { OrderCreate, OrderDraftPatch, OrderSubmit } from '@maralito/schemas';
 import { withTenant, orders, orderItems, customerProfiles, newId } from '@maralito/db';
 import { requireCustomerAccess } from '@maralito/auth';
 import { z } from 'zod';
@@ -31,11 +31,11 @@ export async function createOrder(input: unknown): Promise<Result<{ order_id: st
     const id = newId('ord'); const ref = orderRef();
     await tx.insert(orders).values({
       id, orderRef: ref, customerId: profile.id, orgId: s.orgId, serviceType: parsed.data.service_type,
-      status: 'draft', purpose: parsed.data.purpose, declaredValue: parsed.data.declared_value,
-      deliveryAddressId: parsed.data.delivery_address_id, hubAddressId: parsed.data.hub_address_id, correlationId: id,
+      status: 'draft', purpose: parsed.data.purpose ?? null, declaredValue: parsed.data.declared_value ?? null,
+      deliveryAddressId: parsed.data.delivery_address_id ?? null, hubAddressId: parsed.data.hub_address_id ?? null, correlationId: id,
     });
     for (const it of parsed.data.items ?? []) {
-      await tx.insert(orderItems).values({ id: newId('itm'), orderId: id, description: it.description, productUrl: it.product_url, quantity: it.quantity, variant: it.variant, unitValue: it.unit_value, category: it.category });
+      await tx.insert(orderItems).values({ id: newId('itm'), orderId: id, description: it.description, productUrl: it.product_url ?? null, quantity: it.quantity, variant: it.variant ?? null, unitValue: it.unit_value, category: it.category ?? null });
     }
     await writeAudit({ action: 'order.created', orgId: s.orgId, actorUserId: s.sub, actorRole: 'customer', entityType: 'order', entityId: id });
     return { ok: true, data: { order_id: id, order_ref: ref } };
@@ -53,7 +53,13 @@ export async function updateDraftOrder(input: unknown): Promise<Result> {
     if (!o) return { ok: false, error: { code: 'not_found', message: 'Order not found.' } };
     if (o.status !== 'draft' && o.status !== 'missing_information') return { ok: false, error: { code: 'conflict_state', message: 'Order not editable.' } };
     const p = parsed.data.patch;
-    await tx.update(orders).set({ purpose: p.purpose, declaredValue: p.declared_value, deliveryAddressId: p.delivery_address_id, hubAddressId: p.hub_address_id, updatedAt: new Date() }).where(eq(orders.id, o.id));
+    await tx.update(orders).set({
+      ...(p.purpose !== undefined ? { purpose: p.purpose } : {}),
+      ...(p.declared_value !== undefined ? { declaredValue: p.declared_value } : {}),
+      ...(p.delivery_address_id !== undefined ? { deliveryAddressId: p.delivery_address_id } : {}),
+      ...(p.hub_address_id !== undefined ? { hubAddressId: p.hub_address_id } : {}),
+      updatedAt: new Date(),
+    }).where(eq(orders.id, o.id));
     return { ok: true };
   });
 }

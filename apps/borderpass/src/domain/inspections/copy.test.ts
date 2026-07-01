@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { inspectionStatusLabel } from './copy';
-import { INSPECTION_STATUSES, type InspectionStatus } from './state-machine';
+import { INSPECTION_STATUSES } from './state-machine';
 
 describe('inspectionStatusLabel', () => {
   it('gives a non-empty label for every status', () => {

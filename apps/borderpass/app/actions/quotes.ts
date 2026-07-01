@@ -1,6 +1,6 @@
 'use server';
 import { desc, eq } from 'drizzle-orm';
-import { AcceptQuote, DeclineQuote, QuoteIdParam } from '@maralito/schemas';
+import { AcceptQuote, DeclineQuote } from '@maralito/schemas';
 import { withTenant, quotes, quoteLineItems, orders } from '@maralito/db';
 import { requireCustomerAccess } from '@maralito/auth';
 import { getAppSession } from '@/server/auth';
@@ -83,6 +83,11 @@ export async function declineQuote(input: unknown): Promise<Result> {
     await writeAudit({ action: 'quote.invalid_transition_attempt', orgId: q.orgId, actorUserId: s.sub, actorRole: 'customer', entityType: 'quote', entityId: q.id, after: { attempted: 'decline', status: q.status } });
     return { ok: false, error: { code: 'conflict_state', message: 'Quote cannot be declined.' } };
   }
-  await transitionQuote({ id: q.id, orderId: q.orderId, orgId: q.orgId, status: q.status as QuoteStatus }, 'declined', { userId: s.sub, role: 'customer', reason: parsed.data.reason });
+  await transitionQuote(
+    { id: q.id, orderId: q.orderId, orgId: q.orgId, status: q.status as QuoteStatus },
+    'declined',
+    { userId: s.sub, role: 'customer' },
+    parsed.data.reason ? { reason: parsed.data.reason } : undefined,
+  );
   return { ok: true };
 }

@@ -68,7 +68,7 @@ export function PaymentConfirm(props: Props) {
       title={copy.title}
       body={copy.body}
       returnHref={props.returnHref}
-      onRetry={canRetryPayment(state) ? () => setState('ready_to_pay') : undefined}
+      {...(canRetryPayment(state) ? { onRetry: () => setState('ready_to_pay') } : {})}
       busy={state === 'processing'}
     />
   );

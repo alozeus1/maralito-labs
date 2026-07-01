@@ -52,12 +52,12 @@ export async function createQuoteDraft(input: unknown): Promise<Result<{ quote_i
     const order = await tx.query.orders.findFirst({ where: eq(orders.id, parsed.data.order_id) });
     if (!order) return { ok: false, error: { code: 'not_found', message: 'Order not found.' } };
     const id = newId('qte');
-    await tx.insert(quotes).values({ id, orderId: order.id, customerId: order.customerId, orgId: s.orgId, status: 'draft', currency: parsed.data.currency, customerMessage: parsed.data.customer_message, internalNotes: parsed.data.internal_notes });
+    await tx.insert(quotes).values({ id, orderId: order.id, customerId: order.customerId, orgId: s.orgId, status: 'draft', currency: parsed.data.currency, customerMessage: parsed.data.customer_message ?? null, internalNotes: parsed.data.internal_notes ?? null });
     for (const it of parsed.data.items ?? []) {
       await tx.insert(quoteLineItems).values({ id: newId('qli'), quoteId: id, kind: it.kind, description: it.description, quantity: it.quantity, unitAmountMinor: it.unit_amount_minor, totalAmountMinor: it.total_amount_minor, currency: it.currency, taxable: it.taxable ?? false, customerVisible: it.customer_visible ?? true, internalOnly: it.internal_only ?? false, metadata: it.metadata });
     }
     await recalc(tx, id);
-    await writeAudit({ action: 'quote.created', orgId: s.orgId, actorUserId: s.sub, actorRole: s.roles[0], entityType: 'quote', entityId: id });
+    await writeAudit({ action: 'quote.created', orgId: s.orgId, actorUserId: s.sub, actorRole: staffRoleOf(s), entityType: 'quote', entityId: id });
     await emitQuoteEvent('quote.created', { quote_id: id, order_id: order.id });
     return { ok: true, data: { quote_id: id } };
   });
@@ -72,8 +72,8 @@ export async function updateDraftQuote(input: unknown): Promise<Result> {
     const q = await tx.query.quotes.findFirst({ where: eq(quotes.id, parsed.data.quote_id) });
     if (!q) return { ok: false, error: { code: 'not_found', message: 'Quote not found.' } };
     if (!editable(q.status)) return { ok: false, error: { code: 'conflict_state', message: 'Quote not editable.' } };
-    await tx.update(quotes).set({ customerMessage: parsed.data.customer_message, internalNotes: parsed.data.internal_notes, requiresApproval: parsed.data.requires_approval ?? q.requiresApproval, updatedAt: new Date() }).where(eq(quotes.id, q.id));
-    await writeAudit({ action: 'quote.updated', orgId: s.orgId, actorUserId: s.sub, actorRole: s.roles[0], entityType: 'quote', entityId: q.id });
+    await tx.update(quotes).set({ customerMessage: parsed.data.customer_message ?? null, internalNotes: parsed.data.internal_notes ?? null, requiresApproval: parsed.data.requires_approval ?? q.requiresApproval, updatedAt: new Date() }).where(eq(quotes.id, q.id));
+    await writeAudit({ action: 'quote.updated', orgId: s.orgId, actorUserId: s.sub, actorRole: staffRoleOf(s), entityType: 'quote', entityId: q.id });
     await emitQuoteEvent('quote.updated', { quote_id: q.id, order_id: q.orderId });
     return { ok: true };
   });
@@ -91,7 +91,7 @@ export async function addQuoteLineItem(input: unknown): Promise<Result> {
     if (it.currency !== q.currency) return { ok: false, error: { code: 'validation_failed', message: 'Line currency must match quote.' } };
     await tx.insert(quoteLineItems).values({ id: newId('qli'), quoteId: q.id, kind: it.kind, description: it.description, quantity: it.quantity, unitAmountMinor: it.unit_amount_minor, totalAmountMinor: it.total_amount_minor, currency: it.currency, taxable: it.taxable ?? false, customerVisible: it.customer_visible ?? true, internalOnly: it.internal_only ?? false, metadata: it.metadata });
     await recalc(tx, q.id);
-    await writeAudit({ action: 'quote.line_item_added', orgId: s.orgId, actorUserId: s.sub, actorRole: s.roles[0], entityType: 'quote', entityId: q.id });
+    await writeAudit({ action: 'quote.line_item_added', orgId: s.orgId, actorUserId: s.sub, actorRole: staffRoleOf(s), entityType: 'quote', entityId: q.id });
     return { ok: true };
   });
 }
@@ -105,7 +105,7 @@ export async function removeQuoteLineItem(input: unknown): Promise<Result> {
     if (!q || !editable(q.status)) return { ok: false, error: { code: 'conflict_state', message: 'Quote not editable.' } };
     await tx.delete(quoteLineItems).where(and(eq(quoteLineItems.id, parsed.data.line_id), eq(quoteLineItems.quoteId, q.id)));
     await recalc(tx, q.id);
-    await writeAudit({ action: 'quote.line_item_removed', orgId: s.orgId, actorUserId: s.sub, actorRole: s.roles[0], entityType: 'quote', entityId: q.id });
+    await writeAudit({ action: 'quote.line_item_removed', orgId: s.orgId, actorUserId: s.sub, actorRole: staffRoleOf(s), entityType: 'quote', entityId: q.id });
     return { ok: true };
   });
 }
@@ -135,7 +135,7 @@ export async function approveQuote(input: unknown): Promise<Result> {
     const q = await tx.query.quotes.findFirst({ where: eq(quotes.id, parsed.data.quote_id) });
     if (!q || q.status !== 'pending_finance_approval') return { ok: false, error: { code: 'conflict_state', message: 'Not pending approval.' } };
     await withPrivilegedDbAccess('quote.approval.record', async (db) => {
-      await db.insert(quoteApprovals).values({ id: newId('qap'), quoteId: q.id, approverId: s.sub, decision: 'approve', reason: parsed.data.reason });
+      await db.insert(quoteApprovals).values({ id: newId('qap'), quoteId: q.id, approverId: s.sub, decision: 'approve', reason: parsed.data.reason ?? null });
     });
     await transitionQuote({ id: q.id, orderId: q.orderId, orgId: q.orgId, status: 'pending_finance_approval' }, 'approved', { userId: s.sub, role: financeRoleOf(s) });
     return { ok: true };
@@ -152,7 +152,7 @@ export async function rejectQuote(input: unknown): Promise<Result> {
     await withPrivilegedDbAccess('quote.approval.record', async (db) => {
       await db.insert(quoteApprovals).values({ id: newId('qap'), quoteId: q.id, approverId: s.sub, decision: parsed.data.decision, reason: parsed.data.reason });
     });
-    await writeAudit({ action: 'quote.rejected', orgId: s.orgId, actorUserId: s.sub, actorRole: s.roles[0], entityType: 'quote', entityId: q.id, after: { decision: parsed.data.decision, reason: parsed.data.reason } });
+    await writeAudit({ action: 'quote.rejected', orgId: s.orgId, actorUserId: s.sub, actorRole: staffRoleOf(s), entityType: 'quote', entityId: q.id, after: { decision: parsed.data.decision, reason: parsed.data.reason } });
     await emitQuoteEvent('quote.rejected', { quote_id: q.id, order_id: q.orderId });
     await transitionQuote({ id: q.id, orderId: q.orderId, orgId: q.orgId, status: 'pending_finance_approval' }, 'draft', { userId: s.sub, role: financeRoleOf(s) });
     return { ok: true };

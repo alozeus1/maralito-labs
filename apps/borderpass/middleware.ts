@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 // Public paths (no session required). Route groups don't appear in the URL, so we gate by path.
 const PUBLIC_PREFIXES = ['/welcome', '/about', '/login', '/sign-up', '/auth', '/unauthorized', '/api/health'];
@@ -14,7 +14,8 @@ export async function middleware(req: NextRequest) {
   const supabase = createServerClient(url, anon, {
     cookies: {
       getAll: () => req.cookies.getAll().map((c) => ({ name: c.name, value: c.value })),
-      setAll: (cs) => cs.forEach((c) => res.cookies.set(c.name, c.value, c.options)),
+      setAll: (cs: { name: string; value: string; options: CookieOptions }[]) =>
+        cs.forEach((c) => res.cookies.set({ name: c.name, value: c.value, ...c.options })),
     },
   });
   const { data } = await supabase.auth.getUser();

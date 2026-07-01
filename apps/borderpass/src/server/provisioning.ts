@@ -16,7 +16,8 @@ export async function provisionAuthenticatedUser(
   if (!process.env.DATABASE_URL) return { ok: false, error: 'not_configured' };
   try {
     const orgId = defaultCustomerOrg();
-    await withPrivilegedDbAccess('provision:new_user', (db) => provisionUserCore(db, { authUserId, orgId, email }));
+    await withPrivilegedDbAccess('provision:new_user', (db) =>
+      provisionUserCore(db, { authUserId, orgId, ...(email ? { email } : {}) }));
     await writeAudit({
       action: 'user.provisioned', orgId, actorUserId: authUserId, actorRole: 'customer',
       entityType: 'user_identity', entityId: authUserId,

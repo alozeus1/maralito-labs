@@ -23,7 +23,21 @@ export async function upsertMyProfile(input: unknown): Promise<Result> {
   const result = await withTenant(ctx, async (tx) => {
     const existing = await tx.query.customerProfiles.findFirst({ where: eq(customerProfiles.authUserId, session.sub) });
     if (existing) {
-      await tx.update(customerProfiles).set({ ...parsed.data, updatedAt: new Date() }).where(eq(customerProfiles.authUserId, session.sub));
+      await tx.update(customerProfiles).set({
+        ...(parsed.data.display_name !== undefined ? { displayName: parsed.data.display_name } : {}),
+        ...(parsed.data.language !== undefined ? { language: parsed.data.language } : {}),
+        ...(parsed.data.notification_prefs !== undefined ? {
+          notificationPrefs: {
+            ...(parsed.data.notification_prefs.channels !== undefined
+              ? { channels: parsed.data.notification_prefs.channels }
+              : {}),
+            ...(parsed.data.notification_prefs.quietHours !== undefined
+              ? { quietHours: parsed.data.notification_prefs.quietHours }
+              : {}),
+          },
+        } : {}),
+        updatedAt: new Date(),
+      }).where(eq(customerProfiles.authUserId, session.sub));
       return { kind: 'updated' as const, id: existing.id, before: existing };
     }
     const id = newId('cust');

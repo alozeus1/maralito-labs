@@ -1,0 +1,14 @@
+# gitleaks config — extends defaults; CI blocks on any finding.
+title = "BorderPass / Maralito secret scan"
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allow documentation placeholders and env templates (names only, no values)."
+paths = [
+  '''\.env\.example''',
+  '''docs/.*''',
+]
+regexes = [
+  '''YOUR_[A-Z_]+_HERE''',
+]

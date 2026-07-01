@@ -1,0 +1,6 @@
+**/.next/**
+**/dist/**
+**/node_modules/**
+**/.turbo/**
+pnpm-lock.yaml
+docs/design/**/*.html

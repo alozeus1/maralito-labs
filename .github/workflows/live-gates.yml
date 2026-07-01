@@ -1,0 +1,70 @@
+# Phase 7 — LIVE GATES (ADR-0013). Operator-run validation against REAL infrastructure.
+# This workflow is NOT part of normal PR CI. It runs only when manually dispatched (or on demand) and
+# requires real secrets to be configured (DATABASE_URL, Stripe test keys, Supabase config). Until an
+# operator configures those secrets and runs this green, the live gates remain UNRUN — no live/staging/
+# production/real-PII/real-payment readiness may be claimed.
+name: live-gates
+on:
+  workflow_dispatch: {}
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Guard — require DATABASE_URL secret
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL secret not configured — live gates cannot run. Configure secrets first."; exit 1; fi
+      - name: Install (real lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck (full workspace)
+        run: pnpm typecheck
+      - name: Unit tests (full Vitest)
+        run: pnpm test
+      - name: Build (Next app)
+        run: pnpm build
+      - name: Local guards
+        run: pnpm check:db-imports && pnpm check:client-stripe
+      - name: Ensure psql client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Apply migrations
+        run: pnpm --filter @maralito/db db:migrate
+      - name: Apply RLS policies (all 7 files, foundation first)
+        run: |
+          set -euo pipefail
+          RLS_DIR=packages/db/src/rls
+          # Order matters: policies.sql defines roles/helpers the domain files depend on.
+          FILES=(
+            policies.sql
+            orders-policies.sql
+            quotes-policies.sql
+            payments-policies.sql
+            notifications-policies.sql
+            inspections-policies.sql
+            delivery-preparations-policies.sql
+          )
+          for f in "${FILES[@]}"; do
+            echo "::group::apply $f"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$RLS_DIR/$f"
+            echo "::endgroup::"
+          done
+      - name: Apply dev seed (synthetic org + roles; no PII)
+        run: pnpm --filter @maralito/db db:seed
+      - name: Live RLS isolation gate (all 7 policy files)
+        run: pnpm --filter @maralito/db gate:rls
+      # OTP smoke, Stripe test-mode smoke, KMS + preview-branching decisions are documented manual steps
+      # (docs/phase-7/live-gate-runbook.md) — they are not auto-run here.

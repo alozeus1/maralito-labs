@@ -1,0 +1,7 @@
+{
+  "name": "spike-checkpointer-inngest",
+  "private": true,
+  "type": "module",
+  "description": "Throwaway Phase 0 spike — not part of the workspace build.",
+  "scripts": { "proof": "node proof.mjs phase1 && node proof.mjs approve" }
+}

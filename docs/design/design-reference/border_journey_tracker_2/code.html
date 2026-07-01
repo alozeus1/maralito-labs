@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BorderPass - Border Journey</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400..700&amp;family=DM+Sans:opsz,wght@9..40,400..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#dec0b5",
+                        "surface-dim": "#ebd6ce",
+                        "on-primary-container": "#5f2000",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#003d2b",
+                        "error": "#ba1a1a",
+                        "on-surface": "#241915",
+                        "primary": "#a33e06",
+                        "on-secondary-fixed": "#131b2e",
+                        "primary-container": "#f47a42",
+                        "surface-variant": "#f3ded7",
+                        "surface": "#fff8f6",
+                        "surface-container": "#ffe9e2",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#00513b",
+                        "on-primary-fixed": "#360f00",
+                        "tertiary-fixed": "#a6f2d1",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "on-tertiary": "#ffffff",
+                        "secondary-container": "#dae2fd",
+                        "on-surface-variant": "#57423a",
+                        "surface-bright": "#fff8f6",
+                        "tertiary-container": "#61ab8d",
+                        "inverse-on-surface": "#ffede7",
+                        "surface-container-high": "#f9e4dc",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed": "#002116",
+                        "tertiary-fixed-dim": "#8bd6b6",
+                        "on-error": "#ffffff",
+                        "background": "#fff8f6",
+                        "primary-fixed": "#ffdbcd",
+                        "secondary-fixed": "#dae2fd",
+                        "secondary": "#565e74",
+                        "on-background": "#241915",
+                        "inverse-primary": "#ffb597",
+                        "on-secondary-container": "#5c647a",
+                        "surface-container-low": "#fff1ec",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "inverse-surface": "#3a2e29",
+                        "outline": "#8b7268",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#a33e06",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#7d2d00",
+                        "primary-fixed-dim": "#ffb597",
+                        "tertiary": "#1b6b51",
+                        "surface-container-highest": "#f3ded7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "base": "8px",
+                        "margin-mobile": "20px",
+                        "margin-desktop": "64px",
+                        "xl": "80px",
+                        "max-width": "1280px",
+                        "xs": "4px",
+                        "sm": "12px",
+                        "lg": "48px",
+                        "md": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Literata", "serif"],
+                        "label-lg": ["DM Sans", "sans-serif"],
+                        "display-lg": ["Literata", "serif"],
+                        "body-lg": ["DM Sans", "sans-serif"],
+                        "body-md": ["DM Sans", "sans-serif"],
+                        "label-md": ["DM Sans", "sans-serif"],
+                        "headline-lg": ["Literata", "serif"],
+                        "headline-lg-mobile": ["Literata", "serif"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .timeline-line::before {
+            content: '';
+            position: absolute;
+            top: 24px;
+            bottom: -24px;
+            left: 23px;
+            width: 4px;
+            background-color: #f3ded7;
+            z-index: 0;
+        }
+        .timeline-line.active::before {
+            background-color: #a33e06;
+        }
+        .timeline-line:last-child::before {
+            display: none;
+        }
+        .glass-panel {
+            background: rgba(255, 248, 246, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background antialiased pb-[90px] md:pb-0">
+<!-- TopAppBar -->
+<header class="docked full-width top-0 sticky z-50 bg-surface/60 dark:bg-surface-container/60 shadow-sm shadow-[0px_4px_20px_rgba(15,23,42,0.05)] backdrop-blur-xl">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-max-width mx-auto">
+<div class="flex items-center gap-4">
+<img class="w-10 h-10 rounded-full object-cover shadow-sm" data-alt="A professional headshot of a friendly concierge expert, smiling warmly, set against a soft, light-mode background with subtle warm sand tones. The lighting is soft and inviting, emphasizing a premium hospitality aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZUUksd-DxQGlfGBqTCsw3J4D524cA94o6iSuMdKA7hWnJshguqMQwzsuJYpLcF4ifzQ1TJIO__UxyhcFwG58NM2xiO3lSX413QnSPC0lPjwmejWwsQFES6rFGsaSwEhfYcXEd3yp8CeKK4Zq42jtDdD_AwIQPXbE-hi9ELoLP-GlL9t_fdJERGCHjrs2_PACQzny5K0ksVk-UWwkE3B93ELRdfpf3uwf2E8ssacaBrpjVE9auX9-F-m8a2uER6hiuMzXBaHfL97CI"/>
+<span class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg font-bold text-primary dark:text-primary-fixed-dim">BorderPass</span>
+</div>
+<!-- Desktop Nav (Hidden on Mobile) -->
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-variant/20 transition-colors px-3 py-2 rounded-lg" href="#">Home</a>
+<a class="text-primary font-bold border-b-2 border-primary font-label-lg text-label-lg hover:bg-surface-variant/20 transition-colors px-3 py-2 rounded-lg" href="#">Orders</a>
+<a class="text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-variant/20 transition-colors px-3 py-2 rounded-lg" href="#">Messages</a>
+<a class="text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-variant/20 transition-colors px-3 py-2 rounded-lg" href="#">Support</a>
+<a class="text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-variant/20 transition-colors px-3 py-2 rounded-lg" href="#">Profile</a>
+</nav>
+<button class="text-primary dark:text-primary-fixed hover:bg-surface-variant/20 transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+</div>
+</header>
+<main class="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-8 md:py-12 space-y-xl">
+<!-- Header & Map Section -->
+<section class="space-y-6">
+<div class="flex justify-between items-end">
+<div>
+<p class="font-label-lg text-label-lg text-primary mb-2 uppercase tracking-wider">Order #BP-84729</p>
+<h1 class="font-display-lg text-display-lg text-on-surface">Arriving Tomorrow</h1>
+</div>
+<div class="hidden md:block">
+<span class="inline-flex items-center gap-2 bg-tertiary/10 text-tertiary px-4 py-2 rounded-full font-label-lg text-label-lg">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+                        In Transit
+                    </span>
+</div>
+</div>
+<!-- Map Container -->
+<div class="relative w-full h-[300px] md:h-[400px] rounded-DEFAULT overflow-hidden shadow-[0px_4px_20px_rgba(15,23,42,0.05)]">
+<img class="w-full h-full object-cover" data-alt="A stylized, premium map interface showing a route from El Paso, Texas to Ciudad Juarez, Mexico. The map uses a warm, minimalist color palette with soft sand backgrounds, subtle road lines, and deep navy accents. A glowing orange path connects two custom map pins. The lighting suggests a bright, clean digital interface." data-location="El Paso, TX to Ciudad Juarez" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKz-iA0fW8aByniXx-BPFsm0eGrSLl0WvdBNImrGUf7qldk9CyZEIwP1oDY5ZtlaqebvWb0DmWD1VAUg_fGSq3LAiUNcFSylmTOYS7LsaaO8aL5gXAO204gIe6_OvkgZM4JjymJrRlLutuFKn76BN3D1Rgm9TD-leUKARjwVMKP5GgGVmoRAjmtqim1cph-wmEs9Hh_mQuYm_BM3U12x0Je4sE5nTSiCv3Y1kEH4vEw5FMA0C5or_6NlOLh920YzzJfRt2CAGZaet6"/>
+<!-- Overlay Card -->
+<div class="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 glass-panel p-4 rounded-lg shadow-[0px_12px_32px_rgba(15,23,42,0.08)]">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary">local_shipping</span>
+<p class="font-label-lg text-label-lg text-on-surface">Current Location</p>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">Approaching Zaragoza Port of Entry</p>
+<p class="font-label-md text-label-md text-on-surface-variant mt-1">Est. wait time: 45 mins</p>
+</div>
+</div>
+</section>
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Journey Timeline -->
+<section class="md:col-span-8 bg-surface-container-lowest rounded-DEFAULT p-6 md:p-10 shadow-[0px_4px_20px_rgba(15,23,42,0.05)]">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-8">Border Journey</h2>
+<div class="space-y-0 relative">
+<!-- Step 1: Purchased -->
+<div class="relative flex items-start gap-6 pb-12 timeline-line active">
+<div class="relative z-10 w-12 h-12 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-[0px_4px_20px_rgba(163,62,6,0.3)]">
+<span class="material-symbols-outlined text-on-primary" style="font-variation-settings: 'FILL' 1;">shopping_cart</span>
+</div>
+<div class="pt-2">
+<h3 class="font-label-lg text-label-lg text-on-surface">Purchased</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Oct 24, 10:30 AM</p>
+</div>
+</div>
+<!-- Step 2: Received at El Paso Hub -->
+<div class="relative flex items-start gap-6 pb-12 timeline-line active">
+<div class="relative z-10 w-12 h-12 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-[0px_4px_20px_rgba(163,62,6,0.3)]">
+<span class="material-symbols-outlined text-on-primary" style="font-variation-settings: 'FILL' 1;">package_2</span>
+</div>
+<div class="pt-2">
+<h3 class="font-label-lg text-label-lg text-on-surface">Received at El Paso Hub</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Oct 25, 2:15 PM</p>
+</div>
+</div>
+<!-- Step 3: Inspection Complete -->
+<div class="relative flex items-start gap-6 pb-12 timeline-line active">
+<div class="relative z-10 w-12 h-12 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-[0px_4px_20px_rgba(163,62,6,0.3)]">
+<span class="material-symbols-outlined text-on-primary" style="font-variation-settings: 'FILL' 1;">camera_alt</span>
+</div>
+<div class="pt-2 w-full">
+<div class="flex justify-between items-center">
+<h3 class="font-label-lg text-label-lg text-on-surface">Inspection Complete</h3>
+<a class="font-label-md text-label-md text-primary hover:underline flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[16px]">photo_library</span>
+                                    View Photos
+                                </a>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Oct 25, 4:00 PM</p>
+<!-- Mini Photo Grid -->
+<div class="flex gap-2 mt-3">
+<img class="w-16 h-16 rounded-lg object-cover border border-outline-variant/30" data-alt="A small, high-quality close-up photograph of a luxury packaged item resting on a clean, soft sand-colored surface, indicating it has passed inspection. The lighting is bright and professional, emphasizing the pristine condition of the packaging." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBravFS2wDNT9UqWRoekPBdvuXSzX7NSLqPn7yH8UTwsenIyIcGbeINigQ7oLkPWjBU7nSqZkn9UFcf9tirUNb9z-SkLJvGaz41pdFWNGet0ZomqjPoYheqAwRjx4QUa4aNP6Q2OT4uef7n5JK9RQM6dRiARRhUA0pRBCzvBqv6jC3OWHey2CsVvAGdxLZsDKDWN3IISgEUTdy4CEFmWBMrwn03I7vCbAzxmtF_-TGDzGKCXEFp5SiiFoHQZukuGS5kUq8QFIpmhgm_"/>
+<img class="w-16 h-16 rounded-lg object-cover border border-outline-variant/30" data-alt="Another small, high-quality photograph showing the inspection label on a premium package. The setting is clean and brightly lit, reflecting a professional logistics environment with a warm aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7dHeAeq7K_Bz2HIb9d3idusivAxqaIeuTJhHC15wWaj4LgiloVAITc1zSkLh1ueMtGxvtvy6VAeZpb4Z0KC0EuUe0kYP931x1T4fvwLJIPM7HBcAFxrXYIBDbD9S2YkEiI7PcAv12INBeumpeJTiJcZNaJwX6jKvBfZ1kYkyq511vmBtFqQmXzYrRe0mzthMVpWyY6qurJR3KkGXGondTfk3RPUClD326Hj1OzZoRc_9ewlLPrHzpGPNPP9MzoVX_kDe4Kmt-3hJD"/>
+</div>
+</div>
+</div>
+<!-- Step 4: Border Crossing (CURRENT) -->
+<div class="relative flex items-start gap-6 pb-12 timeline-line">
+<div class="relative z-10 w-12 h-12 rounded-full bg-surface-lowest border-4 border-primary flex items-center justify-center shrink-0 shadow-[0px_12px_32px_rgba(163,62,6,0.2)] bg-surface">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">sync_alt</span>
+</div>
+<div class="pt-2 bg-primary-container/10 p-4 rounded-xl border border-primary/20 w-full">
+<div class="flex items-center gap-2 mb-1">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<h3 class="font-label-lg text-label-lg text-primary">Border Crossing</h3>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-3">Currently in transit across Zaragoza Bridge.</p>
+<!-- Progress Bar -->
+<div class="h-2 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-1/2 relative overflow-hidden">
+<div class="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 5: Customs Processing -->
+<div class="relative flex items-start gap-6 pb-12 timeline-line">
+<div class="relative z-10 w-12 h-12 rounded-full bg-surface-variant flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant" style="font-variation-settings: 'FILL' 0;">policy</span>
+</div>
+<div class="pt-2 opacity-50">
+<h3 class="font-label-lg text-label-lg text-on-surface">Customs Processing</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Pending arrival in MX</p>
+</div>
+</div>
+<!-- Step 6: Driver Assigned -->
+<div class="relative flex items-start gap-6 pb-12 timeline-line">
+<div class="relative z-10 w-12 h-12 rounded-full bg-surface-variant flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant" style="font-variation-settings: 'FILL' 0;">directions_car</span>
+</div>
+<div class="pt-2 opacity-50">
+<h3 class="font-label-lg text-label-lg text-on-surface">Driver Assigned</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Pending customs clearance</p>
+</div>
+</div>
+<!-- Step 7: Delivered -->
+<div class="relative flex items-start gap-6 timeline-line">
+<div class="relative z-10 w-12 h-12 rounded-full bg-surface-variant flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant" style="font-variation-settings: 'FILL' 0;">home</span>
+</div>
+<div class="pt-2 opacity-50">
+<h3 class="font-label-lg text-label-lg text-on-surface">Delivered</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Expected Tomorrow</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Concierge Sidebar -->
+<section class="md:col-span-4 space-y-6">
+<div class="bg-surface-container-lowest rounded-DEFAULT p-6 md:p-8 shadow-[0px_4px_20px_rgba(15,23,42,0.05)] border border-outline-variant/30 flex flex-col items-center text-center sticky top-24">
+<h3 class="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider mb-6 w-full text-left">Your Concierge</h3>
+<img class="w-24 h-24 rounded-full object-cover shadow-sm mb-4" data-alt="A warm, professional portrait of Maria G., a smiling concierge expert. She is looking directly at the camera, exuding confidence and hospitality. The background is a soft, out-of-focus light sand color, consistent with the brand's warm minimalist aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfu_j9HkNTomYRzio8Aj64Pw_Yz1TiF5x5PBHnwT00mj7f3ZJIu-9RDpMyI9OayQOo7uDYW7WDWn_Mj-34ANySHN1Pi6X_v6f44TJtNZV9oo-IIW6xWSF2z60ocoSGSyQGHTvqNmDFjlvpw4S_RNvo6VZ3KdoV_uQ_mqn-gvjW7vB-aAYgu_DNgDMQ-EoSfBPwTdKrrY_wyWpKWssyDAQF1dBqc4XJRo-J2misMskFDlNXZkbf07mb1WYECIq963OFdPzfgt28Ltt_"/>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-1">Maria G.</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4">Concierge Expert</p>
+<div class="flex gap-4 mb-6">
+<div class="flex flex-col items-center bg-surface-container-low px-4 py-2 rounded-xl">
+<div class="flex items-center text-primary mb-1">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-lg text-label-lg ml-1">5.0</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Rating</span>
+</div>
+<div class="flex flex-col items-center bg-surface-container-low px-4 py-2 rounded-xl">
+<div class="flex items-center text-on-surface mb-1">
+<span class="material-symbols-outlined text-[18px]">language</span>
+<span class="font-label-lg text-label-lg ml-1">EN, ES</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Languages</span>
+</div>
+</div>
+<div class="w-full space-y-3">
+<button class="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-label-lg text-label-lg py-4 px-6 rounded-3xl transition-all shadow-[0px_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0px_12px_32px_rgba(15,23,42,0.08)] flex items-center justify-center gap-2">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"></path></svg>
+                            WhatsApp
+                        </button>
+<button class="w-full bg-primary hover:bg-surface-tint text-white font-label-lg text-label-lg py-4 px-6 rounded-3xl transition-all shadow-[0px_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0px_12px_32px_rgba(15,23,42,0.08)] shadow-[inset_0px_-2px_0px_rgba(0,0,0,0.1)] flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">chat</span>
+                            Live Chat
+                        </button>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden docked full-width bottom-0 rounded-t-lg shadow-[0px_-4px_20px_rgba(15,23,42,0.05)] bg-surface dark:bg-surface-container-high fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-variant/50 transition-colors p-2 rounded-xl" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container/20 text-on-primary-container rounded-xl px-4 py-1.5 hover:bg-surface-variant/50 transition-all scale-90" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">package_2</span>
+<span class="font-label-md text-label-md font-bold text-primary">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-variant/50 transition-colors p-2 rounded-xl" href="#">
+<span class="material-symbols-outlined mb-1">chat_bubble</span>
+<span class="font-label-md text-label-md">Messages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-variant/50 transition-colors p-2 rounded-xl" href="#">
+<span class="material-symbols-outlined mb-1">contact_support</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-variant/50 transition-colors p-2 rounded-xl" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+<style>
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+    </style>
+</body></html>

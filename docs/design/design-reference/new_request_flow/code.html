@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>New Request - BorderPass</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&amp;family=Literata:opsz,wght@7..72,400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#dec0b5",
+                        "surface-dim": "#ebd6ce",
+                        "on-primary-container": "#5f2000",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#003d2b",
+                        "error": "#ba1a1a",
+                        "on-surface": "#241915",
+                        "primary": "#a33e06",
+                        "on-secondary-fixed": "#131b2e",
+                        "primary-container": "#f47a42",
+                        "surface-variant": "#f3ded7",
+                        "surface": "#fff8f6",
+                        "surface-container": "#ffe9e2",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#00513b",
+                        "on-primary-fixed": "#360f00",
+                        "tertiary-fixed": "#a6f2d1",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "on-tertiary": "#ffffff",
+                        "secondary-container": "#dae2fd",
+                        "on-surface-variant": "#57423a",
+                        "surface-bright": "#fff8f6",
+                        "tertiary-container": "#61ab8d",
+                        "inverse-on-surface": "#ffede7",
+                        "surface-container-high": "#f9e4dc",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed": "#002116",
+                        "tertiary-fixed-dim": "#8bd6b6",
+                        "on-error": "#ffffff",
+                        "background": "#fff8f6",
+                        "primary-fixed": "#ffdbcd",
+                        "secondary-fixed": "#dae2fd",
+                        "secondary": "#565e74",
+                        "on-background": "#241915",
+                        "inverse-primary": "#ffb597",
+                        "on-secondary-container": "#5c647a",
+                        "surface-container-low": "#fff1ec",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "inverse-surface": "#3a2e29",
+                        "outline": "#8b7268",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#a33e06",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#7d2d00",
+                        "primary-fixed-dim": "#ffb597",
+                        "tertiary": "#1b6b51",
+                        "surface-container-highest": "#f3ded7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "base": "8px",
+                        "margin-mobile": "20px",
+                        "margin-desktop": "64px",
+                        "xl": "80px",
+                        "max-width": "1280px",
+                        "xs": "4px",
+                        "sm": "12px",
+                        "lg": "48px",
+                        "md": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Literata"],
+                        "label-lg": ["DM Sans"],
+                        "display-lg": ["Literata"],
+                        "body-lg": ["DM Sans"],
+                        "body-md": ["DM Sans"],
+                        "label-md": ["DM Sans"],
+                        "headline-lg": ["Literata"],
+                        "headline-lg-mobile": ["Literata"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-header {
+            background: rgba(255, 248, 246, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .ambient-shadow-1 {
+            box-shadow: 0px 4px 20px rgba(15, 23, 42, 0.05);
+        }
+        .ambient-shadow-2 {
+            box-shadow: 0px 12px 32px rgba(15, 23, 42, 0.08);
+        }
+        .inner-shadow-btn {
+            box-shadow: inset 0px -2px 4px rgba(0, 0, 0, 0.15);
+        }
+        /* Custom Stepper Styles */
+        .step-line {
+            width: 2px;
+            background-color: theme('colors.outline-variant');
+            position: absolute;
+            top: 24px;
+            bottom: -8px;
+            left: 11px;
+            z-index: 0;
+        }
+        .step-circle {
+            z-index: 10;
+            position: relative;
+        }
+        .step-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .step-content.active {
+            display: block;
+            opacity: 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-32 md:pb-0">
+<!-- Top Navigation (Transactional/Focus Mode - No global nav links) -->
+<header class="glass-header docked full-width top-0 sticky z-50 flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-max-width mx-auto">
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-surface-variant/20 transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+<span class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg font-bold text-primary dark:text-primary-fixed-dim">BorderPass</span>
+</div>
+<div class="flex items-center gap-3">
+<!-- Bilingual Toggle -->
+<div class="flex items-center bg-surface-dim rounded-full p-1 cursor-pointer">
+<div class="bg-secondary text-on-secondary px-3 py-1 rounded-full font-label-md text-label-md transition-colors">EN</div>
+<div class="text-on-surface-variant px-3 py-1 rounded-full font-label-md text-label-md transition-colors">ES</div>
+</div>
+</div>
+</header>
+<main class="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop pt-8 md:pt-12 grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Left Column: Stepper Layout -->
+<div class="md:col-span-8 space-y-8">
+<div class="mb-8">
+<h1 class="font-display-lg text-display-lg text-on-surface mb-2">New Request</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Complete the details below to initiate your border crossing or delivery.</p>
+</div>
+<div class="relative pl-2 md:pl-0">
+<!-- Step 1: Choose Service -->
+<div class="relative pb-12 step-item" id="step1-container">
+<div class="step-line"></div>
+<div class="flex items-start gap-4">
+<div class="step-circle w-6 h-6 rounded-full bg-primary flex items-center justify-center mt-1 border-4 border-background">
+<div class="w-2 h-2 rounded-full bg-on-primary"></div>
+</div>
+<div class="flex-1">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-6">1. Choose Service</h2>
+<div class="step-content active" id="step1-content">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- Service Card 1 -->
+<label class="cursor-pointer group">
+<input checked="" class="peer sr-only" name="service" type="radio" value="buy_for_me"/>
+<div class="bg-surface rounded-DEFAULT p-6 ambient-shadow-1 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary-container/10 hover:ambient-shadow-2 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-variant flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-primary" data-icon="shopping_cart">shopping_cart</span>
+</div>
+<h3 class="font-label-lg text-label-lg text-on-surface mb-1">Buy for Me</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">We purchase the item on your behalf and handle the rest.</p>
+</div>
+</label>
+<!-- Service Card 2 -->
+<label class="cursor-pointer group">
+<input class="peer sr-only" name="service" type="radio" value="package_reception"/>
+<div class="bg-surface rounded-DEFAULT p-6 ambient-shadow-1 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary-container/10 hover:ambient-shadow-2 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-variant flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-primary" data-icon="package_2">package_2</span>
+</div>
+<h3 class="font-label-lg text-label-lg text-on-surface mb-1">Package Reception</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Ship your items to our US address for secure hold.</p>
+</div>
+</label>
+<!-- Service Card 3 -->
+<label class="cursor-pointer group">
+<input class="peer sr-only" name="service" type="radio" value="pickup"/>
+<div class="bg-surface rounded-DEFAULT p-6 ambient-shadow-1 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary-container/10 hover:ambient-shadow-2 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-variant flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-primary" data-icon="storefront">storefront</span>
+</div>
+<h3 class="font-label-lg text-label-lg text-on-surface mb-1">Local Pickup</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">We pick up your item from a local store or individual.</p>
+</div>
+</label>
+<!-- Service Card 4 -->
+<label class="cursor-pointer group">
+<input class="peer sr-only" name="service" type="radio" value="business"/>
+<div class="bg-surface rounded-DEFAULT p-6 ambient-shadow-1 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary-container/10 hover:ambient-shadow-2 transition-all">
+<div class="w-12 h-12 rounded-full bg-surface-variant flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-primary" data-icon="local_shipping">local_shipping</span>
+</div>
+<h3 class="font-label-lg text-label-lg text-on-surface mb-1">Business Delivery</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Freight and pallet reception for commercial entities.</p>
+</div>
+</label>
+</div>
+<div class="mt-6 flex justify-end">
+<button class="bg-primary text-on-primary px-6 py-3 rounded-3xl font-label-lg text-label-lg inner-shadow-btn hover:bg-surface-tint transition-colors" onclick="nextStep(2)">Continue</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 2: Product Details -->
+<div class="relative pb-12 step-item" id="step2-container">
+<div class="step-line"></div>
+<div class="flex items-start gap-4">
+<div class="step-circle w-6 h-6 rounded-full bg-surface-variant flex items-center justify-center mt-1 border-4 border-background" id="step2-circle">
+<div class="w-2 h-2 rounded-full bg-outline hidden" id="step2-dot"></div>
+</div>
+<div class="flex-1">
+<h2 class="font-headline-md text-headline-md text-on-surface-variant mb-6 transition-colors" id="step2-title">2. Product Details</h2>
+<div class="step-content bg-surface rounded-DEFAULT p-6 md:p-8 ambient-shadow-1" id="step2-content">
+<div class="space-y-6">
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface mb-2">Paste Product URL</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">link</span>
+<input class="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-dim border-none focus:ring-2 focus:ring-secondary text-on-surface font-body-md placeholder-outline-variant" placeholder="https://store.com/item..." type="url"/>
+</div>
+</div>
+<div class="flex items-center justify-between bg-tertiary-fixed/30 border border-tertiary-fixed rounded-xl p-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary fill">magic_button</span>
+<span class="font-label-md text-label-md text-on-surface">AI Detecting Store &amp; Price...</span>
+</div>
+<div class="w-5 h-5 border-2 border-tertiary border-t-transparent rounded-full animate-spin"></div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<button class="flex flex-col items-center justify-center gap-2 p-6 rounded-xl border-2 border-dashed border-outline-variant hover:border-primary hover:bg-primary-container/5 transition-colors bg-surface-dim/50 cursor-pointer">
+<span class="material-symbols-outlined text-on-surface-variant text-3xl">add_photo_alternate</span>
+<span class="font-label-lg text-label-lg text-on-surface">Upload Screenshot</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-2 p-6 rounded-xl border-2 border-dashed border-outline-variant hover:border-primary hover:bg-primary-container/5 transition-colors bg-surface-dim/50 cursor-pointer">
+<span class="material-symbols-outlined text-on-surface-variant text-3xl">receipt_long</span>
+<span class="font-label-lg text-label-lg text-on-surface">Upload Receipt</span>
+</button>
+</div>
+</div>
+<div class="mt-8 flex justify-between items-center">
+<button class="text-on-surface-variant font-label-lg text-label-lg hover:text-on-surface transition-colors px-4 py-2" onclick="prevStep(1)">Back</button>
+<button class="bg-primary text-on-primary px-6 py-3 rounded-3xl font-label-lg text-label-lg inner-shadow-btn hover:bg-surface-tint transition-colors" onclick="nextStep(3)">Continue</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 3: Border Information -->
+<div class="relative pb-12 step-item" id="step3-container">
+<div class="step-line hidden md:block"></div> <!-- Hide on last to prevent overflow line -->
+<div class="flex items-start gap-4">
+<div class="step-circle w-6 h-6 rounded-full bg-surface-variant flex items-center justify-center mt-1 border-4 border-background" id="step3-circle">
+<div class="w-2 h-2 rounded-full bg-outline hidden" id="step3-dot"></div>
+</div>
+<div class="flex-1">
+<h2 class="font-headline-md text-headline-md text-on-surface-variant mb-6 transition-colors" id="step3-title">3. Border Information</h2>
+<div class="step-content bg-surface rounded-DEFAULT p-6 md:p-8 ambient-shadow-1" id="step3-content">
+<div class="space-y-6">
+<!-- Nature of Item -->
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface mb-3">Nature of Item</label>
+<div class="flex flex-wrap gap-3">
+<label class="cursor-pointer">
+<input checked="" class="peer sr-only" name="nature" type="radio" value="personal"/>
+<div class="px-5 py-2.5 rounded-full border border-outline-variant peer-checked:bg-secondary peer-checked:text-on-secondary peer-checked:border-secondary font-label-md text-label-md text-on-surface-variant transition-colors">
+                                                    Personal Use
+                                                </div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="nature" type="radio" value="commercial"/>
+<div class="px-5 py-2.5 rounded-full border border-outline-variant peer-checked:bg-secondary peer-checked:text-on-secondary peer-checked:border-secondary font-label-md text-label-md text-on-surface-variant transition-colors">
+                                                    Commercial
+                                                </div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="nature" type="radio" value="gift"/>
+<div class="px-5 py-2.5 rounded-full border border-outline-variant peer-checked:bg-secondary peer-checked:text-on-secondary peer-checked:border-secondary font-label-md text-label-md text-on-surface-variant transition-colors">
+                                                    Gift
+                                                </div>
+</label>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface mb-2">Estimated Value (USD)</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md">$</span>
+<input class="w-full pl-8 pr-4 py-3 rounded-xl bg-surface-dim border-none focus:ring-2 focus:ring-secondary text-on-surface font-body-md" placeholder="0.00" type="number"/>
+</div>
+</div>
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface mb-2">Quantity</label>
+<input class="w-full px-4 py-3 rounded-xl bg-surface-dim border-none focus:ring-2 focus:ring-secondary text-on-surface font-body-md" min="1" type="number" value="1"/>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface mb-2">Recipient Name</label>
+<input class="w-full px-4 py-3 rounded-xl bg-surface-dim border-none focus:ring-2 focus:ring-secondary text-on-surface font-body-md" placeholder="Full Name" type="text"/>
+</div>
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface mb-2">RFC (Optional for Personal)</label>
+<input class="w-full px-4 py-3 rounded-xl bg-surface-dim border-none focus:ring-2 focus:ring-secondary text-on-surface font-body-md" placeholder="Tax ID" type="text"/>
+</div>
+</div>
+</div>
+<div class="mt-8 flex justify-between items-center">
+<button class="text-on-surface-variant font-label-lg text-label-lg hover:text-on-surface transition-colors px-4 py-2" onclick="prevStep(2)">Back</button>
+<button class="bg-primary text-on-primary px-6 py-3 rounded-3xl font-label-lg text-label-lg inner-shadow-btn hover:bg-surface-tint transition-colors" onclick="nextStep(4)">Review Summary</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Review Summary (Sticky Desktop) -->
+<div class="md:col-span-4 relative mt-12 md:mt-0" id="summary-column" style="opacity: 0.5; pointer-events: none; transition: opacity 0.3s;">
+<div class="sticky top-24 bg-surface rounded-DEFAULT ambient-shadow-2 overflow-hidden border border-outline-variant/30">
+<!-- Summary Header -->
+<div class="bg-surface-container-high p-6 border-b border-outline-variant/30">
+<h3 class="font-headline-md text-headline-md text-on-surface">Request Summary</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Order #PENDING</p>
+</div>
+<!-- Summary Body -->
+<div class="p-6 space-y-6">
+<!-- Line Items -->
+<div class="space-y-4">
+<div class="flex justify-between items-start">
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Service Fee</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Buy for Me</p>
+</div>
+<span class="font-body-lg text-body-lg text-on-surface">$15.00</span>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Est. Item Value</p>
+</div>
+<span class="font-body-lg text-body-lg text-on-surface">$TBD</span>
+</div>
+<div class="flex justify-between items-start text-on-surface-variant">
+<div>
+<p class="font-label-lg text-label-lg">Est. Import Duties</p>
+<p class="font-label-md text-label-md text-primary mt-1 flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">info</span> Pending AI Calc</p>
+</div>
+<span class="font-body-lg text-body-lg">--</span>
+</div>
+</div>
+<div class="h-px w-full bg-outline-variant/50"></div>
+<!-- Total -->
+<div class="flex justify-between items-center">
+<span class="font-headline-md text-headline-md text-on-surface">Est. Total</span>
+<span class="font-headline-md text-headline-md text-primary">$15.00+</span>
+</div>
+<!-- Timeline Mini -->
+<div class="bg-tertiary-fixed/30 rounded-xl p-4 flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-tertiary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-tertiary fill">schedule</span>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Estimated Delivery</p>
+<p class="font-body-md text-body-md text-on-surface-variant">~3 Days after reception</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Sticky Bottom CTA for Mobile / Active on Step 4 -->
+<div class="fixed bottom-0 left-0 w-full bg-surface/90 backdrop-blur-md border-t border-outline-variant/30 p-4 md:px-margin-desktop md:py-6 z-40 transform translate-y-full transition-transform duration-300 flex justify-between items-center shadow-[0px_-4px_20px_rgba(15,23,42,0.1)]" id="bottom-cta">
+<div class="hidden sm:block">
+<p class="font-label-lg text-label-lg text-on-surface">Ready to submit?</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Review your details carefully.</p>
+</div>
+<button class="w-full sm:w-auto bg-primary text-on-primary px-8 py-4 rounded-full font-label-lg text-label-lg inner-shadow-btn hover:bg-surface-tint transition-all text-center">Review Request</button>
+</div>
+<script>
+        function nextStep(step) {
+            // Hide all contents
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+            
+            // Update previous step visuals
+            let prevStep = step - 1;
+            let prevCircle = document.querySelector(`#step${prevStep}-container .step-circle`);
+            if(prevCircle) {
+                prevCircle.classList.remove('bg-primary');
+                prevCircle.classList.add('bg-secondary');
+                // Could add checkmark icon here
+            }
+
+            // Update current step visuals
+            let currentContainer = document.getElementById(`step${step}-container`);
+            let currentContent = document.getElementById(`step${step}-content`);
+            let currentCircle = document.getElementById(`step${step}-circle`);
+            let currentTitle = document.getElementById(`step${step}-title`);
+
+            if(currentContent) currentContent.classList.add('active');
+            if(currentCircle) {
+                currentCircle.classList.remove('bg-surface-variant');
+                currentCircle.classList.add('bg-primary');
+                let dot = document.getElementById(`step${step}-dot`);
+                if(dot) {
+                    dot.classList.remove('hidden');
+                    dot.classList.add('bg-on-primary');
+                }
+            }
+            if(currentTitle) {
+                currentTitle.classList.remove('text-on-surface-variant');
+                currentTitle.classList.add('text-on-surface');
+            }
+
+            // If final step (4 - Summary review)
+            if(step === 4) {
+                document.getElementById('summary-column').style.opacity = '1';
+                document.getElementById('summary-column').style.pointerEvents = 'auto';
+                document.getElementById('bottom-cta').classList.remove('translate-y-full');
+            }
+        }
+
+        function prevStep(step) {
+             document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+             let currentContent = document.getElementById(`step${step}-content`);
+             if(currentContent) currentContent.classList.add('active');
+        }
+    </script>
+</body></html>

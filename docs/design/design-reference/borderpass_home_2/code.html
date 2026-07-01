@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BorderPass - Service Hub</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Literata & DM Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&amp;family=Literata:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-on-surface": "#ffede7",
+                    "primary-fixed-dim": "#ffb597",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "inverse-surface": "#3a2e29",
+                    "tertiary-fixed": "#a6f2d1",
+                    "inverse-primary": "#ffb597",
+                    "on-tertiary-fixed": "#002116",
+                    "on-tertiary-container": "#003d2b",
+                    "on-secondary-container": "#5c647a",
+                    "outline": "#8b7268",
+                    "on-tertiary-fixed-variant": "#00513b",
+                    "on-secondary-fixed": "#131b2e",
+                    "on-background": "#241915",
+                    "surface-variant": "#f3ded7",
+                    "secondary": "#565e74",
+                    "surface-container-low": "#fff1ec",
+                    "primary-fixed": "#ffdbcd",
+                    "error-container": "#ffdad6",
+                    "tertiary-container": "#61ab8d",
+                    "surface": "#fff8f6",
+                    "on-error": "#ffffff",
+                    "on-primary-container": "#5f2000",
+                    "on-primary": "#ffffff",
+                    "tertiary": "#1b6b51",
+                    "surface-container": "#ffe9e2",
+                    "error": "#ba1a1a",
+                    "surface-container-highest": "#f3ded7",
+                    "surface-bright": "#fff8f6",
+                    "on-primary-fixed-variant": "#7d2d00",
+                    "on-error-container": "#93000a",
+                    "surface-dim": "#ebd6ce",
+                    "on-surface": "#241915",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-tint": "#a33e06",
+                    "background": "#fff8f6",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "secondary-fixed": "#dae2fd",
+                    "on-tertiary": "#ffffff",
+                    "primary-container": "#f47a42",
+                    "surface-container-high": "#f9e4dc",
+                    "on-surface-variant": "#57423a",
+                    "on-secondary": "#ffffff",
+                    "outline-variant": "#dec0b5",
+                    "tertiary-fixed-dim": "#8bd6b6",
+                    "primary": "#a33e06",
+                    "secondary-container": "#dae2fd",
+                    "on-primary-fixed": "#360f00"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "4px",
+                    "base": "8px",
+                    "lg": "48px",
+                    "margin-mobile": "20px",
+                    "sm": "12px",
+                    "max-width": "1280px",
+                    "xl": "80px",
+                    "margin-desktop": "64px",
+                    "gutter": "24px",
+                    "md": "24px"
+            },
+            "fontFamily": {
+                    "label-lg": ["DM Sans"],
+                    "body-md": ["DM Sans"],
+                    "headline-lg-mobile": ["Literata"],
+                    "display-lg": ["Literata"],
+                    "headline-lg": ["Literata"],
+                    "label-md": ["DM Sans"],
+                    "headline-md": ["Literata"],
+                    "body-lg": ["DM Sans"]
+            },
+            "fontSize": {
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        /* Smooth scrolling and basic resets */
+        html { scroll-behavior: smooth; }
+        body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        
+        /* Ambient Multi-layered shadows based on Style Guidance */
+        .shadow-ambient-1 { box-shadow: 0px 4px 20px rgba(15, 23, 42, 0.05); }
+        .shadow-ambient-2 { box-shadow: 0px 12px 32px rgba(15, 23, 42, 0.08); }
+        
+        /* Progress Bar Animation */
+        @keyframes pulse-progress {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; box-shadow: 0 0 12px rgba(163, 62, 6, 0.4); }
+            100% { opacity: 0.8; }
+        }
+        .progress-active { animation: pulse-progress 2s infinite ease-in-out; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pt-24 pb-24 md:pb-12 font-body-md text-body-md overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="bg-surface/60 dark:bg-surface-dim/60 fixed top-0 w-full z-50 backdrop-blur-md border-b border-white/20 shadow-sm shadow-[0px_4px_20px_rgba(15,23,42,0.05)] flex items-center justify-between px-margin-mobile md:px-margin-desktop h-16 w-full">
+<!-- Leading Icon -->
+<button class="hover:opacity-80 transition-opacity active:scale-95 transition-transform text-on-surface-variant dark:text-outline-variant p-2 -ml-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
+<span class="material-symbols-outlined text-[24px]">language</span>
+</button>
+<!-- Desktop Navigation Pivot (Hidden on mobile) -->
+<nav class="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+<a class="text-primary font-bold text-label-lg font-label-lg transition-colors border-b-2 border-primary pb-1" href="#">Home</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors text-label-lg font-label-lg pb-1 border-b-2 border-transparent hover:border-primary/50" href="#">Orders</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors text-label-lg font-label-lg pb-1 border-b-2 border-transparent hover:border-primary/50" href="#">Messages</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors text-label-lg font-label-lg pb-1 border-b-2 border-transparent hover:border-primary/50" href="#">Support</a>
+</nav>
+<!-- Brand Headline (Right-aligned on mobile, center on desktop, but strict JSON says flex-between, so we place it center via absolute or just flex-1) -->
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim pointer-events-none md:absolute md:left-margin-desktop">
+            BorderPass
+        </div>
+<!-- Trailing Icon + Profile Desktop -->
+<div class="flex items-center gap-2">
+<button class="hover:opacity-80 transition-opacity active:scale-95 transition-transform text-on-surface-variant dark:text-outline-variant p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary relative">
+<span class="material-symbols-outlined text-[24px]">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-surface"></span>
+</button>
+<div class="hidden md:block w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant overflow-hidden cursor-pointer hover:opacity-80 transition-opacity ml-2">
+<span class="material-symbols-outlined w-full h-full flex items-center justify-center text-on-surface-variant">person</span>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop flex flex-col gap-xl">
+<!-- Header Section -->
+<section class="flex flex-col gap-4 mt-8">
+<h1 class="font-display-lg text-display-lg text-on-background">Hola, Maria</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">What can we bring across for you today?</p>
+</section>
+<!-- Active Delivery Card (High-end UI pattern) -->
+<section class="w-full">
+<div class="bg-surface-container-lowest rounded-xl p-6 md:p-8 shadow-ambient-1 hover:shadow-ambient-2 transition-shadow duration-300 border border-white/50 relative overflow-hidden group">
+<!-- Subtle background decorative element -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 group-hover:bg-primary/10 transition-colors duration-700"></div>
+<div class="relative z-10 flex flex-col gap-6">
+<div class="flex justify-between items-start">
+<div class="flex flex-col gap-1">
+<span class="font-label-lg text-label-lg text-primary uppercase tracking-widest">Active Delivery</span>
+<h2 class="font-headline-md text-headline-md text-on-background">Order #BP-8472</h2>
+</div>
+<button class="bg-surface-variant text-on-surface-variant px-4 py-2 rounded-full font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center gap-2">
+<span>Track</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+<!-- Progress Indicator Segment -->
+<div class="flex flex-col gap-3 mt-2">
+<div class="flex justify-between items-end mb-1">
+<span class="font-label-md text-label-md text-on-surface font-bold">Border Crossing</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Est. 2 hours</span>
+</div>
+<!-- The Track -->
+<div class="w-full h-2 bg-surface-container-high rounded-full flex overflow-hidden">
+<!-- Completed -->
+<div class="w-1/3 h-full bg-primary rounded-r-full"></div>
+<!-- Current (Animated) -->
+<div class="w-1/3 h-full bg-primary progress-active rounded-full -ml-2 relative z-10"></div>
+<!-- Pending -->
+<div class="w-1/3 h-full"></div>
+</div>
+<!-- Stages text -->
+<div class="flex justify-between text-[10px] uppercase tracking-wider text-secondary mt-1 font-bold">
+<span>Warehouse</span>
+<span class="text-primary text-center">Customs</span>
+<span class="text-right">Juárez Hub</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Service Grid (Bento Style) -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Card 1 -->
+<button class="flex flex-col items-start text-left bg-surface-container-lowest rounded-xl p-6 shadow-ambient-1 hover:shadow-ambient-2 hover:-translate-y-1 transition-all duration-300 border border-white/50 group h-48 justify-between relative overflow-hidden">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_cart</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-background relative z-10">Shop from USA</h3>
+<!-- Decorative pattern -->
+<div class="absolute bottom-0 right-0 opacity-5 w-32 h-32 -mb-8 -mr-8 rounded-full border-4 border-on-background"></div>
+</button>
+<!-- Card 2 -->
+<button class="flex flex-col items-start text-left bg-surface-container-lowest rounded-xl p-6 shadow-ambient-1 hover:shadow-ambient-2 hover:-translate-y-1 transition-all duration-300 border border-white/50 group h-48 justify-between">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-tertiary mb-4 group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">warehouse</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-background">Receive My Packages</h3>
+</button>
+<!-- Card 3 -->
+<button class="flex flex-col items-start text-left bg-surface-container-lowest rounded-xl p-6 shadow-ambient-1 hover:shadow-ambient-2 hover:-translate-y-1 transition-all duration-300 border border-white/50 group h-48 justify-between">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">local_shipping</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-background">Deliver to Juárez</h3>
+</button>
+<!-- Card 4 -->
+<button class="flex flex-col items-start text-left bg-surface-container-lowest rounded-xl p-6 shadow-ambient-1 hover:shadow-ambient-2 hover:-translate-y-1 transition-all duration-300 border border-white/50 group h-48 justify-between">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-secondary mb-4 group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">domain</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-background">Business Orders</h3>
+</button>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only per Responsive Pivot rules) -->
+<nav class="md:hidden bg-surface/60 dark:bg-surface-dim/60 fixed bottom-0 w-full z-50 backdrop-blur-md border-t border-white/20 shadow-[0px_-4px_20px_rgba(15,23,42,0.05)] shadow-lg flex justify-around items-center w-full h-20 pb-safe px-2">
+<!-- Home (Active) -->
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold font-label-md text-label-md active:scale-90 transition-transform duration-200 w-16 group" href="#">
+<span class="material-symbols-outlined mb-1 group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 1;">home</span>
+<span>Home</span>
+</a>
+<!-- Orders -->
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim font-label-md text-label-md hover:text-primary-container transition-colors active:scale-90 duration-200 w-16 group" href="#">
+<span class="material-symbols-outlined mb-1 group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 0;">package_2</span>
+<span>Orders</span>
+</a>
+<!-- Messages -->
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim font-label-md text-label-md hover:text-primary-container transition-colors active:scale-90 duration-200 w-16 group relative" href="#">
+<span class="material-symbols-outlined mb-1 group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 0;">chat_bubble</span>
+<!-- Notification Dot -->
+<span class="absolute top-0 right-2 w-2 h-2 bg-primary rounded-full border-2 border-surface"></span>
+<span>Messages</span>
+</a>
+<!-- Support -->
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim font-label-md text-label-md hover:text-primary-container transition-colors active:scale-90 duration-200 w-16 group" href="#">
+<span class="material-symbols-outlined mb-1 group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 0;">contact_support</span>
+<span>Support</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim font-label-md text-label-md hover:text-primary-container transition-colors active:scale-90 duration-200 w-16 group" href="#">
+<span class="material-symbols-outlined mb-1 group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 0;">person</span>
+<span>Profile</span>
+</a>
+</nav>
+<!-- Polyfill for safe-area-inset bottom on iOS if needed, usually handled by Tailwind plugins but safe to add inline just in case -->
+<style>
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
+    </style>
+</body></html>

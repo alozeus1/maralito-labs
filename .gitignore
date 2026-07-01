@@ -1,0 +1,31 @@
+# deps
+node_modules/
+.pnpm-store/
+# build
+.next/
+dist/
+out/
+.turbo/
+*.tsbuildinfo
+# env / secrets  (NEVER commit real env files)
+.env
+.env.*
+!.env.example
+# os / editor
+.DS_Store
+*.log
+# test
+coverage/
+playwright-report/
+test-results/
+# spike scratch
+spike/**/node_modules/
+spike/**/.pglite/
+spike/**/.checkpoint.json
+spike/**/.checkpoint*
+
+# separate pre-existing repository (not part of this monorepo)
+/maralito-labs-website/
+
+# local operator evidence (may contain environment-specific details)
+/docs/phase-7/run-logs/

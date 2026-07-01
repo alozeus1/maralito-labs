@@ -1,0 +1,20 @@
+{
+  "name": "@maralito/payments",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "stripe:smoke": "node scripts/stripe-smoke.mjs"
+  },
+  "dependencies": { "stripe": "^16.12.0" },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.2",
+    "@maralito/config": "workspace:*"
+  }
+}

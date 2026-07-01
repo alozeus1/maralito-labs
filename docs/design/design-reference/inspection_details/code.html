@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Package Inspection - BorderPass</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Literata:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-on-surface": "#ffede7",
+                        "primary-fixed-dim": "#ffb597",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "inverse-surface": "#3a2e29",
+                        "tertiary-fixed": "#a6f2d1",
+                        "inverse-primary": "#ffb597",
+                        "on-tertiary-fixed": "#002116",
+                        "on-tertiary-container": "#003d2b",
+                        "on-secondary-container": "#5c647a",
+                        "outline": "#8b7268",
+                        "on-tertiary-fixed-variant": "#00513b",
+                        "on-secondary-fixed": "#131b2e",
+                        "on-background": "#241915",
+                        "surface-variant": "#f3ded7",
+                        "secondary": "#565e74",
+                        "surface-container-low": "#fff1ec",
+                        "primary-fixed": "#ffdbcd",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#61ab8d",
+                        "surface": "#fff8f6",
+                        "on-error": "#ffffff",
+                        "on-primary-container": "#5f2000",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#1b6b51",
+                        "surface-container": "#ffe9e2",
+                        "error": "#ba1a1a",
+                        "surface-container-highest": "#f3ded7",
+                        "surface-bright": "#fff8f6",
+                        "on-primary-fixed-variant": "#7d2d00",
+                        "on-error-container": "#93000a",
+                        "surface-dim": "#ebd6ce",
+                        "on-surface": "#241915",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#a33e06",
+                        "background": "#fff8f6",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "secondary-fixed": "#dae2fd",
+                        "on-tertiary": "#ffffff",
+                        "primary-container": "#f47a42",
+                        "surface-container-high": "#f9e4dc",
+                        "on-surface-variant": "#57423a",
+                        "on-secondary": "#ffffff",
+                        "outline-variant": "#dec0b5",
+                        "tertiary-fixed-dim": "#8bd6b6",
+                        "primary": "#a33e06",
+                        "secondary-container": "#dae2fd",
+                        "on-primary-fixed": "#360f00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "base": "8px",
+                        "lg": "48px",
+                        "margin-mobile": "20px",
+                        "sm": "12px",
+                        "max-width": "1280px",
+                        "xl": "80px",
+                        "margin-desktop": "64px",
+                        "gutter": "24px",
+                        "md": "24px"
+                    },
+                    "fontFamily": {
+                        "label-lg": ["DM Sans"],
+                        "body-md": ["DM Sans"],
+                        "headline-lg-mobile": ["Literata"],
+                        "display-lg": ["Literata"],
+                        "headline-lg": ["Literata"],
+                        "label-md": ["DM Sans"],
+                        "headline-md": ["Literata"],
+                        "body-lg": ["DM Sans"]
+                    },
+                    "fontSize": {
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-32 font-body-md text-body-md antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- Contextual Header (Task-focused sub-page, global nav suppressed) -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-[0px_4px_20px_rgba(15,23,42,0.05)]">
+<div class="flex items-center justify-between px-margin-mobile md:px-margin-desktop h-16 w-full max-w-max-width mx-auto">
+<button aria-label="Go back" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant transition-colors text-on-surface">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface tracking-tight">Inspection Details</h1>
+<div class="w-10 h-10"></div> <!-- Spacer for balance -->
+</div>
+</header>
+<main class="pt-24 px-margin-mobile md:px-margin-desktop max-w-3xl mx-auto space-y-md">
+<!-- Hero Gallery Section -->
+<section class="rounded-lg overflow-hidden shadow-[0px_4px_20px_rgba(15,23,42,0.05)] bg-surface relative group">
+<img alt="Item being sealed" class="w-full h-64 md:h-96 object-cover object-center transition-transform duration-700 group-hover:scale-105" data-alt="A high-fidelity close-up photograph of a premium cardboard shipping box being sealed with custom branded 'BorderPass' security tape. The lighting is warm and professional, highlighting the crisp texture of the cardboard and the glossy finish of the tape. The background is a clean, well-lit logistics facility with soft focus. The overall aesthetic is modern, secure, and premium light-mode." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqf8gIYYDrEvqN7sXiqMmKo4tHYEJTt48vpzW1Yy1ridk7wZhi9Gh6zoZ9rMmIhXWw9v_SRzzatC2YMJ6og_VFZuwdImDP1ncEUgXPn-rOTyyYdGtTvppczkF0oIO8LpEhg-bwcr32CJcYNN3m0JxSP6J9Wv9T5f0m_i_NzBTKBSfGAwbfOhRwW0R3rcCgi7so7DCA36m5UzSMzJAga64O156mX_xdH_7uub0LoVYycWUs8YGMN2sGgdZmJAzrBU_BW6ZOrVUD5U0T"/>
+<div class="absolute bottom-sm left-0 right-0 flex justify-center gap-xs">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-2 h-2 rounded-full bg-white/50 backdrop-blur-sm"></div>
+<div class="w-2 h-2 rounded-full bg-white/50 backdrop-blur-sm"></div>
+</div>
+<div class="absolute top-sm right-sm bg-surface/90 backdrop-blur-md px-sm py-xs rounded-full flex items-center gap-xs shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-primary" data-weight="fill" style="font-variation-settings: 'FILL' 1;">zoom_in</span>
+<span class="font-label-md text-label-md text-on-surface">Tap to enlarge</span>
+</div>
+</section>
+<!-- Inspector & Trust Badges Row -->
+<div class="flex flex-col sm:flex-row gap-sm items-start sm:items-center justify-between">
+<!-- Inspector Card -->
+<div class="flex items-center gap-sm bg-surface p-sm rounded-full shadow-[0px_4px_20px_rgba(15,23,42,0.05)] pr-md border border-outline-variant/20">
+<div class="w-12 h-12 rounded-full overflow-hidden shrink-0 border-2 border-surface-container-low shadow-sm">
+<img alt="Inspector Luis R." class="w-full h-full object-cover" data-alt="A professional portrait of a logistics inspector wearing a clean, modern uniform. They are looking focused and friendly. The background is a soft, warm white blur. The lighting is bright and inviting, conveying trust and reliability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoE0I38y3qGjIwpgXN-gLMpJ3bHSl-Bc1NK7yPLZWc5J4howq30qCeoaOfUGWLyCY4V50MJ9cYLDkOzsZrNOl4plivo9UnJxbAHag6yO0_wLO4wS7gYsVjYt4CcAM70BCWFgvDuJDjV5NjdHIqPhb7uPgq9oFERmmbclTDD-gKJhf8_eEwKWlltYCsMC-niCjwUbCTnEQQiD1jRC_37GYz6vYJmd33VTNc1u32Nr-G5g8Q-6fBA4XzRy7XLoEceU2YIvnnAkoxMGPL"/>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Inspected by Luis R.</p>
+<p class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                        Oct 24, 09:42 AM EST
+                    </p>
+</div>
+</div>
+<!-- Trust Badges -->
+<div class="flex flex-wrap gap-xs">
+<div class="flex items-center gap-xs bg-tertiary/10 text-tertiary px-sm py-xs rounded-full border border-tertiary/20">
+<span class="material-symbols-outlined text-[16px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="font-label-md text-label-md font-bold">Security Seal Intact</span>
+</div>
+<div class="flex items-center gap-xs bg-surface-container-high text-on-surface-variant px-sm py-xs rounded-full border border-outline-variant/30">
+<span class="material-symbols-outlined text-[16px]">receipt_long</span>
+<span class="font-label-md text-label-md">Verified Receipt</span>
+</div>
+</div>
+</div>
+<!-- Serial Number Capture (OCR-style Bento Card) -->
+<section class="bg-surface-variant rounded-lg p-md relative overflow-hidden shadow-[inset_0px_2px_10px_rgba(0,0,0,0.02)]">
+<div class="absolute -right-4 -top-4 opacity-10">
+<span class="material-symbols-outlined text-[120px]">document_scanner</span>
+</div>
+<div class="relative z-10">
+<h3 class="font-label-md text-label-md text-on-surface-variant mb-xs flex items-center gap-xs uppercase tracking-wider">
+<span class="material-symbols-outlined text-[16px]">qr_code_scanner</span>
+                    Serial Number Capture
+                </h3>
+<div class="flex items-end gap-sm mt-sm">
+<div class="font-display-lg text-display-lg font-mono text-on-surface tracking-widest leading-none">
+                        SN-84920-X
+                    </div>
+<div class="mb-1 flex items-center gap-xs text-tertiary bg-tertiary/10 px-2 py-1 rounded">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span class="font-label-md text-label-md font-bold">Match</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Verified Contents Checklist -->
+<section class="bg-surface rounded-lg p-md shadow-[0px_4px_20px_rgba(15,23,42,0.05)] border border-outline-variant/10">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-sm border-b border-outline-variant/20 pb-xs">Verified Contents</h2>
+<ul class="space-y-sm mt-sm">
+<li class="flex items-start gap-sm group">
+<span class="material-symbols-outlined text-tertiary mt-1 transition-transform group-hover:scale-110" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">1x Leica Q3 Digital Camera (Body)</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Condition: Pristine, New in Box</p>
+</div>
+</li>
+<li class="flex items-start gap-sm group">
+<span class="material-symbols-outlined text-tertiary mt-1 transition-transform group-hover:scale-110" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">1x BP-SCL6 Lithium-Ion Battery</p>
+<p class="font-label-md text-label-md text-on-surface-variant">OEM Seal Intact</p>
+</div>
+</li>
+<li class="flex items-start gap-sm group">
+<span class="material-symbols-outlined text-tertiary mt-1 transition-transform group-hover:scale-110" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">Original Documentation &amp; Warranty Card</p>
+</div>
+</li>
+</ul>
+</section>
+</main>
+<!-- Fixed Bottom CTA (Glassmorphism) -->
+<footer class="fixed bottom-0 w-full bg-surface/90 backdrop-blur-md border-t border-outline-variant/20 px-margin-mobile py-sm md:px-margin-desktop z-50 shadow-[0px_-4px_20px_rgba(15,23,42,0.05)]">
+<div class="max-w-3xl mx-auto">
+<button class="w-full bg-primary text-on-primary font-label-lg text-label-lg py-sm px-md rounded-xl flex items-center justify-center gap-sm shadow-[0px_12px_32px_rgba(15,23,42,0.08),inset_0_-2px_0_rgba(0,0,0,0.15)] hover:opacity-90 active:scale-[0.98] transition-all duration-200 group">
+                Approve &amp; Continue
+                <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</footer>
+</body></html>

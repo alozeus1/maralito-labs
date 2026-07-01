@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BorderPass - Service Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Literata:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline-variant": "#dec0b5",
+                      "surface-dim": "#ebd6ce",
+                      "on-primary-container": "#5f2000",
+                      "on-primary": "#ffffff",
+                      "on-tertiary-container": "#003d2b",
+                      "error": "#ba1a1a",
+                      "on-surface": "#241915",
+                      "primary": "#a33e06",
+                      "on-secondary-fixed": "#131b2e",
+                      "primary-container": "#f47a42",
+                      "surface-variant": "#f3ded7",
+                      "surface": "#fff8f6",
+                      "surface-container": "#ffe9e2",
+                      "on-error-container": "#93000a",
+                      "on-tertiary-fixed-variant": "#00513b",
+                      "on-primary-fixed": "#360f00",
+                      "tertiary-fixed": "#a6f2d1",
+                      "secondary-fixed-dim": "#bec6e0",
+                      "on-tertiary": "#ffffff",
+                      "secondary-container": "#dae2fd",
+                      "on-surface-variant": "#57423a",
+                      "surface-bright": "#fff8f6",
+                      "tertiary-container": "#61ab8d",
+                      "inverse-on-surface": "#ffede7",
+                      "surface-container-high": "#f9e4dc",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary-fixed": "#002116",
+                      "tertiary-fixed-dim": "#8bd6b6",
+                      "on-error": "#ffffff",
+                      "background": "#fff8f6",
+                      "primary-fixed": "#ffdbcd",
+                      "secondary-fixed": "#dae2fd",
+                      "secondary": "#565e74",
+                      "on-background": "#241915",
+                      "inverse-primary": "#ffb597",
+                      "on-secondary-container": "#5c647a",
+                      "surface-container-low": "#fff1ec",
+                      "on-secondary-fixed-variant": "#3f465c",
+                      "inverse-surface": "#3a2e29",
+                      "outline": "#8b7268",
+                      "on-secondary": "#ffffff",
+                      "surface-tint": "#a33e06",
+                      "error-container": "#ffdad6",
+                      "on-primary-fixed-variant": "#7d2d00",
+                      "primary-fixed-dim": "#ffb597",
+                      "tertiary": "#1b6b51",
+                      "surface-container-highest": "#f3ded7"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "base": "8px",
+                      "margin-mobile": "20px",
+                      "margin-desktop": "64px",
+                      "xl": "80px",
+                      "max-width": "1280px",
+                      "xs": "4px",
+                      "sm": "12px",
+                      "lg": "48px",
+                      "md": "24px"
+              },
+              "fontFamily": {
+                      "headline-md": [
+                              "Literata"
+                      ],
+                      "label-lg": [
+                              "DM Sans"
+                      ],
+                      "display-lg": [
+                              "Literata"
+                      ],
+                      "body-lg": [
+                              "DM Sans"
+                      ],
+                      "body-md": [
+                              "DM Sans"
+                      ],
+                      "label-md": [
+                              "DM Sans"
+                      ],
+                      "headline-lg": [
+                              "Literata"
+                      ],
+                      "headline-lg-mobile": [
+                              "Literata"
+                      ]
+              },
+              "fontSize": {
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "label-lg": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "28px",
+                              {
+                                      "lineHeight": "36px",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .shadow-level-1 {
+            box-shadow: 0px 4px 20px rgba(15, 23, 42, 0.05);
+        }
+        .shadow-level-2 {
+            box-shadow: 0px 12px 32px rgba(15, 23, 42, 0.08);
+        }
+        .glass-nav {
+            backdrop-filter: blur(12px);
+            background-color: rgba(255, 248, 246, 0.6);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-primary-shadow {
+            box-shadow: inset 0px -2px 0px rgba(0, 0, 0, 0.2);
+        }
+      </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen pb-24 md:pb-0 pt-20">
+<!-- TopAppBar -->
+<header class="docked full-width top-0 sticky z-50 glass-nav shadow-[0px_4px_20px_rgba(15,23,42,0.05)]">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-max-width mx-auto">
+<div class="flex items-center gap-4">
+<img alt="Concierge Expert Profile" class="w-10 h-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmtRXDn6MoVnf666IGjxT4cl5-UgXXyqj1gqVC_MNpfBT5U2VhzwacCmxBOmHXPdoBtFr1Ko48CG5PqSD6MN4RGBAJ-R7r6V5RoFZ8xqvHuu3g7VeT4K2r0CzFuGLtqUa0YNx6YUNBqblVkG0UwG7ozEIdV3VROwI4z1HofNauFCZCS9kQbhOjbZt_10eEEqpSQPIbMmuqNg3UfC_UWzPwe-QsNgW7IBJgZRehWy4sfB6FOZZSLnDwA7QbRKn2Z30LhP6o4EBzxXeS"/>
+<h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg font-bold text-primary dark:text-primary-fixed-dim">BorderPass</h1>
+</div>
+<!-- Desktop Nav -->
+<nav class="hidden md:flex gap-6 items-center">
+<a class="text-primary font-bold border-b-2 border-primary pb-1" href="#">Home</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/20 transition-colors pb-1" href="#">Orders</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/20 transition-colors pb-1" href="#">Messages</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/20 transition-colors pb-1" href="#">Support</a>
+</nav>
+<button class="text-primary dark:text-primary-fixed hover:bg-surface-variant/20 transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+</div>
+</header>
+<main class="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-md">
+<!-- Hero Section -->
+<section class="mb-xl relative rounded-xl overflow-hidden shadow-level-1 h-[400px] md:h-[500px]">
+<div class="absolute inset-0 bg-gradient-to-t from-surface to-transparent z-10"></div>
+<img alt="El Paso to Juarez Connection" class="w-full h-full object-cover absolute inset-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqZbHfQlktEk5Ga6zWF62evLz-U-QMHTUQeGgKIWCDaqDiQYfvtFRHsEaomaHMP1oqtOSCJiJrGFxIFPaxPOYQQu7lzNkmEmtChNwBWVS6bFM4avismxWl0861Xz0CONs_Zm4L1IKS4cbfBcfim2jy5Olv-i0Wk0ENJNS8Y4HD8H68lvTNEPNlD6a_cxzGAEy0gdFhm8L2GoGBvHk2qqnYygrIHKgnYVtrvKkNQ9PHLCBli45p4ihyqT-41705j5tOoWA2qu3Y4USP"/>
+<div class="absolute bottom-0 left-0 w-full p-md z-20 flex flex-col items-center justify-end h-full text-center">
+<div class="bg-surface/80 backdrop-blur-md px-6 py-4 rounded-full shadow-level-1 flex items-center gap-4 mb-8">
+<span class="font-headline-md text-primary">El Paso</span>
+<span class="material-symbols-outlined text-outline">arrow_downward</span>
+<span class="font-headline-md text-on-surface-variant text-sm">International Bridge</span>
+<span class="material-symbols-outlined text-outline">arrow_downward</span>
+<span class="font-headline-md text-primary">Ciudad Juárez</span>
+</div>
+<h2 class="font-display-lg text-display-lg text-on-surface">Hola Maria.</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-2">What can we help you bring across today?</p>
+</div>
+</section>
+<!-- Current Order Card -->
+<section class="mb-xl">
+<h3 class="font-headline-md text-headline-md mb-md">Active Delivery</h3>
+<div class="bg-surface-container-lowest rounded-xl p-md shadow-level-1 flex flex-col md:flex-row gap-md items-start md:items-center">
+<div class="w-full md:w-32 h-32 bg-surface-dim rounded-lg overflow-hidden flex-shrink-0 relative">
+<img class="w-full h-full object-cover" data-alt="A small, neatly wrapped premium package resting on a clean, soft sand colored surface. The lighting is warm and natural, casting soft shadows that emphasize the package's shape. The mood is calm and reliable, representing a secure delivery service. The aesthetic is modern minimalism." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-ylXg89Th0huxdocDpG5PtOFHgCCsj9u_GF3cfuc6FdHAWITwNKNSOjiwK3cEvLAUdZ6FzPxfg8qRXd0VP8PUHZ6WpdlXuHNgxziVvqlsGap26SEcr2sYZV3Sf0wGMeOyIOgaZhKg7TAd49IKUg1fiJA63whmNC5UJYgOf9B9wIFunVfUHp02VXyi80ajBcBz8nEqN8-UD9nZjG4iua08oWXfwHsZ8e04stkzeouvAZ-GCVfz7OCMJyK-PRojlOJBx8HvOsDBgICu"/>
+<div class="absolute top-2 right-2 bg-tertiary text-on-tertiary text-xs px-2 py-1 rounded-full font-bold">In Transit</div>
+</div>
+<div class="flex-grow">
+<h4 class="font-headline-md text-headline-md mb-2">Order #BP-4921</h4>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-on-surface-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">location_on</span>
+<span class="font-body-md">Current city: <strong class="text-on-surface">El Paso</strong></span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">flag</span>
+<span class="font-body-md">Destination: <strong class="text-on-surface">Juárez</strong></span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">schedule</span>
+<span class="font-body-md">Estimated arrival: <strong class="text-on-surface">Tomorrow</strong></span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">check_circle</span>
+<span class="font-body-md text-tertiary font-medium">Border status: Ready for crossing</span>
+</div>
+</div>
+</div>
+<div class="w-full md:w-auto mt-4 md:mt-0 flex justify-end">
+<button class="bg-primary text-on-primary font-label-lg py-3 px-6 rounded-full btn-primary-shadow hover:bg-primary-container hover:text-on-primary-container transition-colors w-full md:w-auto text-center">Track Details</button>
+</div>
+</div>
+<!-- Progress Line -->
+<div class="mt-6 flex items-center w-full px-4">
+<div class="h-2 bg-primary rounded-full flex-1"></div>
+<div class="h-2 bg-surface-variant rounded-full flex-1 ml-1"></div>
+</div>
+</section>
+<!-- Primary Actions (Bento Grid) -->
+<section>
+<h3 class="font-headline-md text-headline-md mb-md">Our Services</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Action 1 -->
+<button class="bg-surface-container-lowest rounded-xl p-lg shadow-level-1 hover:shadow-level-2 transition-shadow flex flex-col items-start group text-left relative overflow-hidden border border-transparent hover:border-surface-variant">
+<div class="w-14 h-14 bg-surface-dim rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+<span class="text-2xl">🇺🇸</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-1">Shop from USA</h4>
+<p class="font-body-md text-on-surface-variant opacity-80">Comprar en USA</p>
+<div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-primary">arrow_forward</span>
+</div>
+</button>
+<!-- Action 2 -->
+<button class="bg-surface-container-lowest rounded-xl p-lg shadow-level-1 hover:shadow-level-2 transition-shadow flex flex-col items-start group text-left relative overflow-hidden border border-transparent hover:border-surface-variant">
+<div class="w-14 h-14 bg-secondary-container text-on-secondary-container rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">inventory_2</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-1">Receive My Packages</h4>
+<p class="font-body-md text-on-surface-variant opacity-80">Recibir mis paquetes</p>
+<div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-primary">arrow_forward</span>
+</div>
+</button>
+<!-- Action 3 -->
+<button class="bg-surface-container-lowest rounded-xl p-lg shadow-level-1 hover:shadow-level-2 transition-shadow flex flex-col items-start group text-left relative overflow-hidden border border-transparent hover:border-surface-variant">
+<div class="w-14 h-14 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">local_shipping</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-1">Deliver to Juárez</h4>
+<p class="font-body-md text-on-surface-variant opacity-80">Entregar en Juárez</p>
+<div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-primary">arrow_forward</span>
+</div>
+</button>
+<!-- Action 4 -->
+<button class="bg-surface-container-lowest rounded-xl p-lg shadow-level-1 hover:shadow-level-2 transition-shadow flex flex-col items-start group text-left relative overflow-hidden border border-transparent hover:border-surface-variant">
+<div class="w-14 h-14 bg-surface-variant text-on-surface-variant rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">domain</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-1">Business Orders</h4>
+<p class="font-body-md text-on-surface-variant opacity-80">Pedidos empresariales</p>
+<div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-primary">arrow_forward</span>
+</div>
+</button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden docked full-width bottom-0 rounded-t-lg shadow-[0px_-4px_20px_rgba(15,23,42,0.08)] bg-surface dark:bg-surface-container-high fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3">
+<button class="flex flex-col items-center justify-center bg-primary-container/20 text-on-primary-container rounded-xl px-3 py-1.5 active scale-90 transition-all font-label-md text-label-md">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">home</span>
+<span>Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-variant/50 rounded-xl px-3 py-1.5 transition-all font-label-md text-label-md">
+<span class="material-symbols-outlined mb-1">package_2</span>
+<span>Orders</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-variant/50 rounded-xl px-3 py-1.5 transition-all font-label-md text-label-md">
+<span class="material-symbols-outlined mb-1">chat_bubble</span>
+<span>Messages</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-variant/50 rounded-xl px-3 py-1.5 transition-all font-label-md text-label-md">
+<span class="material-symbols-outlined mb-1">contact_support</span>
+<span>Support</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-variant/50 rounded-xl px-3 py-1.5 transition-all font-label-md text-label-md">
+<span class="material-symbols-outlined mb-1">person</span>
+<span>Profile</span>
+</button>
+</nav>
+</body></html>

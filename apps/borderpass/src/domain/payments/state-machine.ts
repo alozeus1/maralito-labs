@@ -16,11 +16,20 @@ export const PAYMENT_STATUSES = [
 ] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
-/** Legal transitions. Mirrors the order machine's status-only style (no actor classes). */
+/**
+ * Legal transitions. Mirrors the order machine's status-only style (no actor classes).
+ *
+ * The webhook is the authoritative driver: each Stripe `payment_intent.*` event maps to the payment
+ * status it reports, so the table must permit every progression Stripe actually emits. In particular,
+ * standard cards go `requires_payment → succeeded` (or `→ failed`) with NO intermediate `processing`
+ * event, and 3DS goes `requires_payment → requires_action → succeeded`. Direct terminal transitions
+ * from `requires_payment`/`requires_action` are therefore legal. The paid cascade stays gated to
+ * `succeeded` while the order is `awaiting_payment` (orderPaidCascadeTarget), so this remains safe.
+ */
 export const LEGAL_PAYMENT_TRANSITIONS: Record<PaymentStatus, readonly PaymentStatus[]> = {
-  requires_payment: ['processing', 'canceled'],
+  requires_payment: ['processing', 'requires_action', 'succeeded', 'failed', 'canceled'],
   processing: ['succeeded', 'failed', 'requires_action', 'canceled'],
-  requires_action: ['processing', 'failed'],
+  requires_action: ['processing', 'succeeded', 'failed', 'canceled'],
   succeeded: ['refunded_placeholder'], // future placeholder only; no refund logic in Phase 4
   failed: ['requires_payment'],
   canceled: [],

@@ -6,16 +6,16 @@
 
 | # | Gate | How to run | Status | Run by / date | Evidence |
 |---|------|------------|--------|---------------|----------|
-| 1 | Real `pnpm install` + committed lockfile | `pnpm install` | 🔲 UNRUN | | |
-| 2 | Full app-server typecheck | `pnpm typecheck` | 🔲 UNRUN | | |
-| 3 | Full Next app build | `pnpm build` | 🔲 UNRUN | | |
-| 4 | Full Vitest suite | `pnpm test` | 🔲 UNRUN | | |
-| 5 | Normal PR CI green | GitHub Actions `ci.yml` | 🔲 UNRUN | | |
-| 6 | Live Supabase provisioned | operator | ✅ PROVISIONED (operator-attested) | operator / 2026-07-01 | Project `borderpass-dev-gate`, ref `rupqejwzmwfspvbmkmai`, org `maralito-labs`, region `us-east-2`, status Healthy. Not yet connection-verified from CI/agent — DB reachability is confirmed at rows 7 & 10. |
-| 7 | Migrations applied (live) | `db:migrate` | 🔲 UNRUN | | |
-| 8 | All 7 RLS policies applied (live) | apply `rls/*.sql` | 🔲 UNRUN | | |
-| 9 | Seed applied (live) | `db:seed` | 🔲 UNRUN | | |
-| 10 | Live two-user RLS isolation gate | `pnpm gate:rls` → ALL PASS | 🔲 UNRUN | | |
+| 1 | Real `pnpm install` + committed lockfile | `pnpm install` | ✅ PASS (operator-attested) | operator / 2026-07-01 | Pass 2: `pnpm install --frozen-lockfile` PASS → committed lockfile present & consistent. |
+| 2 | Full app-server typecheck | `pnpm typecheck` | ✅ PASS (operator-attested) | operator / 2026-07-01 | Pass 2: workspace typecheck PASS. |
+| 3 | Full Next app build | `pnpm build` | ✅ PASS (operator-attested) | operator / 2026-07-01 | Pass 2: Next.js build PASS. |
+| 4 | Full Vitest suite | `pnpm test` | ✅ PASS (operator-attested) | operator / 2026-07-01 | Pass 2: Vitest PASS (real toolchain; resolves the sandbox Rollup limitation). |
+| 5 | Normal PR CI green | GitHub Actions `ci.yml` | 🔲 UNRUN | | Push to `main` to confirm via CI. |
+| 6 | Live Supabase provisioned | operator | ✅ PASS (connection-verified) | operator / 2026-07-01 | Project `borderpass-dev-gate`, ref `rupqejwzmwfspvbmkmai`, us-east-2. Reachability confirmed: `select 1` returned 1 row (session pooler 5432). |
+| 7 | Migrations applied (live) | `db:migrate` | ✅ PASS | operator / 2026-07-01 | Pass 2: 1 migration applied (`0000_nebulous_black_widow`). |
+| 8 | All 7 RLS policies applied (live) | apply `rls/*.sql` | ✅ PASS | operator / 2026-07-01 | Pass 2: all 7 policy files applied → 48 policies, RLS enabled on 26 tables. Required grant fix committed `e741a41` (least-privilege grants to `authenticated` only; no anon/public). |
+| 9 | Seed applied (live) | `db:seed` | ✅ PASS | operator / 2026-07-01 | Pass 2: 9 roles + 1 synthetic org. No PII. |
+| 10 | Live two-user RLS isolation gate | `pnpm gate:rls` → `N passed, 0 failed` | ✅ PASS | operator / 2026-07-01 | Pass 2: `gate:rls` = **13 passed, 0 failed**; non-destructive rollback verified (`leaked_gate_org=0`). Cross-domain isolation + staff read + history staff-only + payment write-deny + anon→0, on live Supabase. |
 | 11 | OTP → provisioning → session smoke | operator | 🔲 UNRUN | | |
 | 12 | Stripe TEST-mode smoke (offline pre-check) | `stripe:smoke` | 🔲 UNRUN | | |
 | 13 | Stripe TEST-mode live round-trip | Stripe CLI (runbook) | 🔲 UNRUN | | |
@@ -65,3 +65,10 @@ themselves are unrun.
 - **Fix:** `packages/db/scripts/live-rls-gate.ts` now self-seeds those two role keys inside its rolled-back transaction (`insert into roles ... on conflict (key) do nothing`), so the gate no longer depends on `db:seed` ordering. **Operator must commit + push this fix before Pass 2.**
 - **Result after fix: 13 passed, 0 failed** — migration applies, all 7 RLS files apply, gate seed matches real schema, cross-domain isolation + staff read + history + write-deny + anon all correct.
 - Still no live gate ticked (this is offline PGlite, not the live Supabase gate). Rows 7–10 remain 🔲.
+
+### 2026-07-01 — Pass 2 executed on LIVE Supabase (`borderpass-dev-gate`) — rows 6–10 PASSED
+- Operator ran `scripts/phase7-local-run.sh --apply-db` against the live project (session pooler 5432, synthetic data only).
+- Results: reachability `select 1`✅ · migrate 1 applied✅ · **7 RLS files, 48 policies, 26 RLS-enabled tables**✅ · seed 9 roles + 1 org✅ · **`gate:rls` 13 passed, 0 failed**✅ · rollback clean `leaked_gate_org=0`✅.
+- **Live finding fixed:** the real Supabase environment required explicit table grants to the `authenticated` role that PGlite's harness had hard-coded but the policy files lacked — committed `e741a41 fix(rls): grant authenticated policy privileges`. Agent verified the grants are least-privilege (all to `authenticated`, none to anon/public; history/notification select-only; payments no customer insert). This is exactly the class of gap only a live gate catches.
+- **Ledger rows 6, 7, 8, 9, 10 → ✅ PASS** (evidence in table above). This is the core live RLS release gate.
+- Still 🔲: row 5 (PR CI green — push `main`), row 11 (OTP smoke — Supabase auth-redirect incident), 12–15 Stripe, 16 KMS, 17 preview-branching, 18 env/secrets review, 19 sign-off. Secrets rotation still owed. Development-only until all required rows pass + owner sign-off.

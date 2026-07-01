@@ -28,8 +28,14 @@ export async function transitionOrder(
   if (to === 'cancelled' && meta?.reason) patch.cancelledReason = meta.reason;
   await tx.update(orders).set(patch).where(eq(orders.id, order.id));
   await writeAudit({
-    action: 'order.status_changed', orgId: order.orgId, actorUserId: actor.userId, actorRole: actor.role,
-    entityType: 'order', entityId: order.id, before: { status: order.status }, after: { status: to, ...(meta ?? {}) },
+    action: 'order.status_changed',
+    orgId: order.orgId,
+    actorUserId: actor.userId,
+    actorRole: actor.role,
+    entityType: 'order',
+    entityId: order.id,
+    before: { status: order.status },
+    after: { status: to, ...(meta ?? {}) },
   });
   await emitOrderEvent(`borderpass.order.${to}`, { order_id: order.id, correlation_id: order.id });
 }
@@ -41,5 +47,7 @@ export async function transitionOrderPrivileged(
   actor: { userId: string; role: string },
   meta?: { reason?: string },
 ): Promise<void> {
-  await withPrivilegedDbAccess(`order.cascade:${order.status}->${to}`, (db) => transitionOrder(db, order, to, actor, meta));
+  await withPrivilegedDbAccess(`order.cascade:${order.status}->${to}`, (db) =>
+    transitionOrder(db, order, to, actor, meta),
+  );
 }

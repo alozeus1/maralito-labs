@@ -1,5 +1,6 @@
 /** Keys whose values must never be persisted (secrets / sensitive doc content). */
-const SECRET_KEY = /(pass(word)?|token|secret|api[_-]?key|authorization|cookie|card|cvv|ssn|rfc|kyc|document|file)/i;
+const SECRET_KEY =
+  /(pass(word)?|token|secret|api[_-]?key|authorization|cookie|card|cvv|ssn|rfc|kyc|document|file)/i;
 const REDACTED = '[REDACTED]';
 
 /** Recursively redact secret-ish values by key name. Pure. */

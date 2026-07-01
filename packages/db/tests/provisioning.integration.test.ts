@@ -31,10 +31,23 @@ beforeAll(async () => {
 
 describe('provisionUserCore (real PGlite)', () => {
   it('creates identity + customer role + profile for a new user', async () => {
-    await provisionUserCore(db, { authUserId: USER, orgId: 'org_dev0000000bp', email: 'maria@example.com' });
-    const id = await db.select().from(schema.userIdentities).where(eq(schema.userIdentities.authUserId, USER));
-    const ur = await db.select().from(schema.userRoles).where(eq(schema.userRoles.authUserId, USER));
-    const cp = await db.select().from(schema.customerProfiles).where(eq(schema.customerProfiles.authUserId, USER));
+    await provisionUserCore(db, {
+      authUserId: USER,
+      orgId: 'org_dev0000000bp',
+      email: 'maria@example.com',
+    });
+    const id = await db
+      .select()
+      .from(schema.userIdentities)
+      .where(eq(schema.userIdentities.authUserId, USER));
+    const ur = await db
+      .select()
+      .from(schema.userRoles)
+      .where(eq(schema.userRoles.authUserId, USER));
+    const cp = await db
+      .select()
+      .from(schema.customerProfiles)
+      .where(eq(schema.customerProfiles.authUserId, USER));
     expect(id).toHaveLength(1);
     expect(ur).toHaveLength(1);
     expect(ur[0]!.roleKey).toBe('customer');
@@ -43,18 +56,34 @@ describe('provisionUserCore (real PGlite)', () => {
   });
 
   it('is idempotent — repeat provisioning creates no duplicates', async () => {
-    await provisionUserCore(db, { authUserId: USER, orgId: 'org_dev0000000bp', email: 'maria@example.com' });
+    await provisionUserCore(db, {
+      authUserId: USER,
+      orgId: 'org_dev0000000bp',
+      email: 'maria@example.com',
+    });
     await provisionUserCore(db, { authUserId: USER, orgId: 'org_dev0000000bp' });
-    const id = await db.select().from(schema.userIdentities).where(eq(schema.userIdentities.authUserId, USER));
-    const ur = await db.select().from(schema.userRoles).where(eq(schema.userRoles.authUserId, USER));
-    const cp = await db.select().from(schema.customerProfiles).where(eq(schema.customerProfiles.authUserId, USER));
+    const id = await db
+      .select()
+      .from(schema.userIdentities)
+      .where(eq(schema.userIdentities.authUserId, USER));
+    const ur = await db
+      .select()
+      .from(schema.userRoles)
+      .where(eq(schema.userRoles.authUserId, USER));
+    const cp = await db
+      .select()
+      .from(schema.customerProfiles)
+      .where(eq(schema.customerProfiles.authUserId, USER));
     expect(id).toHaveLength(1);
     expect(ur).toHaveLength(1);
     expect(cp).toHaveLength(1);
   });
 
   it('getAppSession prerequisites exist (identity has org + customer role)', async () => {
-    const id = await db.select().from(schema.userIdentities).where(eq(schema.userIdentities.authUserId, USER));
+    const id = await db
+      .select()
+      .from(schema.userIdentities)
+      .where(eq(schema.userIdentities.authUserId, USER));
     expect(id[0]!.orgId).toBe('org_dev0000000bp'); // → getAppSession resolves orgId + 'customer' role → customer guard passes
   });
 });

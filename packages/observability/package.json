@@ -9,10 +9,12 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": { "@opentelemetry/api": "^1.9.0" },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0"
+  },
   "devDependencies": {
     "typescript": "^5.6.3",
-    "vitest": "^2.1.2",
+    "vitest": "3.2.6",
     "@maralito/config": "workspace:*"
   }
 }

@@ -15,12 +15,18 @@ let db: PGlite;
 async function asTenant<T>(sub: string | null, fn: () => Promise<T>): Promise<T> {
   await db.query('begin');
   try {
-    if (sub) await db.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify({ sub, role: 'authenticated' })]);
+    if (sub)
+      await db.query("select set_config('request.jwt.claims',$1,true)", [
+        JSON.stringify({ sub, role: 'authenticated' }),
+      ]);
     await db.query('set local role authenticated');
     return await fn();
-  } finally { await db.query('commit').catch(() => {}); }
+  } finally {
+    await db.query('commit').catch(() => {});
+  }
 }
-const rows = (sql: string, p: unknown[] = []) => db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
+const rows = (sql: string, p: unknown[] = []) =>
+  db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
 
 beforeAll(async () => {
   db = new PGlite();
@@ -58,7 +64,14 @@ beforeAll(async () => {
     grant select, insert, update on all tables in schema public to authenticated;
     grant execute on all functions in schema auth to authenticated;
   `);
-  for (const f of ['policies.sql', 'orders-policies.sql', 'quotes-policies.sql', 'payments-policies.sql', 'notifications-policies.sql', 'inspections-policies.sql']) {
+  for (const f of [
+    'policies.sql',
+    'orders-policies.sql',
+    'quotes-policies.sql',
+    'payments-policies.sql',
+    'notifications-policies.sql',
+    'inspections-policies.sql',
+  ]) {
     await db.exec(readFileSync(new URL(`../src/rls/${f}`, import.meta.url), 'utf8'));
   }
   await db.exec('grant execute on all functions in schema public to authenticated;');
@@ -77,26 +90,40 @@ beforeAll(async () => {
 describe('inspections RLS isolation (real policy files on PGlite)', () => {
   it('customer A sees own inspection, not B', async () => {
     expect(await asTenant(A, () => rows('select id from inspections'))).toEqual([{ id: 'insp_a' }]);
-    expect(await asTenant(A, () => rows("select * from inspections where id='insp_b'"))).toHaveLength(0);
+    expect(
+      await asTenant(A, () => rows("select * from inspections where id='insp_b'")),
+    ).toHaveLength(0);
   });
   it('customer B (no inspection) sees none', async () =>
     expect(await asTenant(B, () => rows('select * from inspections'))).toHaveLength(0));
   it('staff/ops reads org inspections', async () =>
     expect(await asTenant(OPS, () => rows('select id from inspections'))).toHaveLength(1));
   it('customer CANNOT insert an inspection (no write policy → rejected)', async () => {
-    await expect(asTenant(A, () => rows(
-      "insert into inspections(id,org_id,customer_id,order_id,status) values('insp_x','org_a','cust_a','ord_a','scheduled') returning id",
-    ))).rejects.toThrow();
+    await expect(
+      asTenant(A, () =>
+        rows(
+          "insert into inspections(id,org_id,customer_id,order_id,status) values('insp_x','org_a','cust_a','ord_a','scheduled') returning id",
+        ),
+      ),
+    ).rejects.toThrow();
   });
   it('customer CANNOT update an inspection (no write policy → 0 rows)', async () => {
-    const updated = await asTenant(A, () => rows("update inspections set status='passed' where id='insp_a' returning id"));
+    const updated = await asTenant(A, () =>
+      rows("update inspections set status='passed' where id='insp_a' returning id"),
+    );
     expect(updated).toHaveLength(0);
-    const after = await asTenant(OPS, () => rows("select status from inspections where id='insp_a'"));
+    const after = await asTenant(OPS, () =>
+      rows("select status from inspections where id='insp_a'"),
+    );
     expect(after[0]).toEqual({ status: 'in_progress' });
   });
   it('customer cannot read the status-history ledger; staff can', async () => {
-    expect(await asTenant(A, () => rows('select * from inspection_status_history'))).toHaveLength(0);
-    expect(await asTenant(OPS, () => rows('select id from inspection_status_history'))).toHaveLength(1);
+    expect(await asTenant(A, () => rows('select * from inspection_status_history'))).toHaveLength(
+      0,
+    );
+    expect(
+      await asTenant(OPS, () => rows('select id from inspection_status_history')),
+    ).toHaveLength(1);
   });
   it('missing claims → no inspections', async () =>
     expect(await asTenant(null, () => rows('select * from inspections'))).toHaveLength(0));

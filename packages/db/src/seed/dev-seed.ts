@@ -4,12 +4,26 @@
  * and an optional super_admin bootstrap (SUPER_ADMIN_AUTH_USER_ID env).
  */
 import { createRawDbClient } from '../client';
-import { organizations, roles, permissions, rolePermissions, userRoles, auditLogs } from '../schema/index';
+import {
+  organizations,
+  roles,
+  permissions,
+  rolePermissions,
+  userRoles,
+  auditLogs,
+} from '../schema/index';
 import { newId } from '../ids';
 
 const ROLE_KEYS = [
-  'customer', 'concierge', 'inspector', 'driver', 'operations_manager',
-  'finance_admin', 'compliance_admin', 'support_agent', 'super_admin',
+  'customer',
+  'concierge',
+  'inspector',
+  'driver',
+  'operations_manager',
+  'finance_admin',
+  'compliance_admin',
+  'support_agent',
+  'super_admin',
 ] as const;
 
 const SAMPLE_PERMISSIONS: Array<[string, string]> = [
@@ -40,26 +54,54 @@ async function main() {
   const db = createRawDbClient(url);
 
   const orgId = process.env.DEV_ORG_ID ?? 'org_dev0000000bp';
-  await db.insert(organizations).values({ id: orgId, name: 'BorderPass Dev', type: 'internal' }).onConflictDoNothing();
+  await db
+    .insert(organizations)
+    .values({ id: orgId, name: 'BorderPass Dev', type: 'internal' })
+    .onConflictDoNothing();
 
-  await db.insert(roles).values(ROLE_KEYS.map((key) => ({ key, name: key }))).onConflictDoNothing();
-  await db.insert(permissions).values(SAMPLE_PERMISSIONS.map(([key, description]) => ({ key, description }))).onConflictDoNothing();
+  await db
+    .insert(roles)
+    .values(ROLE_KEYS.map((key) => ({ key, name: key })))
+    .onConflictDoNothing();
+  await db
+    .insert(permissions)
+    .values(SAMPLE_PERMISSIONS.map(([key, description]) => ({ key, description })))
+    .onConflictDoNothing();
 
   for (const [roleKey, perms] of Object.entries(ROLE_PERMS)) {
-    await db.insert(rolePermissions).values(perms.map((permissionKey) => ({ roleKey, permissionKey }))).onConflictDoNothing();
+    await db
+      .insert(rolePermissions)
+      .values(perms.map((permissionKey) => ({ roleKey, permissionKey })))
+      .onConflictDoNothing();
   }
 
   const superId = process.env.SUPER_ADMIN_AUTH_USER_ID;
   if (superId) {
-    await db.insert(userRoles).values({ id: newId('ur'), authUserId: superId, orgId, roleKey: 'super_admin' }).onConflictDoNothing();
-    await db.insert(auditLogs).values({
-      id: newId('aud'), action: 'super_admin.bootstrap', orgId,
-      actorUserId: null, actorRole: 'system', entityType: 'user_role', entityId: superId,
-      after: { roleKey: 'super_admin' },
-    }).onConflictDoNothing();
+    await db
+      .insert(userRoles)
+      .values({ id: newId('ur'), authUserId: superId, orgId, roleKey: 'super_admin' })
+      .onConflictDoNothing();
+    await db
+      .insert(auditLogs)
+      .values({
+        id: newId('aud'),
+        action: 'super_admin.bootstrap',
+        orgId,
+        actorUserId: null,
+        actorRole: 'system',
+        entityType: 'user_role',
+        entityId: superId,
+        after: { roleKey: 'super_admin' },
+      })
+      .onConflictDoNothing();
     console.log('seeded super_admin for', superId);
   }
   console.log('dev seed complete: org + roles + permissions');
 }
 
-main().then(() => process.exit(0)).catch((e) => { console.error(e); process.exit(1); });
+main()
+  .then(() => process.exit(0))
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });

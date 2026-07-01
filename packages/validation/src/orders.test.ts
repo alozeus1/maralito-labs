@@ -3,8 +3,20 @@ import { OrderCreate, OrderItemInput, OrderSubmit } from './index';
 
 describe('order schemas', () => {
   it('OrderItemInput requires qty>=1 + Money', () => {
-    expect(() => OrderItemInput.parse({ description: 'x', quantity: 0, unit_value: { amount_minor: 1, currency: 'USD' } })).toThrow();
-    expect(OrderItemInput.parse({ description: 'x', quantity: 2, unit_value: { amount_minor: 100, currency: 'USD' } }).quantity).toBe(2);
+    expect(() =>
+      OrderItemInput.parse({
+        description: 'x',
+        quantity: 0,
+        unit_value: { amount_minor: 1, currency: 'USD' },
+      }),
+    ).toThrow();
+    expect(
+      OrderItemInput.parse({
+        description: 'x',
+        quantity: 2,
+        unit_value: { amount_minor: 100, currency: 'USD' },
+      }).quantity,
+    ).toBe(2);
   });
   it('OrderCreate validates service_type', () => {
     expect(() => OrderCreate.parse({ service_type: 'nope' })).toThrow();

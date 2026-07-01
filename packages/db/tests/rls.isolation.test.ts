@@ -22,12 +22,18 @@ let db: PGlite;
 async function asTenant<T>(sub: string | null, fn: () => Promise<T>): Promise<T> {
   await db.query('begin');
   try {
-    if (sub) await db.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify({ sub, role: 'authenticated' })]);
+    if (sub)
+      await db.query("select set_config('request.jwt.claims',$1,true)", [
+        JSON.stringify({ sub, role: 'authenticated' }),
+      ]);
     await db.query('set local role authenticated');
     return await fn();
-  } finally { await db.query('commit').catch(() => {}); }
+  } finally {
+    await db.query('commit').catch(() => {});
+  }
 }
-const rows = (sql: string, p: unknown[] = []) => db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
+const rows = (sql: string, p: unknown[] = []) =>
+  db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
 
 beforeAll(async () => {
   db = new PGlite();
@@ -74,7 +80,9 @@ beforeAll(async () => {
 
 describe('cross-tenant RLS isolation (real policies.sql on PGlite)', () => {
   it('1. user A cannot read user B customer profile', async () =>
-    expect(await asTenant(A, () => rows('select auth_user_id from customer_profiles'))).toEqual([{ auth_user_id: A }]));
+    expect(await asTenant(A, () => rows('select auth_user_id from customer_profiles'))).toEqual([
+      { auth_user_id: A },
+    ]));
   it('2. customer cannot read staff profile', async () =>
     expect(await asTenant(A, () => rows('select * from staff_profiles'))).toHaveLength(0));
   it('3. non-admin staff cannot read audit; compliance can', async () => {
@@ -94,6 +102,13 @@ describe('cross-tenant RLS isolation (real policies.sql on PGlite)', () => {
   it('8. privileged path (superuser) bypasses RLS by design', async () =>
     expect(await rows('select * from customer_profiles')).toHaveLength(2));
   it('9. duplicate user_roles rejected by unique constraint', async () => {
-    await expect(db.query('insert into user_roles(id,auth_user_id,org_id,role_key) values($1,$2,$3,$4)', ['dup', A, 'org_a', 'customer'])).rejects.toThrow();
+    await expect(
+      db.query('insert into user_roles(id,auth_user_id,org_id,role_key) values($1,$2,$3,$4)', [
+        'dup',
+        A,
+        'org_a',
+        'customer',
+      ]),
+    ).rejects.toThrow();
   });
 });

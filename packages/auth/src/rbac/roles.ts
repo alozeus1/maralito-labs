@@ -1,7 +1,14 @@
 /** The 9 app-scoped roles. 'agent' is a principal TYPE, not a role. */
 export const ROLES = [
-  'customer', 'concierge', 'inspector', 'driver', 'operations_manager',
-  'finance_admin', 'compliance_admin', 'support_agent', 'super_admin',
+  'customer',
+  'concierge',
+  'inspector',
+  'driver',
+  'operations_manager',
+  'finance_admin',
+  'compliance_admin',
+  'support_agent',
+  'super_admin',
 ] as const;
 export type Role = (typeof ROLES)[number];
 

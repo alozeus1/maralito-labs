@@ -11,10 +11,12 @@
     "test": "vitest run",
     "stripe:smoke": "node scripts/stripe-smoke.mjs"
   },
-  "dependencies": { "stripe": "^16.12.0" },
+  "dependencies": {
+    "stripe": "^16.12.0"
+  },
   "devDependencies": {
     "typescript": "^5.6.3",
-    "vitest": "^2.1.2",
+    "vitest": "3.2.6",
     "@maralito/config": "workspace:*"
   }
 }

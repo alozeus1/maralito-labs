@@ -6,7 +6,8 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 
 let db: PGlite;
-const q = (sql: string, p: unknown[] = []) => db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
+const q = (sql: string, p: unknown[] = []) =>
+  db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
 
 beforeAll(async () => {
   db = new PGlite();
@@ -20,15 +21,23 @@ beforeAll(async () => {
 
 describe('webhook idempotency ledger', () => {
   it('duplicate stripe_event_id insert is a no-op (onConflictDoNothing)', async () => {
-    await q("insert into stripe_webhook_events(id,stripe_event_id,event_type) values('swe1','evt_x','payment_intent.succeeded') on conflict (stripe_event_id) do nothing");
-    await q("insert into stripe_webhook_events(id,stripe_event_id,event_type) values('swe2','evt_x','payment_intent.succeeded') on conflict (stripe_event_id) do nothing");
+    await q(
+      "insert into stripe_webhook_events(id,stripe_event_id,event_type) values('swe1','evt_x','payment_intent.succeeded') on conflict (stripe_event_id) do nothing",
+    );
+    await q(
+      "insert into stripe_webhook_events(id,stripe_event_id,event_type) values('swe2','evt_x','payment_intent.succeeded') on conflict (stripe_event_id) do nothing",
+    );
     const rows = await q("select id from stripe_webhook_events where stripe_event_id='evt_x'");
     expect(rows).toEqual([{ id: 'swe1' }]); // first write wins; duplicate ignored
   });
 
   it('a re-delivered event is detectable as already processed (status != received)', async () => {
-    await q("update stripe_webhook_events set processing_status='completed', processed_at=now() where stripe_event_id='evt_x'");
-    const rows = await q("select processing_status from stripe_webhook_events where stripe_event_id='evt_x'");
+    await q(
+      "update stripe_webhook_events set processing_status='completed', processed_at=now() where stripe_event_id='evt_x'",
+    );
+    const rows = await q(
+      "select processing_status from stripe_webhook_events where stripe_event_id='evt_x'",
+    );
     expect(rows[0]).toEqual({ processing_status: 'completed' });
   });
 });

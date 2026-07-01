@@ -1,8 +1,15 @@
 import { z } from 'zod';
 
 export const ROLE_KEYS = [
-  'customer', 'concierge', 'inspector', 'driver', 'operations_manager',
-  'finance_admin', 'compliance_admin', 'support_agent', 'super_admin',
+  'customer',
+  'concierge',
+  'inspector',
+  'driver',
+  'operations_manager',
+  'finance_admin',
+  'compliance_admin',
+  'support_agent',
+  'super_admin',
 ] as const;
 
 export const RoleAssignment = z.object({

@@ -15,12 +15,18 @@ let db: PGlite;
 async function asTenant<T>(sub: string | null, fn: () => Promise<T>): Promise<T> {
   await db.query('begin');
   try {
-    if (sub) await db.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify({ sub, role: 'authenticated' })]);
+    if (sub)
+      await db.query("select set_config('request.jwt.claims',$1,true)", [
+        JSON.stringify({ sub, role: 'authenticated' }),
+      ]);
     await db.query('set local role authenticated');
     return await fn();
-  } finally { await db.query('commit').catch(() => {}); }
+  } finally {
+    await db.query('commit').catch(() => {});
+  }
 }
-const rows = (sql: string, p: unknown[] = []) => db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
+const rows = (sql: string, p: unknown[] = []) =>
+  db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
 
 beforeAll(async () => {
   db = new PGlite();
@@ -65,15 +71,21 @@ describe('orders RLS isolation (real policies + orders-policies on PGlite)', () 
     expect(await asTenant(A, () => rows('select id from orders'))).toEqual([{ id: 'ord_a' }]));
   it('customer A cannot read B order or items', async () => {
     expect(await asTenant(A, () => rows("select * from orders where id='ord_b'"))).toHaveLength(0);
-    expect(await asTenant(A, () => rows("select * from order_items where order_id='ord_b'"))).toHaveLength(0);
+    expect(
+      await asTenant(A, () => rows("select * from order_items where order_id='ord_b'")),
+    ).toHaveLength(0);
   });
   it('ops (staff) sees all org orders', async () =>
     expect(await asTenant(OPS, () => rows('select id from orders order by id'))).toHaveLength(2));
   it('missing claims → no orders', async () =>
     expect(await asTenant(null, () => rows('select * from orders'))).toHaveLength(0));
   it('customer A cannot insert an order for customer B (with check)', async () => {
-    await expect(asTenant(A, () => db.query(
-      "insert into orders(id,order_ref,customer_id,org_id,service_type,correlation_id) values('ord_x','BP-9','cust_b','org_a','buy_for_me','ord_x')",
-    ))).rejects.toThrow();
+    await expect(
+      asTenant(A, () =>
+        db.query(
+          "insert into orders(id,order_ref,customer_id,org_id,service_type,correlation_id) values('ord_x','BP-9','cust_b','org_a','buy_for_me','ord_x')",
+        ),
+      ),
+    ).rejects.toThrow();
   });
 });

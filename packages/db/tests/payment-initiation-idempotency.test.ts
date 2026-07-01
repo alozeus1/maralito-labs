@@ -8,7 +8,8 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 
 let db: PGlite;
-const q = (sql: string, p: unknown[] = []) => db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
+const q = (sql: string, p: unknown[] = []) =>
+  db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
 
 beforeAll(async () => {
   db = new PGlite();
@@ -24,19 +25,23 @@ beforeAll(async () => {
 
 describe('payment initiation idempotency (DB-level adopt-the-winner)', () => {
   it('first initiation inserts a row', async () => {
-    const inserted = await q(`insert into payments(id,org_id,customer_id,order_id,quote_id,amount_minor,idempotency_key,stripe_payment_intent_id)
+    const inserted =
+      await q(`insert into payments(id,org_id,customer_id,order_id,quote_id,amount_minor,idempotency_key,stripe_payment_intent_id)
       values('pay_winner','org_a','cust_a','ord_a','qte_a',10000,'pi_qte_a','pi_1')
       on conflict (provider, idempotency_key) do nothing returning id`);
     expect(inserted).toEqual([{ id: 'pay_winner' }]);
   });
 
   it('concurrent duplicate insert is a no-op (returns nothing); loser re-reads the existing row', async () => {
-    const inserted = await q(`insert into payments(id,org_id,customer_id,order_id,quote_id,amount_minor,idempotency_key,stripe_payment_intent_id)
+    const inserted =
+      await q(`insert into payments(id,org_id,customer_id,order_id,quote_id,amount_minor,idempotency_key,stripe_payment_intent_id)
       values('pay_loser','org_a','cust_a','ord_a','qte_a',10000,'pi_qte_a','pi_1')
       on conflict (provider, idempotency_key) do nothing returning id`);
     expect(inserted).toEqual([]); // no second row created
 
-    const winner = await q(`select id from payments where provider='stripe' and idempotency_key='pi_qte_a'`);
+    const winner = await q(
+      `select id from payments where provider='stripe' and idempotency_key='pi_qte_a'`,
+    );
     expect(winner).toEqual([{ id: 'pay_winner' }]); // loser adopts the winner
   });
 

@@ -2,7 +2,15 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 // Public paths (no session required). Route groups don't appear in the URL, so we gate by path.
-const PUBLIC_PREFIXES = ['/welcome', '/about', '/login', '/sign-up', '/auth', '/unauthorized', '/api/health'];
+const PUBLIC_PREFIXES = [
+  '/welcome',
+  '/about',
+  '/login',
+  '/sign-up',
+  '/auth',
+  '/unauthorized',
+  '/api/health',
+];
 const isPublic = (p: string) => PUBLIC_PREFIXES.some((x) => p === x || p.startsWith(x + '/'));
 
 export async function middleware(req: NextRequest) {

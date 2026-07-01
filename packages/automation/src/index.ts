@@ -8,4 +8,4 @@ export interface AutomationConfig {
   signingKey: string; // INNGEST_SIGNING_KEY (server-only)
 }
 export type WorkflowStepType =
-  | 'function' | 'agent' | 'approval' | 'task' | 'wait' | 'signal' | 'effect' | 'subworkflow';
+  'function' | 'agent' | 'approval' | 'task' | 'wait' | 'signal' | 'effect' | 'subworkflow';

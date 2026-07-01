@@ -19,10 +19,23 @@ export type PaymentDisplayState =
 
 /** Order statuses at or beyond `paid` — payment has been captured (webhook-driven). */
 const PAID_OR_BEYOND: readonly OrderStatus[] = [
-  'paid', 'purchasing', 'purchased', 'awaiting_package', 'received_el_paso',
-  'inspection_pending', 'inspection_passed', 'inspection_failed', 'border_documentation_ready',
-  'ready_for_crossing', 'border_crossing', 'customs_processing', 'arrived_juarez',
-  'out_for_delivery', 'delivered', 'delivery_failed', 'refunded',
+  'paid',
+  'purchasing',
+  'purchased',
+  'awaiting_package',
+  'received_el_paso',
+  'inspection_pending',
+  'inspection_passed',
+  'inspection_failed',
+  'border_documentation_ready',
+  'ready_for_crossing',
+  'border_crossing',
+  'customs_processing',
+  'arrived_juarez',
+  'out_for_delivery',
+  'delivered',
+  'delivery_failed',
+  'refunded',
 ];
 
 /**
@@ -43,15 +56,21 @@ export function toPaymentDisplayState(
   // Order is awaiting_payment — reflect the payment row.
   if (paymentStatus === null) return 'ready_to_pay';
   switch (paymentStatus) {
-    case 'requires_payment': return 'ready_to_pay';
-    case 'processing': return 'processing';
-    case 'requires_action': return 'requires_action';
-    case 'failed': return 'failed';
-    case 'canceled': return 'canceled';
+    case 'requires_payment':
+      return 'ready_to_pay';
+    case 'processing':
+      return 'processing';
+    case 'requires_action':
+      return 'requires_action';
+    case 'failed':
+      return 'failed';
+    case 'canceled':
+      return 'canceled';
     // `succeeded` while the order is still awaiting_payment = cascade in flight; show success.
     // `refunded_placeholder` has no refund UX in Phase 5 — treat as captured.
     case 'succeeded':
-    case 'refunded_placeholder': return 'succeeded';
+    case 'refunded_placeholder':
+      return 'succeeded';
   }
 }
 

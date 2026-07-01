@@ -4,19 +4,47 @@ import type { PaymentStatus } from './state-machine';
 
 describe('canInitiatePayment', () => {
   it('allows an accepted quote whose order is awaiting_payment with a positive total', () =>
-    expect(canInitiatePayment({ quoteStatus: 'accepted', orderStatus: 'awaiting_payment', totalMinor: 10000 })).toEqual({ ok: true }));
+    expect(
+      canInitiatePayment({
+        quoteStatus: 'accepted',
+        orderStatus: 'awaiting_payment',
+        totalMinor: 10000,
+      }),
+    ).toEqual({ ok: true }));
 
   it('rejects a non-accepted quote', () =>
-    expect(canInitiatePayment({ quoteStatus: 'sent_to_customer', orderStatus: 'awaiting_payment', totalMinor: 10000 }))
-      .toEqual({ ok: false, code: 'quote_not_accepted' }));
+    expect(
+      canInitiatePayment({
+        quoteStatus: 'sent_to_customer',
+        orderStatus: 'awaiting_payment',
+        totalMinor: 10000,
+      }),
+    ).toEqual({ ok: false, code: 'quote_not_accepted' }));
 
   it('rejects when the order is not awaiting_payment', () =>
-    expect(canInitiatePayment({ quoteStatus: 'accepted', orderStatus: 'quote_ready', totalMinor: 10000 }))
-      .toEqual({ ok: false, code: 'order_not_awaiting_payment' }));
+    expect(
+      canInitiatePayment({
+        quoteStatus: 'accepted',
+        orderStatus: 'quote_ready',
+        totalMinor: 10000,
+      }),
+    ).toEqual({ ok: false, code: 'order_not_awaiting_payment' }));
 
   it('rejects a zero / missing amount', () => {
-    expect(canInitiatePayment({ quoteStatus: 'accepted', orderStatus: 'awaiting_payment', totalMinor: 0 })).toEqual({ ok: false, code: 'invalid_amount' });
-    expect(canInitiatePayment({ quoteStatus: 'accepted', orderStatus: 'awaiting_payment', totalMinor: null })).toEqual({ ok: false, code: 'invalid_amount' });
+    expect(
+      canInitiatePayment({
+        quoteStatus: 'accepted',
+        orderStatus: 'awaiting_payment',
+        totalMinor: 0,
+      }),
+    ).toEqual({ ok: false, code: 'invalid_amount' });
+    expect(
+      canInitiatePayment({
+        quoteStatus: 'accepted',
+        orderStatus: 'awaiting_payment',
+        totalMinor: null,
+      }),
+    ).toEqual({ ok: false, code: 'invalid_amount' });
   });
 });
 
@@ -30,7 +58,14 @@ describe('orderPaidCascadeTarget — only succeeded marks paid', () => {
   });
 
   it('failed / canceled / requires_action / processing NEVER mark paid', () => {
-    for (const s of ['failed', 'canceled', 'requires_action', 'processing', 'requires_payment', 'refunded_placeholder'] as PaymentStatus[])
+    for (const s of [
+      'failed',
+      'canceled',
+      'requires_action',
+      'processing',
+      'requires_payment',
+      'refunded_placeholder',
+    ] as PaymentStatus[])
       expect(orderPaidCascadeTarget(s, 'awaiting_payment')).toBeNull();
   });
 });

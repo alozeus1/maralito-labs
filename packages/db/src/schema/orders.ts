@@ -5,7 +5,12 @@ import { customerProfiles } from './profiles';
 /** Money is stored as { amount_minor:int, currency } JSON — never floats. */
 type Money = { amount_minor: number; currency: 'USD' | 'MXN' };
 
-export const ORDER_SERVICE_TYPES = ['buy_for_me', 'package_reception', 'local_pickup', 'business_delivery'] as const;
+export const ORDER_SERVICE_TYPES = [
+  'buy_for_me',
+  'package_reception',
+  'local_pickup',
+  'business_delivery',
+] as const;
 export const ORDER_PURPOSES = ['personal', 'gift', 'business', 'resale'] as const;
 export const RISK_BANDS = ['LOW', 'MEDIUM', 'HIGH', 'BLOCK'] as const;
 
@@ -15,8 +20,12 @@ export const orders = pgTable(
   {
     id: text('id').primaryKey(), // ord_<id>
     orderRef: text('order_ref').notNull(), // BP-####
-    customerId: text('customer_id').notNull().references(() => customerProfiles.id),
-    orgId: text('org_id').notNull().references(() => organizations.id),
+    customerId: text('customer_id')
+      .notNull()
+      .references(() => customerProfiles.id),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id),
     serviceType: text('service_type').$type<(typeof ORDER_SERVICE_TYPES)[number]>().notNull(),
     status: text('status').notNull().default('draft'), // OrderStatus (25 states; see order-state-machine)
     purpose: text('purpose').$type<(typeof ORDER_PURPOSES)[number]>(),
@@ -46,7 +55,9 @@ export const orderItems = pgTable(
   'order_items',
   {
     id: text('id').primaryKey(), // itm_<id>
-    orderId: text('order_id').notNull().references(() => orders.id),
+    orderId: text('order_id')
+      .notNull()
+      .references(() => orders.id),
     description: text('description').notNull(),
     productUrl: text('product_url'),
     quantity: integer('quantity').notNull().default(1),

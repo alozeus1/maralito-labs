@@ -9,7 +9,10 @@ import { getBrowserStripe, getStripePublishableKey } from '@/client/stripe';
 import { getMyOrderPaymentSummary } from '../../../../actions/payments';
 import { paymentStatusCopy } from '@/domain/payments/copy';
 import {
-  shouldShowPaymentForm, shouldPollPaymentStatus, canRetryPayment, type PaymentDisplayState,
+  shouldShowPaymentForm,
+  shouldPollPaymentStatus,
+  canRetryPayment,
+  type PaymentDisplayState,
 } from '@/domain/payments/display';
 
 interface Props {
@@ -36,12 +39,18 @@ export function PaymentConfirm(props: Props) {
       const res = await getMyOrderPaymentSummary(props.orderId);
       if (!active) return;
       if (res.ok && res.data) setState(res.data.display_state);
-      if (active && shouldPollPaymentStatus(res.ok && res.data ? res.data.display_state : 'processing')) {
+      if (
+        active &&
+        shouldPollPaymentStatus(res.ok && res.data ? res.data.display_state : 'processing')
+      ) {
         timer.current = setTimeout(tick, POLL_MS);
       }
     };
     timer.current = setTimeout(tick, POLL_MS);
-    return () => { active = false; if (timer.current) clearTimeout(timer.current); };
+    return () => {
+      active = false;
+      if (timer.current) clearTimeout(timer.current);
+    };
   }, [state, props.orderId]);
 
   const copy = paymentStatusCopy(state);
@@ -49,13 +58,26 @@ export function PaymentConfirm(props: Props) {
   // Form states: render Elements (or a safe fallback when unconfigured).
   if (shouldShowPaymentForm(state)) {
     if (!props.paymentsConfigured || !props.clientSecret || !getStripePublishableKey()) {
-      return <StatusView title="Payment unavailable" body="Payments are not fully configured in this environment yet." returnHref={props.returnHref} />;
+      return (
+        <StatusView
+          title="Payment unavailable"
+          body="Payments are not fully configured in this environment yet."
+          returnHref={props.returnHref}
+        />
+      );
     }
     return (
       <div>
-        <p className="mt-2 text-on-surface-variant">{copy.body}</p>
-        <Elements stripe={getBrowserStripe()} options={{ clientSecret: props.clientSecret, appearance: { theme: 'stripe' } }}>
-          <ConfirmForm amountLabel={props.amountLabel} returnPath={props.returnPath} onProcessing={() => setState('processing')} />
+        <p className="text-on-surface-variant mt-2">{copy.body}</p>
+        <Elements
+          stripe={getBrowserStripe()}
+          options={{ clientSecret: props.clientSecret, appearance: { theme: 'stripe' } }}
+        >
+          <ConfirmForm
+            amountLabel={props.amountLabel}
+            returnPath={props.returnPath}
+            onProcessing={() => setState('processing')}
+          />
         </Elements>
         <ReturnLink href={props.returnHref} />
       </div>
@@ -74,7 +96,15 @@ export function PaymentConfirm(props: Props) {
   );
 }
 
-function ConfirmForm({ amountLabel, returnPath, onProcessing }: { amountLabel: string; returnPath: string; onProcessing: () => void }) {
+function ConfirmForm({
+  amountLabel,
+  returnPath,
+  onProcessing,
+}: {
+  amountLabel: string;
+  returnPath: string;
+  onProcessing: () => void;
+}) {
   const stripe = useStripe();
   const elements = useElements();
   const [submitting, setSubmitting] = useState(false);
@@ -103,22 +133,54 @@ function ConfirmForm({ amountLabel, returnPath, onProcessing }: { amountLabel: s
   return (
     <form onSubmit={onSubmit} className="mt-4 space-y-4">
       <PaymentElement />
-      {error && <p role="alert" className="text-sm text-error">{error}</p>}
-      <button type="submit" disabled={!stripe || submitting} className="w-full rounded-lg bg-primary px-4 py-3 font-medium text-on-primary disabled:opacity-60">
+      {error && (
+        <p role="alert" className="text-error text-sm">
+          {error}
+        </p>
+      )}
+      <button
+        type="submit"
+        disabled={!stripe || submitting}
+        className="bg-primary text-on-primary w-full rounded-lg px-4 py-3 font-medium disabled:opacity-60"
+      >
         {submitting ? 'Processing…' : `Pay ${amountLabel}`}
       </button>
     </form>
   );
 }
 
-function StatusView({ title, body, returnHref, onRetry, busy }: { title: string; body: string; returnHref: string; onRetry?: () => void; busy?: boolean }) {
+function StatusView({
+  title,
+  body,
+  returnHref,
+  onRetry,
+  busy,
+}: {
+  title: string;
+  body: string;
+  returnHref: string;
+  onRetry?: () => void;
+  busy?: boolean;
+}) {
   return (
     <div className="mt-3">
       <p className="font-medium">{title}</p>
-      <p className="mt-1 text-on-surface-variant">{body}</p>
-      {busy && <p className="mt-2 text-sm text-on-surface-variant" aria-live="polite">Checking status…</p>}
+      <p className="text-on-surface-variant mt-1">{body}</p>
+      {busy && (
+        <p className="text-on-surface-variant mt-2 text-sm" aria-live="polite">
+          Checking status…
+        </p>
+      )}
       <div className="mt-4 flex gap-3">
-        {onRetry && <button type="button" onClick={onRetry} className="rounded-lg bg-primary px-4 py-2 font-medium text-on-primary">Try again</button>}
+        {onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="bg-primary text-on-primary rounded-lg px-4 py-2 font-medium"
+          >
+            Try again
+          </button>
+        )}
         <ReturnLink href={returnHref} />
       </div>
     </div>
@@ -126,5 +188,9 @@ function StatusView({ title, body, returnHref, onRetry, busy }: { title: string;
 }
 
 function ReturnLink({ href }: { href: string }) {
-  return <a href={href} className="inline-block py-2 text-primary underline">Return to your order</a>;
+  return (
+    <a href={href} className="text-primary inline-block py-2 underline">
+      Return to your order
+    </a>
+  );
 }

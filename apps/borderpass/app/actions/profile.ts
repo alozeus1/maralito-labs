@@ -11,47 +11,70 @@ type Result = { ok: true } | { ok: false; error: { code: string; message: string
 
 export async function upsertMyProfile(input: unknown): Promise<Result> {
   const session = await getAppSession();
-  if (!session) return { ok: false, error: { code: 'unauthenticated', message: 'Sign in required.' } };
-  try { requireCustomerAccess(session); }
-  catch { return { ok: false, error: { code: 'forbidden', message: 'Not allowed.' } }; }
+  if (!session)
+    return { ok: false, error: { code: 'unauthenticated', message: 'Sign in required.' } };
+  try {
+    requireCustomerAccess(session);
+  } catch {
+    return { ok: false, error: { code: 'forbidden', message: 'Not allowed.' } };
+  }
 
   const parsed = ProfileUpdate.safeParse(input);
-  if (!parsed.success) return { ok: false, error: { code: 'validation_failed', message: 'Invalid profile.' } };
-  if (!getServerEnv().DATABASE_URL) return { ok: false, error: { code: 'dependency_unavailable', message: 'Not configured.' } };
+  if (!parsed.success)
+    return { ok: false, error: { code: 'validation_failed', message: 'Invalid profile.' } };
+  if (!getServerEnv().DATABASE_URL)
+    return { ok: false, error: { code: 'dependency_unavailable', message: 'Not configured.' } };
 
   const ctx = { authUserId: session.sub, orgId: session.orgId };
   const result = await withTenant(ctx, async (tx) => {
-    const existing = await tx.query.customerProfiles.findFirst({ where: eq(customerProfiles.authUserId, session.sub) });
+    const existing = await tx.query.customerProfiles.findFirst({
+      where: eq(customerProfiles.authUserId, session.sub),
+    });
     if (existing) {
-      await tx.update(customerProfiles).set({
-        ...(parsed.data.display_name !== undefined ? { displayName: parsed.data.display_name } : {}),
-        ...(parsed.data.language !== undefined ? { language: parsed.data.language } : {}),
-        ...(parsed.data.notification_prefs !== undefined ? {
-          notificationPrefs: {
-            ...(parsed.data.notification_prefs.channels !== undefined
-              ? { channels: parsed.data.notification_prefs.channels }
-              : {}),
-            ...(parsed.data.notification_prefs.quietHours !== undefined
-              ? { quietHours: parsed.data.notification_prefs.quietHours }
-              : {}),
-          },
-        } : {}),
-        updatedAt: new Date(),
-      }).where(eq(customerProfiles.authUserId, session.sub));
+      await tx
+        .update(customerProfiles)
+        .set({
+          ...(parsed.data.display_name !== undefined
+            ? { displayName: parsed.data.display_name }
+            : {}),
+          ...(parsed.data.language !== undefined ? { language: parsed.data.language } : {}),
+          ...(parsed.data.notification_prefs !== undefined
+            ? {
+                notificationPrefs: {
+                  ...(parsed.data.notification_prefs.channels !== undefined
+                    ? { channels: parsed.data.notification_prefs.channels }
+                    : {}),
+                  ...(parsed.data.notification_prefs.quietHours !== undefined
+                    ? { quietHours: parsed.data.notification_prefs.quietHours }
+                    : {}),
+                },
+              }
+            : {}),
+          updatedAt: new Date(),
+        })
+        .where(eq(customerProfiles.authUserId, session.sub));
       return { kind: 'updated' as const, id: existing.id, before: existing };
     }
     const id = newId('cust');
     await tx.insert(customerProfiles).values({
-      id, authUserId: session.sub, orgId: session.orgId,
-      displayName: parsed.data.display_name ?? 'Customer', language: parsed.data.language ?? 'es',
+      id,
+      authUserId: session.sub,
+      orgId: session.orgId,
+      displayName: parsed.data.display_name ?? 'Customer',
+      language: parsed.data.language ?? 'es',
     });
     return { kind: 'created' as const, id, before: undefined };
   });
 
   await writeAudit({
     action: result.kind === 'created' ? 'user.created' : 'profile.updated',
-    orgId: session.orgId, actorUserId: session.sub, actorRole: 'customer',
-    entityType: 'customer_profile', entityId: result.id, before: result.before, after: parsed.data,
+    orgId: session.orgId,
+    actorUserId: session.sub,
+    actorRole: 'customer',
+    entityType: 'customer_profile',
+    entityId: result.id,
+    before: result.before,
+    after: parsed.data,
   });
   return { ok: true };
 }

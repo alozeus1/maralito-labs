@@ -14,13 +14,19 @@ export default tseslint.config(
     // Tenant-facing app code must not import the raw DB client — use the wrappers.
     files: ['apps/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': ['error', {
-        paths: [{
-          name: '@maralito/db',
-          importNames: ['createRawDbClient', 'createDbClient', 'getDb'],
-          message: 'Use withTenant() / withPrivilegedDbAccess() — never the raw DB client in app code.',
-        }],
-      }],
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@maralito/db',
+              importNames: ['createRawDbClient', 'createDbClient', 'getDb'],
+              message:
+                'Use withTenant() / withPrivilegedDbAccess() — never the raw DB client in app code.',
+            },
+          ],
+        },
+      ],
     },
   },
 );

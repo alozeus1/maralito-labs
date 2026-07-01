@@ -6,8 +6,13 @@
  * `requires_action` must NEVER mark an order paid (enforced in the seam, not here).
  */
 export const PAYMENT_STATUSES = [
-  'requires_payment', 'processing', 'requires_action',
-  'succeeded', 'failed', 'canceled', 'refunded_placeholder',
+  'requires_payment',
+  'processing',
+  'requires_action',
+  'succeeded',
+  'failed',
+  'canceled',
+  'refunded_placeholder',
 ] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
@@ -38,7 +43,10 @@ export function paymentSucceeds(to: PaymentStatus): boolean {
   return to === 'succeeded';
 }
 export class IllegalPaymentTransitionError extends Error {
-  constructor(readonly from: PaymentStatus, readonly to: PaymentStatus) {
+  constructor(
+    readonly from: PaymentStatus,
+    readonly to: PaymentStatus,
+  ) {
     super(`illegal payment transition: ${from} → ${to}`);
     this.name = 'IllegalPaymentTransitionError';
   }

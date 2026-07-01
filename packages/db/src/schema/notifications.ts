@@ -16,23 +16,38 @@ import { deliveryPreparations } from './delivery-preparations';
  * staff notes, or any raw provider payload. Real provider adapters + rendering are a later phase.
  */
 export const NOTIFICATION_CHANNELS = ['receipt_placeholder', 'lifecycle_placeholder'] as const;
-export const NOTIFICATION_TEMPLATE_KEYS = ['payment_receipt', 'inspection_update', 'delivery_update'] as const;
+export const NOTIFICATION_TEMPLATE_KEYS = [
+  'payment_receipt',
+  'inspection_update',
+  'delivery_update',
+] as const;
 export const NOTIFICATION_STATUSES = ['queued'] as const; // 'sent'/'failed' arrive with a real provider
 
 export const notificationOutbox = pgTable(
   'notification_outbox',
   {
     id: text('id').primaryKey(), // nob_<id>
-    orgId: text('org_id').notNull().references(() => organizations.id),
-    customerId: text('customer_id').notNull().references(() => customerProfiles.id),
-    orderId: text('order_id').notNull().references(() => orders.id),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id),
+    customerId: text('customer_id')
+      .notNull()
+      .references(() => customerProfiles.id),
+    orderId: text('order_id')
+      .notNull()
+      .references(() => orders.id),
     // Exactly one of payment/inspection/delivery-prep is set, depending on template_key (all nullable).
     paymentId: text('payment_id').references(() => payments.id),
     inspectionId: text('inspection_id').references(() => inspections.id),
     deliveryPrepId: text('delivery_prep_id').references(() => deliveryPreparations.id),
     channel: text('channel').$type<(typeof NOTIFICATION_CHANNELS)[number]>().notNull(),
-    templateKey: text('template_key').$type<(typeof NOTIFICATION_TEMPLATE_KEYS)[number]>().notNull(),
-    status: text('status').$type<(typeof NOTIFICATION_STATUSES)[number]>().notNull().default('queued'),
+    templateKey: text('template_key')
+      .$type<(typeof NOTIFICATION_TEMPLATE_KEYS)[number]>()
+      .notNull(),
+    status: text('status')
+      .$type<(typeof NOTIFICATION_STATUSES)[number]>()
+      .notNull()
+      .default('queued'),
     idempotencyKey: text('idempotency_key').notNull(), // e.g. receipt:<payment_id>, inspection_update:<id>:<status>
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),

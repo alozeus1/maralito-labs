@@ -11,17 +11,32 @@ import { orders } from './orders';
  * stores references + status + a staff-only note + a neutral customer summary. It MUST NOT store address
  * PII, RFC/KYC, document content, photos, or sensitive logistics details (KMS not confirmed).
  */
-export const INSPECTION_STATUSES = ['scheduled', 'in_progress', 'on_hold', 'passed', 'failed'] as const;
+export const INSPECTION_STATUSES = [
+  'scheduled',
+  'in_progress',
+  'on_hold',
+  'passed',
+  'failed',
+] as const;
 export const INSPECTION_RESULTS = ['passed', 'failed'] as const;
 
 export const inspections = pgTable(
   'inspections',
   {
     id: text('id').primaryKey(), // insp_<id>
-    orgId: text('org_id').notNull().references(() => organizations.id),
-    customerId: text('customer_id').notNull().references(() => customerProfiles.id),
-    orderId: text('order_id').notNull().references(() => orders.id),
-    status: text('status').$type<(typeof INSPECTION_STATUSES)[number]>().notNull().default('scheduled'),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id),
+    customerId: text('customer_id')
+      .notNull()
+      .references(() => customerProfiles.id),
+    orderId: text('order_id')
+      .notNull()
+      .references(() => orders.id),
+    status: text('status')
+      .$type<(typeof INSPECTION_STATUSES)[number]>()
+      .notNull()
+      .default('scheduled'),
     result: text('result').$type<(typeof INSPECTION_RESULTS)[number]>(), // set on passed/failed
     staffNotes: text('staff_notes'), // STAFF-ONLY — never projected to customers; no PII/document content
     customerSummary: text('customer_summary'), // neutral, customer-safe copy
@@ -43,9 +58,15 @@ export const inspectionStatusHistory = pgTable(
   'inspection_status_history',
   {
     id: text('id').primaryKey(), // ish_<id>
-    orgId: text('org_id').notNull().references(() => organizations.id),
-    inspectionId: text('inspection_id').notNull().references(() => inspections.id),
-    orderId: text('order_id').notNull().references(() => orders.id),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id),
+    inspectionId: text('inspection_id')
+      .notNull()
+      .references(() => inspections.id),
+    orderId: text('order_id')
+      .notNull()
+      .references(() => orders.id),
     fromStatus: text('from_status').$type<(typeof INSPECTION_STATUSES)[number]>(),
     toStatus: text('to_status').$type<(typeof INSPECTION_STATUSES)[number]>().notNull(),
     actorUserId: text('actor_user_id'),

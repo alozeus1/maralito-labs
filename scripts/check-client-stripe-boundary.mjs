@@ -5,7 +5,8 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Server-only Stripe surface + secrets that must NOT appear in client code.
-const BANNED = /\b(STRIPE_SECRET_KEY|STRIPE_WEBHOOK_SECRET|getStripeClient|loadStripeConfig|verifyStripeWebhook|createPaymentIntent|retrievePaymentIntent)\b/;
+const BANNED =
+  /\b(STRIPE_SECRET_KEY|STRIPE_WEBHOOK_SECRET|getStripeClient|loadStripeConfig|verifyStripeWebhook|createPaymentIntent|retrievePaymentIntent)\b/;
 const USE_CLIENT = /^\s*['"]use client['"]/m;
 
 const violations = [];
@@ -16,16 +17,21 @@ function walk(dir) {
   for (const e of readdirSync(dir)) {
     const p = join(dir, e);
     const s = statSync(p);
-    if (s.isDirectory()) { if (!/node_modules|\.next|dist|\.turbo/.test(p)) walk(p); }
-    else if (/\.(ts|tsx)$/.test(p)) {
+    if (s.isDirectory()) {
+      if (!/node_modules|\.next|dist|\.turbo/.test(p)) walk(p);
+    } else if (/\.(ts|tsx)$/.test(p)) {
       const src = readFileSync(p, 'utf8');
       if (isClientModule(p, src) && BANNED.test(src)) violations.push(p);
     }
   }
 }
-try { walk('apps'); } catch {}
+try {
+  walk('apps');
+} catch {}
 if (violations.length) {
-  console.error('❌ Client code references the server-only Stripe surface (secret/client/webhook):');
+  console.error(
+    '❌ Client code references the server-only Stripe surface (secret/client/webhook):',
+  );
   violations.forEach((v) => console.error('   ' + v));
   process.exit(1);
 }

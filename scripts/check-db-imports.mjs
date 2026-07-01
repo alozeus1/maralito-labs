@@ -9,13 +9,18 @@ function walk(dir) {
   for (const e of readdirSync(dir)) {
     const p = join(dir, e);
     const s = statSync(p);
-    if (s.isDirectory()) { if (!/node_modules|\.next|dist|\.turbo/.test(p)) walk(p); }
-    else if (/\.(ts|tsx)$/.test(p) && BANNED.test(readFileSync(p, 'utf8'))) violations.push(p);
+    if (s.isDirectory()) {
+      if (!/node_modules|\.next|dist|\.turbo/.test(p)) walk(p);
+    } else if (/\.(ts|tsx)$/.test(p) && BANNED.test(readFileSync(p, 'utf8'))) violations.push(p);
   }
 }
-try { walk('apps'); } catch {}
+try {
+  walk('apps');
+} catch {}
 if (violations.length) {
-  console.error('❌ Raw DB client used in tenant-facing code (use withTenant/withPrivilegedDbAccess):');
+  console.error(
+    '❌ Raw DB client used in tenant-facing code (use withTenant/withPrivilegedDbAccess):',
+  );
   violations.forEach((v) => console.error('   ' + v));
   process.exit(1);
 }

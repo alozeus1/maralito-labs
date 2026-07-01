@@ -22,7 +22,11 @@ function sign(payload: string): string {
 
 describe('verifyStripeWebhook (fail closed)', () => {
   it('accepts a correctly signed payload and returns the event', () => {
-    const payload = JSON.stringify({ id: 'evt_1', type: 'payment_intent.succeeded', data: { object: { id: 'pi_1' } } });
+    const payload = JSON.stringify({
+      id: 'evt_1',
+      type: 'payment_intent.succeeded',
+      data: { object: { id: 'pi_1' } },
+    });
     const event = verifyStripeWebhook(payload, sign(payload));
     expect(event.id).toBe('evt_1');
     expect(event.type).toBe('payment_intent.succeeded');

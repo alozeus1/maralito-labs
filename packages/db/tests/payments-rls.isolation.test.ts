@@ -15,12 +15,18 @@ let db: PGlite;
 async function asTenant<T>(sub: string | null, fn: () => Promise<T>): Promise<T> {
   await db.query('begin');
   try {
-    if (sub) await db.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify({ sub, role: 'authenticated' })]);
+    if (sub)
+      await db.query("select set_config('request.jwt.claims',$1,true)", [
+        JSON.stringify({ sub, role: 'authenticated' }),
+      ]);
     await db.query('set local role authenticated');
     return await fn();
-  } finally { await db.query('commit').catch(() => {}); }
+  } finally {
+    await db.query('commit').catch(() => {});
+  }
 }
-const rows = (sql: string, p: unknown[] = []) => db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
+const rows = (sql: string, p: unknown[] = []) =>
+  db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
 
 beforeAll(async () => {
   db = new PGlite();
@@ -79,12 +85,16 @@ beforeAll(async () => {
 describe('payments RLS isolation (real policy files on PGlite)', () => {
   it('customer A sees own payment, not B', async () => {
     expect(await asTenant(A, () => rows('select id from payments'))).toEqual([{ id: 'pay_a' }]);
-    expect(await asTenant(A, () => rows("select * from payments where id='pay_b'"))).toHaveLength(0);
+    expect(await asTenant(A, () => rows("select * from payments where id='pay_b'"))).toHaveLength(
+      0,
+    );
   });
   it('staff/ops sees all org payments', async () =>
     expect(await asTenant(OPS, () => rows('select id from payments order by id'))).toHaveLength(2));
   it('customer cannot UPDATE a payment (no write policy → 0 rows affected)', async () => {
-    const updated = await asTenant(A, () => rows("update payments set status='succeeded' where id='pay_a' returning id"));
+    const updated = await asTenant(A, () =>
+      rows("update payments set status='succeeded' where id='pay_a' returning id"),
+    );
     expect(updated).toHaveLength(0);
     // confirm status is unchanged when read back as staff
     const after = await asTenant(OPS, () => rows("select status from payments where id='pay_a'"));

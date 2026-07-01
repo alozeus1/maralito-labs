@@ -3,7 +3,9 @@ import { z } from 'zod';
 /** Phase 6 — inspection action inputs (ADR-0012). No PII/document content. */
 const InspectionId = z.string().regex(/^insp_/, 'expected insp_<id>');
 
-export const CreateInspection = z.object({ order_id: z.string().regex(/^ord_/, 'expected ord_<id>') });
+export const CreateInspection = z.object({
+  order_id: z.string().regex(/^ord_/, 'expected ord_<id>'),
+});
 export const InspectionIdParam = z.object({ inspection_id: InspectionId });
 export const PassInspection = z.object({
   inspection_id: InspectionId,

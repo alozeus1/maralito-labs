@@ -15,12 +15,18 @@ let db: PGlite;
 async function asTenant<T>(sub: string | null, fn: () => Promise<T>): Promise<T> {
   await db.query('begin');
   try {
-    if (sub) await db.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify({ sub, role: 'authenticated' })]);
+    if (sub)
+      await db.query("select set_config('request.jwt.claims',$1,true)", [
+        JSON.stringify({ sub, role: 'authenticated' }),
+      ]);
     await db.query('set local role authenticated');
     return await fn();
-  } finally { await db.query('commit').catch(() => {}); }
+  } finally {
+    await db.query('commit').catch(() => {});
+  }
 }
-const rows = (sql: string, p: unknown[] = []) => db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
+const rows = (sql: string, p: unknown[] = []) =>
+  db.query(sql, p).then((r) => r.rows as Record<string, unknown>[]);
 
 beforeAll(async () => {
   db = new PGlite();
@@ -47,7 +53,9 @@ beforeAll(async () => {
     grant execute on all functions in schema auth to authenticated;
   `);
   await db.exec(readFileSync(new URL('../src/rls/policies.sql', import.meta.url), 'utf8'));
-  await db.exec(readFileSync(new URL('../src/rls/notifications-policies.sql', import.meta.url), 'utf8'));
+  await db.exec(
+    readFileSync(new URL('../src/rls/notifications-policies.sql', import.meta.url), 'utf8'),
+  );
   await db.exec('grant execute on all functions in schema public to authenticated;');
   await db.exec(`
     insert into organizations(id,name) values('org_a','A');
@@ -62,27 +70,55 @@ beforeAll(async () => {
 
 describe('notification_outbox lifecycle idempotency', () => {
   it('duplicate inspection milestone enqueue is a no-op (one per inspection+status)', async () => {
-    const dup = await rows("insert into notification_outbox(id,org_id,customer_id,order_id,inspection_id,channel,template_key,idempotency_key) values('nob_i2','org_a','cust_a','ord_a','insp_a','lifecycle_placeholder','inspection_update','inspection_update:insp_a:passed') on conflict (idempotency_key) do nothing returning id");
+    const dup = await rows(
+      "insert into notification_outbox(id,org_id,customer_id,order_id,inspection_id,channel,template_key,idempotency_key) values('nob_i2','org_a','cust_a','ord_a','insp_a','lifecycle_placeholder','inspection_update','inspection_update:insp_a:passed') on conflict (idempotency_key) do nothing returning id",
+    );
     expect(dup).toEqual([]);
-    expect((await rows("select count(*)::int n from notification_outbox where idempotency_key='inspection_update:insp_a:passed'"))[0]).toEqual({ n: 1 });
+    expect(
+      (
+        await rows(
+          "select count(*)::int n from notification_outbox where idempotency_key='inspection_update:insp_a:passed'",
+        )
+      )[0],
+    ).toEqual({ n: 1 });
   });
   it('a different status is a distinct row', async () => {
-    await rows("insert into notification_outbox(id,org_id,customer_id,order_id,inspection_id,channel,template_key,idempotency_key) values('nob_i3','org_a','cust_a','ord_a','insp_a','lifecycle_placeholder','inspection_update','inspection_update:insp_a:failed') on conflict (idempotency_key) do nothing");
-    expect((await rows("select count(*)::int n from notification_outbox where inspection_id='insp_a'"))[0]).toEqual({ n: 2 });
+    await rows(
+      "insert into notification_outbox(id,org_id,customer_id,order_id,inspection_id,channel,template_key,idempotency_key) values('nob_i3','org_a','cust_a','ord_a','insp_a','lifecycle_placeholder','inspection_update','inspection_update:insp_a:failed') on conflict (idempotency_key) do nothing",
+    );
+    expect(
+      (
+        await rows("select count(*)::int n from notification_outbox where inspection_id='insp_a'")
+      )[0],
+    ).toEqual({ n: 2 });
   });
 });
 
 describe('notification_outbox lifecycle RLS', () => {
   it('customer A reads own lifecycle rows', async () =>
-    expect((await asTenant(A, () => rows("select template_key from notification_outbox where customer_id='cust_a' order by template_key"))).length).toBeGreaterThanOrEqual(2));
+    expect(
+      (
+        await asTenant(A, () =>
+          rows(
+            "select template_key from notification_outbox where customer_id='cust_a' order by template_key",
+          ),
+        )
+      ).length,
+    ).toBeGreaterThanOrEqual(2));
   it('customer B sees none', async () =>
     expect(await asTenant(B, () => rows('select * from notification_outbox'))).toHaveLength(0));
   it('staff/ops reads org rows', async () =>
-    expect((await asTenant(OPS, () => rows('select id from notification_outbox'))).length).toBeGreaterThanOrEqual(2));
+    expect(
+      (await asTenant(OPS, () => rows('select id from notification_outbox'))).length,
+    ).toBeGreaterThanOrEqual(2));
   it('customer CANNOT insert a lifecycle row (no write policy → rejected)', async () => {
-    await expect(asTenant(A, () => rows(
-      "insert into notification_outbox(id,org_id,customer_id,order_id,inspection_id,channel,template_key,idempotency_key) values('nob_hack','org_a','cust_a','ord_a','insp_a','lifecycle_placeholder','inspection_update','inspection_update:hack:x') returning id",
-    ))).rejects.toThrow();
+    await expect(
+      asTenant(A, () =>
+        rows(
+          "insert into notification_outbox(id,org_id,customer_id,order_id,inspection_id,channel,template_key,idempotency_key) values('nob_hack','org_a','cust_a','ord_a','insp_a','lifecycle_placeholder','inspection_update','inspection_update:hack:x') returning id",
+        ),
+      ),
+    ).rejects.toThrow();
   });
   it('missing claims → no rows', async () =>
     expect(await asTenant(null, () => rows('select * from notification_outbox'))).toHaveLength(0));

@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": { "inngest": "^3.22.0" },
+  "dependencies": {
+    "inngest": "^3.22.0"
+  },
   "devDependencies": {
     "typescript": "^5.6.3",
     "@maralito/config": "workspace:*"

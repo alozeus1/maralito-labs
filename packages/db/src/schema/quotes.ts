@@ -1,15 +1,38 @@
-import { pgTable, text, integer, boolean, jsonb, uuid, timestamp, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  text,
+  integer,
+  boolean,
+  jsonb,
+  uuid,
+  timestamp,
+  index,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 import { organizations } from './identity';
 import { customerProfiles } from './profiles';
 import { orders } from './orders';
 
 export const QUOTE_STATUSES = [
-  'draft', 'pending_finance_approval', 'approved', 'sent_to_customer',
-  'accepted', 'declined', 'expired', 'cancelled', 'superseded',
+  'draft',
+  'pending_finance_approval',
+  'approved',
+  'sent_to_customer',
+  'accepted',
+  'declined',
+  'expired',
+  'cancelled',
+  'superseded',
 ] as const;
 export const QUOTE_LINE_KINDS = [
-  'product_cost', 'service_fee', 'delivery_fee', 'estimated_import_tax',
-  'inspection_fee', 'discount', 'adjustment', 'other',
+  'product_cost',
+  'service_fee',
+  'delivery_fee',
+  'estimated_import_tax',
+  'inspection_fee',
+  'discount',
+  'adjustment',
+  'other',
 ] as const;
 export const APPROVAL_DECISIONS = ['approve', 'reject', 'request_changes'] as const;
 
@@ -18,9 +41,15 @@ export const quotes = pgTable(
   'quotes',
   {
     id: text('id').primaryKey(), // qte_<id>
-    orderId: text('order_id').notNull().references(() => orders.id),
-    customerId: text('customer_id').notNull().references(() => customerProfiles.id),
-    orgId: text('org_id').notNull().references(() => organizations.id),
+    orderId: text('order_id')
+      .notNull()
+      .references(() => orders.id),
+    customerId: text('customer_id')
+      .notNull()
+      .references(() => customerProfiles.id),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id),
     status: text('status').notNull().default('draft'),
     version: integer('version').notNull().default(1),
     currency: text('currency').$type<'USD' | 'MXN'>().notNull().default('USD'),
@@ -57,7 +86,9 @@ export const quoteLineItems = pgTable(
   'quote_line_items',
   {
     id: text('id').primaryKey(), // qli_<id>
-    quoteId: text('quote_id').notNull().references(() => quotes.id),
+    quoteId: text('quote_id')
+      .notNull()
+      .references(() => quotes.id),
     kind: text('kind').$type<(typeof QUOTE_LINE_KINDS)[number]>().notNull(),
     description: text('description').notNull(),
     quantity: integer('quantity').notNull().default(1),
@@ -77,7 +108,9 @@ export const quoteStatusHistory = pgTable(
   'quote_status_history',
   {
     id: text('id').primaryKey(), // qsh_<id>
-    quoteId: text('quote_id').notNull().references(() => quotes.id),
+    quoteId: text('quote_id')
+      .notNull()
+      .references(() => quotes.id),
     fromStatus: text('from_status'),
     toStatus: text('to_status').notNull(),
     actorUserId: uuid('actor_user_id'),
@@ -92,7 +125,9 @@ export const quoteApprovals = pgTable(
   'quote_approvals',
   {
     id: text('id').primaryKey(), // qap_<id>
-    quoteId: text('quote_id').notNull().references(() => quotes.id),
+    quoteId: text('quote_id')
+      .notNull()
+      .references(() => quotes.id),
     approverId: uuid('approver_id').notNull(),
     decision: text('decision').$type<(typeof APPROVAL_DECISIONS)[number]>().notNull(),
     reason: text('reason'),

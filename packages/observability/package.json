@@ -12,6 +12,7 @@
   "dependencies": { "@opentelemetry/api": "^1.9.0" },
   "devDependencies": {
     "typescript": "^5.6.3",
+    "vitest": "^2.1.2",
     "@maralito/config": "workspace:*"
   }
 }

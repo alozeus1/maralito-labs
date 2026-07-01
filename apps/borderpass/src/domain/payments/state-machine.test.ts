@@ -13,31 +13,38 @@ import {
 describe('payment state machine', () => {
   it('has 7 statuses', () => expect(PAYMENT_STATUSES).toHaveLength(7));
 
-  it('allows the spec-legal transitions', () => {
+  it('allows the spec-legal transitions (incl. Stripe card paths with no `processing` event)', () => {
     const legal: [PaymentStatus, PaymentStatus][] = [
+      // Standard cards: requires_payment → succeeded/failed directly (no `processing` event emitted).
       ['requires_payment', 'processing'],
+      ['requires_payment', 'requires_action'],
+      ['requires_payment', 'succeeded'],
+      ['requires_payment', 'failed'],
       ['requires_payment', 'canceled'],
       ['processing', 'succeeded'],
       ['processing', 'failed'],
       ['processing', 'requires_action'],
       ['processing', 'canceled'],
+      // 3DS: requires_action → succeeded/failed/canceled (and back to processing).
       ['requires_action', 'processing'],
+      ['requires_action', 'succeeded'],
       ['requires_action', 'failed'],
+      ['requires_action', 'canceled'],
       ['failed', 'requires_payment'],
       ['succeeded', 'refunded_placeholder'],
     ];
     for (const [f, t] of legal) expect(isLegalPaymentTransition(f, t)).toBe(true);
   });
 
-  it('rejects illegal state changes (incl. every shortcut to succeeded)', () => {
+  it('rejects illegal state changes (no resurrection from terminal/settled states)', () => {
     const illegal: [PaymentStatus, PaymentStatus][] = [
-      ['requires_payment', 'succeeded'],
       ['failed', 'succeeded'],
       ['canceled', 'succeeded'],
-      ['requires_action', 'succeeded'],
       ['refunded_placeholder', 'succeeded'],
       ['canceled', 'processing'],
+      ['canceled', 'requires_payment'],
       ['succeeded', 'processing'],
+      ['succeeded', 'failed'],
       ['processing', 'requires_payment'],
     ];
     for (const [f, t] of illegal) expect(isLegalPaymentTransition(f, t)).toBe(false);

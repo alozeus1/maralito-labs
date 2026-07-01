@@ -51,3 +51,17 @@ themselves are unrun.
 - **Result: NO migration produced.** The agent sandbox is Linux but the mounted `node_modules` ships the macOS `esbuild` binary (`@esbuild/darwin-arm64` present; `@esbuild/linux-arm64` required). drizzle-kit could not transpile the TS config/schema. Same arch-mismatch class as the Vitest/Rollup limitation. `packages/db/migrations/` remains empty.
 - **Not worked around:** binaries were **not** swapped in the mounted node_modules (would corrupt the operator's macOS install), and SQL was **not** hand-authored (a valid baseline needs the drizzle-generated `meta/_journal.json` snapshot).
 - **Action required:** run generation on the operator's macOS machine — `bash scripts/phase7-local-run.sh` (Pass 1) or `pnpm --filter @maralito/db db:generate` — then REVIEW + commit. No gate ticked.
+
+### 2026-07-01 — baseline migration generated + REVIEWED (stop-condition #1 CLEARED)
+- **Operator (macOS):** Pass 1 install/typecheck/test/build + `db:generate` passed. Committed `a7ab335`, pushed to `origin/main`.
+- **Artifact:** `packages/db/migrations/0000_nebulous_black_widow.sql` (+ `meta/_journal.json`, single entry `idx 0`, `breakpoints: true`).
+- **Agent review (static, no DB):** 26 tables, 44 FK constraints (all appended AFTER table creation = safe ordering; explicit `ON DELETE/UPDATE no action`), 55 indexes, 81 `IF NOT EXISTS`, 124 statement breakpoints. **0 destructive statements** (no DROP/DELETE/TRUNCATE/ALTER…DROP), **0 RLS/policy statements** (correct — RLS applied separately from `src/rls/*.sql`), **0 INSERT/seed**, **0 enums/CHECK** (text columns + app-level state machines, per architecture).
+- **RLS ↔ schema cross-check:** the 26 tables targeted by the 7 policy files == the 26 tables created (1:1, no orphan policy target). All 12 `gate:rls` seed tables present.
+- **Verdict: APPROVED** for application to the disposable `borderpass-dev-gate` project. **Migration NOT yet applied** — awaiting explicit operator approval for Pass 2 (`--apply-db`). Rows 7/8/9/10 remain 🔲 UNRUN.
+
+### 2026-07-01 — offline full-chain dry-run against the REAL migration (found + fixed a gate bug)
+- **What:** applied the committed `0000_nebulous_black_widow.sql` + all 7 `src/rls/*.sql` into embedded Postgres (PGlite), then ran the exact `live-rls-gate.ts` seed + isolation logic. Offline, no DB, no secrets.
+- **Bug found:** the gate seed inserted `user_roles` for `customer`/`operations_manager` **without** first inserting those keys into `roles` — the real migration enforces FK `user_roles.role_key → roles.key` (absent from the old hand-built test harness). Standalone `pnpm gate:rls` on a freshly-migrated project (no `db:seed`) would have **failed at seeding**.
+- **Fix:** `packages/db/scripts/live-rls-gate.ts` now self-seeds those two role keys inside its rolled-back transaction (`insert into roles ... on conflict (key) do nothing`), so the gate no longer depends on `db:seed` ordering. **Operator must commit + push this fix before Pass 2.**
+- **Result after fix: 13 passed, 0 failed** — migration applies, all 7 RLS files apply, gate seed matches real schema, cross-domain isolation + staff read + history + write-deny + anon all correct.
+- Still no live gate ticked (this is offline PGlite, not the live Supabase gate). Rows 7–10 remain 🔲.

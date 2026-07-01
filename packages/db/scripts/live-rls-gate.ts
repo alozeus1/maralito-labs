@@ -63,6 +63,9 @@ async function main() {
       await tx`insert into user_identities(id,auth_user_id,org_id) values('uig_a',${A},'org_gate'),('uig_b',${B},'org_gate'),('uig_ops',${OPS},'org_gate')`;
       await tx`insert into customer_profiles(id,auth_user_id,org_id,display_name) values('cg_a',${A},'org_gate','A'),('cg_b',${B},'org_gate','B')`;
       await tx`insert into staff_profiles(id,auth_user_id,org_id,display_name) values('sg_ops',${OPS},'org_gate','Ops')`;
+      // Self-seed the role keys the gate references so it does not depend on db:seed having run first
+      // (user_roles.role_key -> roles.key FK). Rolled back with the rest of the transaction.
+      await tx`insert into roles(key,name) values('customer','customer'),('operations_manager','operations_manager') on conflict (key) do nothing`;
       await tx`insert into user_roles(id,auth_user_id,org_id,role_key) values('urg_a',${A},'org_gate','customer'),('urg_b',${B},'org_gate','customer'),('urg_ops',${OPS},'org_gate','operations_manager')`;
       for (const [o, c] of [['og_a', 'cg_a'], ['og_b', 'cg_b']]) {
         await tx`insert into orders(id,order_ref,customer_id,org_id,service_type,status,correlation_id) values(${o},${'BP-' + o},${c},'org_gate','buy_for_me','inspection_pending',${o})`;

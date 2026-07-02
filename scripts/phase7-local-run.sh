@@ -103,10 +103,13 @@ fi
 command -v pnpm >/dev/null 2>&1 || { log "⛔ pnpm unavailable. Install: 'corepack enable && corepack prepare pnpm@latest --activate'"; exit 1; }
 log "  pnpm: $(pnpm -v)"
 
-# load .env.local WITHOUT printing values (only needed for --apply-db)
+# load .env.local WITHOUT printing values (only needed for --apply-db). Crash-safe: disable nounset
+# and suppress stderr so a malformed/unquoted line can never abort the run or echo secret content.
 if [[ -f .env.local ]]; then
-  set -a; # shellcheck disable=SC1091
-  source ./.env.local; set +a
+  set +u; set -a
+  # shellcheck disable=SC1091
+  source ./.env.local 2>/dev/null || log "  ⚠ .env.local parse warning (single-quote all values); continuing"
+  set +a; set -u
   log "  .env.local: loaded (values not shown)"
 else
   log "  .env.local: ABSENT"

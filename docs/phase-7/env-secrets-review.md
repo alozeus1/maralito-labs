@@ -37,7 +37,12 @@ Findings (evidence from repo + CI PR #2 / run 28546256476):
 - ✅ **Least-privilege DB note** — `gate:rls` requires an owner-capable role; app runtime uses `withTenant`/`withPrivilegedDbAccess`, never the service_role key.
 - ⚠️ **OPEN ACTION — rotate exposed dev secrets.** The dev-gate `service_role` key + DB password were exposed in an operator chat and rotation was **deferred by the owner**. Acceptable ONLY for this disposable synthetic dev-gate project; **must be rotated before any non-dev use, real PII, or real payments.** Rotation owner: Godwill. Tracked here + in `decision-kms.md`.
 
+## REQUIRED BEFORE PRIVATE TESTERS
+Rotate exposed Supabase `service_role` / secret key and database password, update the secrets manager and CI/Vercel
+secrets, then record evidence in `gate-ledger.md` Row 18. Until this is done, **no tester may touch the environment.**
+Do **not** mark Row 18 fully closed until rotation is actually completed + recorded.
+
 ## Status
-✅ **REVIEW COMPLETE — 2026-07-01 (dev-only), with one tracked open action (rotate exposed dev secrets).**
+✅ **REVIEW COMPLETE — 2026-07-01 (dev-only), with one tracked open action (rotate exposed dev secrets — see above).**
 Gate row 18 in `docs/phase-7/gate-ledger.md` = ✅ (review performed + documented). The deferred rotation is an
 explicit open item that must close before any non-dev/real-PII/real-payment use; it does not block the dev-only review.

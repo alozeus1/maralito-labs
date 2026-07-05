@@ -3,25 +3,33 @@
 // initiates/reuses the Stripe PaymentIntent. ALL UX states + the server-authoritative status
 // refresh live in the PaymentConfirm client component. Success is NEVER decided here — the Stripe
 // webhook remains the trusted source for succeeded/paid.
+import Link from 'next/link';
+import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { getMyOrderPaymentSummary, initiateQuotePayment } from '../../../../actions/payments';
 import { shouldShowPaymentForm } from '@/domain/payments/display';
+import { formatMoneyMinor } from '@/lib/format';
 import { PaymentConfirm } from './PaymentConfirm';
 
 export const dynamic = 'force-dynamic';
 
-function formatMoney(minor: number, currency: string): string {
-  try {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(minor / 100);
-  } catch {
-    return `${(minor / 100).toFixed(2)} ${currency}`;
-  }
-}
-
-function Shell({ title, children }: { title: string; children: React.ReactNode }) {
+function Shell({
+  title,
+  backHref,
+  children,
+}: {
+  title: string;
+  backHref?: Route;
+  children: React.ReactNode;
+}) {
   return (
     <main className="mx-auto max-w-md p-6">
-      <h1 className="font-heading text-2xl">{title}</h1>
+      {backHref && (
+        <Link href={backHref} className="text-on-surface-variant py-2 text-sm underline">
+          ← Back to order
+        </Link>
+      )}
+      <h1 className="font-heading mt-2 text-2xl">{title}</h1>
       {children}
       <footer className="text-on-surface-variant mt-10 text-xs">Powered by Maralito Labs</footer>
     </main>
@@ -35,12 +43,14 @@ export default async function PayPage({ params }: { params: Promise<{ orderId: s
     if (res.error.code === 'not_found') notFound();
     return (
       <Shell title="Payment">
-        <p className="text-on-surface-variant mt-2">{res.error.message}</p>
+        <p className="text-on-surface-variant mt-2">
+          Payment details aren&apos;t available right now — please try again shortly.
+        </p>
       </Shell>
     );
   }
   const s = res.data!;
-  const amount = formatMoney(s.amount_due_minor, s.currency);
+  const amount = formatMoneyMinor(s.amount_due_minor, s.currency);
   const returnHref = `/orders/${orderId}/quote`;
   const returnPath = `/orders/${orderId}/pay`;
 
@@ -56,7 +66,7 @@ export default async function PayPage({ params }: { params: Promise<{ orderId: s
   }
 
   return (
-    <Shell title="Payment">
+    <Shell title="Payment" backHref={returnHref as Route}>
       {shouldShowPaymentForm(s.display_state) && (
         <p className="text-on-surface-variant mt-1">
           Amount due: <span className="font-semibold">{amount}</span>

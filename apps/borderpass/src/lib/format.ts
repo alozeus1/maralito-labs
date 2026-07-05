@@ -18,6 +18,12 @@ export function formatDate(value: Date | string | number, locale?: string): stri
   return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(d);
 }
 
+export function formatDateTime(value: Date | string | number, locale?: string): string {
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(d);
+}
+
 /** Humanize a snake_case status key for display ("awaiting_payment" → "Awaiting payment"). */
 export function humanizeStatus(status: string): string {
   const s = status.replace(/_/g, ' ').trim();

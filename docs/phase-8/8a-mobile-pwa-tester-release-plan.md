@@ -76,6 +76,19 @@
 - **Guardrail:** no payment-logic changes — UI layer only; webhook remains the sole source of `paid`.
 - **Verify:** as 8A.2 + Stripe TEST-mode manual check with test card `4242…` on mobile viewport.
 - **STOP:** report + screenshots + TEST-payment evidence (redacted).
+- **✅ 8A.4 outcome (2026-07-05, `START … 8A.4` received):** order detail/quote page rebuilt as mobile cards —
+  order header (ref, humanized status/service, created date, ← Orders back link), itemized quote card over the
+  safe `getMyOrderQuote` projection (line items, non-zero fee breakdown, total, validity, customer message),
+  payment card with a prominent "Pay <amount>" CTA rendered only under the existing `shouldShowPaymentForm`
+  rule, inspection/delivery cards unchanged in data (windows now via shared `formatDateTime`). Pay page: shared
+  runtime-locale `formatMoneyMinor` (drops hardcoded en-US), ← Back-to-order link, generic (non-leaking) error
+  copy. `PaymentConfirm`: client-side **Test mode** badge (shown only when the publishable key is `pk_test_`),
+  Stripe error messages surfaced only for `card_error`/`validation_error` (else generic copy), aria-busy +
+  rounded-3xl button consistency. `format.ts` gains `formatDateTime`. **No payment-flow/state-machine changes**
+  (initiate/client_secret/polling untouched; success still webhook-only). Verified: preflight/typecheck/lint/
+  build green (a typed-routes `Route` fix was needed for the new back link); payments-domain unit tests 30/30;
+  unauthenticated `/orders/[id]/quote|pay` still redirect to `/login`; zero console errors. Authenticated +
+  Stripe-test-card visual QA still pends Row 11 (8A.7).
 
 ### 8A.5 — Inspection/delivery tracker mobile polish
 - **Work:** customer read-only inspection + delivery-prep visibility on mobile: timeline legibility, non-PII

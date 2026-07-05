@@ -66,9 +66,16 @@ export function PaymentConfirm(props: Props) {
         />
       );
     }
+    const pk = getStripePublishableKey();
+    const testMode = !!pk && pk.startsWith('pk_test_');
     return (
       <div>
         <p className="text-on-surface-variant mt-2">{copy.body}</p>
+        {testMode && (
+          <p className="border-outline text-on-surface-variant mt-2 inline-block rounded-3xl border px-3 py-1 text-xs">
+            Test mode — no real money moves. Use a Stripe test card.
+          </p>
+        )}
         <Elements
           stripe={getBrowserStripe()}
           options={{ clientSecret: props.clientSecret, appearance: { theme: 'stripe' } }}
@@ -124,7 +131,12 @@ function ConfirmForm({
     });
     setSubmitting(false);
     if (confirmError) {
-      setError(confirmError.message ?? 'Payment could not be completed. Please try again.');
+      // Stripe marks card_error/validation_error messages as customer-safe; anything else gets
+      // generic copy so internal detail never reaches the UI.
+      const safe = confirmError.type === 'card_error' || confirmError.type === 'validation_error';
+      setError(
+        (safe && confirmError.message) || 'Payment could not be completed. Please try again.',
+      );
       return;
     }
     onProcessing();
@@ -141,7 +153,8 @@ function ConfirmForm({
       <button
         type="submit"
         disabled={!stripe || submitting}
-        className="bg-primary text-on-primary w-full rounded-lg px-4 py-3 font-medium disabled:opacity-60"
+        aria-busy={submitting || undefined}
+        className="bg-primary text-on-primary w-full rounded-3xl px-4 py-3 font-medium disabled:opacity-60"
       >
         {submitting ? 'Processing…' : `Pay ${amountLabel}`}
       </button>
@@ -176,7 +189,7 @@ function StatusView({
           <button
             type="button"
             onClick={onRetry}
-            className="bg-primary text-on-primary rounded-lg px-4 py-2 font-medium"
+            className="bg-primary text-on-primary rounded-3xl px-4 py-2.5 font-medium"
           >
             Try again
           </button>

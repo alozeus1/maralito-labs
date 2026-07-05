@@ -86,7 +86,7 @@ Delivered (in-repo tooling + runbooks only — no live gate executed or marked p
 | 0012 | Post-payment order lifecycle foundation (inspection + delivery prep) |
 | 0013 | Live-gate hardening + real environment validation (tooling) |
 | 0014 | Phase 8 scope + sequencing — **PROPOSED** (not accepted; Phase 8 not started) |
-| 0015 | Phase 8A mobile PWA private testing — **ACCEPTED (dev-only scope)**; 8A.1 started 2026-07-05 on `START BORDERPASS PHASE 8 — 8A.1`. Tester round still gated on Phase 7 rows 11/18 + Row 19 activation |
+| 0015 | Phase 8A mobile PWA private testing — **ACCEPTED (dev-only scope)**; 8A dev work **complete except the Row 11-gated device dry-run** (see `docs/phase-8/8a-final-dev-review.md`, 2026-07-05). Tester round still gated on Phase 7 rows 11/18 + Row 19 activation |
 
 ---
 

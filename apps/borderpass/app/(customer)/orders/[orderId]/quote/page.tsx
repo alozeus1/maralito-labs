@@ -15,6 +15,12 @@ import { inspectionStatusLabel } from '@/domain/inspections/copy';
 import { deliveryPrepStatusLabel } from '@/domain/delivery/copy';
 import { formatDate, formatDateTime, formatMoneyMinor, humanizeStatus } from '@/lib/format';
 import { QuoteDecision } from './QuoteDecision';
+import { StatusTracker } from './StatusTracker';
+
+// Fixed happy-path step lists for the read-only trackers (sub-status machines: ADR-0012).
+// Terminal/side states (failed, on_hold) surface via the status label, not extra steps.
+const INSPECTION_STEPS = ['scheduled', 'in_progress', 'passed'] as const;
+const DELIVERY_STEPS = ['pending', 'preparing', 'ready', 'scheduled', 'handed_off'] as const;
 
 export const dynamic = 'force-dynamic';
 
@@ -174,6 +180,12 @@ export default async function CustomerOrderQuotePage({
       {inspection && (
         <Card title="Inspection">
           <p className="mt-1">{inspectionStatusLabel(inspection.status)}</p>
+          <StatusTracker steps={INSPECTION_STEPS} current={inspection.status} />
+          {inspection.scheduled_for && (
+            <p className="text-on-surface-variant mt-2 text-sm">
+              Scheduled for {formatDateTime(inspection.scheduled_for)}
+            </p>
+          )}
           {inspection.customer_summary && (
             <p className="text-on-surface-variant mt-1 text-sm">{inspection.customer_summary}</p>
           )}
@@ -183,6 +195,7 @@ export default async function CustomerOrderQuotePage({
       {delivery && (
         <Card title="Delivery">
           <p className="mt-1">{deliveryPrepStatusLabel(delivery.status)}</p>
+          <StatusTracker steps={DELIVERY_STEPS} current={delivery.status} />
           {delivery.customer_summary && (
             <p className="text-on-surface-variant mt-1 text-sm">{delivery.customer_summary}</p>
           )}

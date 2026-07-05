@@ -1,9 +1,13 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { RegisterSw } from './RegisterSw';
 
 export const metadata: Metadata = {
   title: 'BorderPass',
   description: 'Your trusted bridge between the U.S. and Mexico.',
+  // Phase 8A.6: installed-PWA metadata (manifest served by app/manifest.ts).
+  appleWebApp: { capable: true, title: 'BorderPass', statusBarStyle: 'default' },
+  icons: { apple: '/icons/apple-touch-icon.png' },
 };
 
 // Phase 8A.2: explicit mobile viewport + browser theme color (surface token). Full PWA
@@ -19,7 +23,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // Phase 1/2: locale from CustomerProfile drives <html lang>. Phase 0 default: en.
   return (
     <html lang="en">
-      <body className="font-body">{children}</body>
+      <body className="font-body">
+        <RegisterSw />
+        {children}
+      </body>
     </html>
   );
 }

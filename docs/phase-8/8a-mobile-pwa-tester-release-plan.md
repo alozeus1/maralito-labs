@@ -110,6 +110,11 @@
   scheduling windows only (opaque `delivery_address_ref` — never address text).
 - **Verify:** as 8A.2 + confirm no PII-bearing field is introduced.
 - **STOP:** report + screenshots.
+- **✅ 8A.5 outcome (2026-07-05):** inspection/delivery cards gained a read-only `StatusTracker` step bar
+  (fixed happy-path steps; side/terminal states surface via the existing status labels), plus the inspection
+  `scheduled_for` timestamp via the shared formatter. Fields rendered are unchanged from the customer-safe
+  read models (`InspectionSummaryView`/`DeliverySummaryView` — no staff notes, address refs, or provider data
+  exist in them). No action/read-model changes.
 
 ### 8A.6 — PWA metadata/installability
 - **Work:** web app manifest (name/short_name/icons/theme/display=standalone), apple-touch/home-screen meta,
@@ -118,16 +123,32 @@
 - **Verify:** Lighthouse/devtools installability pass locally; add-to-home-screen launches standalone on
   iOS Safari + Android Chrome (dev devices, synthetic accounts).
 - **STOP:** installability evidence.
+- **✅ 8A.6 outcome (2026-07-05):** `app/manifest.ts` (standalone, surface theme, 192/512 any + maskable),
+  placeholder solid-brand PNG icons + 180px apple-touch icon under `public/icons/` (replace with the
+  Stitch-designed set when available), `appleWebApp` + apple-icon metadata in the root layout, and a
+  **deliberately cache-free** service worker (`public/sw.js`): it intercepts ONLY top-level navigations and
+  returns a branded offline note on network failure — it never caches or reads API, authenticated, payment,
+  or any other responses. Registered via a tiny client component. Verified live on the dev server:
+  `/manifest.webmanifest` 200 + linked in head, all icons 200, apple/web-app-capable meta present,
+  service worker registered, zero console errors. On-device add-to-home-screen checks land with 8A.7.
 
 ### 8A.7 — Synthetic QA script + device checklist
 - **Work:** finalize the per-tester, per-device QA script from `docs/phase-7/mobile-private-testing-checklist.md`
   §3 + readiness-plan §10 into a fill-in evidence template (`docs/phase-8/8a-device-qa-template.md`); dry-run it
   end-to-end once on each platform with **synthetic accounts** (requires Row 11 unblocked for the auth steps).
 - **STOP:** dry-run evidence; confirm every checklist row is executable.
+- **🟡 8A.7 outcome (2026-07-05, PARTIAL):** `8a-device-qa-template.md` created — 19-row per-device fill-in
+  covering install, OTP login, dashboard/lists, accept+decline, TEST payment (webhook-only paid + failure
+  card), inspection/delivery visibility, logout/relogin, cross-tenant, offline, responsive, and no-secret
+  checks; **Row 11-dependent rows are explicitly marked ⛔ BLOCKED**. The on-device dry-run itself cannot run
+  until Row 11 clears — this is the one open 8A item.
 
 ### 8A.8 — Final dev-only 8A review
 - **Work:** full verification suite (typecheck/lint/build/tests/guards), unsafe-claim grep, secret scan, ledger
   cross-check, completion report `docs/phase-8/8a-completion-report.md`.
+- **✅ 8A.8 outcome (2026-07-05):** review complete — see `8a-final-dev-review.md` (supersedes the
+  `8a-completion-report.md` filename). All checks green; 8A is **dev-complete except the Row 11-gated 8A.7
+  device dry-run**. Tester round remains blocked per the STOP-terminal conditions below.
 - **STOP (terminal):** 8A is **dev-complete** only. The tester round itself still requires: Row 11 PASS with
   evidence · Row 18 open action closed · Row 19 Option B activation confirmed by the owner · deployment of the
   PWA to a controlled HTTPS preview host with Supabase redirect URLs saved. None of those are part of 8A.8.

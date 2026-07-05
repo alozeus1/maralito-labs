@@ -1,13 +1,13 @@
 # BorderPass — Current Build State
 
 > Single source of truth for "where we are." Update at the end of every phase/patch.
-> **Last updated:** 2026-06-30 · **App:** BorderPass (first app on the Maralito Platform + Automation Platform) · **Mode:** development-only
+> **Last updated:** 2026-07-05 · **App:** BorderPass (first app on the Maralito Platform + Automation Platform) · **Mode:** development-only
 
 ---
 
 ## Current phase completed
 
-**Phase 7 — Live-Gate Hardening + Real Environment Validation (TOOLING)** (ADR-0013). Development-only; **all live gates remain UNRUN**.
+**Phase 7 — Live-Gate Hardening + Real Environment Validation (TOOLING)** (ADR-0013). Development-only. Gate execution is in progress: rows 1–10 + 12–14 + 16–17 have since PASSED with evidence; rows **11 (OTP — blocked by a Supabase platform incident), 15 (Stripe LIVE — deferred), 18 (secret rotation — PARTIAL), 19 (owner sign-off)** remain open. See `docs/phase-7/gate-ledger.md` (single source of truth).
 
 Delivered (in-repo tooling + runbooks only — no live gate executed or marked passed):
 - Consolidated **non-destructive** live-RLS-gate (`packages/db/scripts/live-rls-gate.ts`, `pnpm gate:rls`) covering all 7 policy files (orders/quotes/payments/notifications/inspections/delivery-preparations) with two-user cross-domain isolation, transaction-rollback (nothing persists). Logic verified 10/10 on PGlite.
@@ -60,7 +60,7 @@ Delivered (in-repo tooling + runbooks only — no live gate executed or marked p
 
 ## Next phase
 
-**Operator action, then Phase 8.** Phase 7 tooling is complete; an **operator must now execute the live gates** (`docs/phase-7/live-gate-runbook.md`) and record results in `docs/phase-7/gate-ledger.md`. Phase 8 (ADR-0014 — not written) begins only after the required gates are green + owner-signed. Candidate Phase 8 directions once gates pass: real notification provider, delivery/courier provider, refund/dispute expansion, or KMS-gated address/PII. **Do not start Phase 8 until gates pass and the user gives `START BORDERPASS PHASE 8`.**
+**Operator action, then Phase 8.** Phase 7 tooling is complete and most gates are green; the operator must close the remaining rows (11 OTP, 18 rotation, 19 sign-off) per `docs/phase-7/live-gate-runbook.md` and record results in `docs/phase-7/gate-ledger.md`. Phase 8 (ADR-0014 — **PROPOSED**, plan at `docs/phase-8/phase-8-plan.md`) begins only after the required gates are green + owner-signed. Candidate Phase 8 directions once gates pass: real notification provider, delivery/courier provider, refund/dispute expansion, or KMS-gated address/PII. **Do not start Phase 8 until gates pass and the user gives `START BORDERPASS PHASE 8`.**
 
 ### (superseded) original Phase 7 recommendation
 
@@ -85,7 +85,7 @@ Delivered (in-repo tooling + runbooks only — no live gate executed or marked p
 | 0011 | Customer payment confirmation UX + notifications foundation |
 | 0012 | Post-payment order lifecycle foundation (inspection + delivery prep) |
 | 0013 | Live-gate hardening + real environment validation (tooling) |
-| 0014 | *(reserved)* Phase 8 — not yet written |
+| 0014 | Phase 8 scope + sequencing — **PROPOSED** (not accepted; Phase 8 not started) |
 
 ---
 
@@ -102,7 +102,7 @@ Delivered (in-repo tooling + runbooks only — no live gate executed or marked p
 
 ## Live-gate status
 
-🔴 **NOT PASSED / NOT RUN.** No live Supabase project, no live/test Stripe account, no CI run, and no real `pnpm install` have executed in this environment. All Phase 1–7 verification is on real **embedded** Postgres (PGlite) + pure logic + offline Stripe signature + CI boundary guards — this proves the policy SQL + domain logic under Postgres/Node, **not** the Supabase/Stripe deployment. **Phase 7 built the tooling to run the gates** (`gate:rls`, `preflight`, `stripe:smoke`, operator CI, runbooks) but the gates themselves are **unrun** — see the ledger (`docs/phase-7/gate-ledger.md`, all 🔲). The live gates remain hard blockers before any staging release, pilot, production, real payment, or handling of real customer PII/address content.
+🟡 **PARTIALLY PASSED — release still blocked.** Per the ledger (`docs/phase-7/gate-ledger.md`, single source of truth): rows **1–10 PASSED** (real install/typecheck/build/Vitest/PR-CI + live Supabase migrate/RLS/seed + live two-user `gate:rls` 13/13), rows **12–14 PASSED (Stripe TEST mode only)**, rows **16–17 owner-signed**. Still open: **row 11** (OTP smoke — latest attempt 2026-07-05 blocked by a Supabase platform incident preventing the redirect-URL save), **row 15** (Stripe LIVE validation — deferred; required before any real payment), **row 18** (🟡 PARTIAL — env/secrets review recorded, but exposed `service_role`/secret key + DB password **rotation remains REQUIRED BEFORE PRIVATE TESTERS**), **row 19** (owner sign-off). The open rows remain hard blockers before any private testers, staging release, pilot, production, real payment, or handling of real customer PII/address content.
 
 ---
 

@@ -86,6 +86,7 @@ Delivered (in-repo tooling + runbooks only — no live gate executed or marked p
 | 0012 | Post-payment order lifecycle foundation (inspection + delivery prep) |
 | 0013 | Live-gate hardening + real environment validation (tooling) |
 | 0014 | Phase 8 scope + sequencing — **PROPOSED** (not accepted; Phase 8 not started) |
+| 0015 | Phase 8A mobile PWA private testing — **PROPOSED** (plan-only; implementation awaits `START BORDERPASS PHASE 8 — 8A`) |
 
 ---
 

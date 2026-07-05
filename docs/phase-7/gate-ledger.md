@@ -116,3 +116,7 @@ themselves are unrun.
 - **Row 11:** redirect-URL save retried again on the authenticated dashboard — same failure (preflight 204, save never completes, "No Redirect URLs" persists after reload, incident banner active). Evidence: `run-logs/otp-smoke-attempt-20260705T031647Z.md`. Row 11 stays 🔲; OTP smoke not started.
 - **Row 19:** owner (Godwill) selected **Option B** of `owner-signoff-packet.md` in writing (2026-07-05): synthetic private mobile tester round **conditionally approved — effective only after Row 11 passes with evidence and Row 18's open action closes**. No gate waived. Row 19 → 🟡 CONDITIONAL.
 - Net effect: **private testers remain BLOCKED** (rows 11 + 18 open). Phase 8 not started; ADR-0014 PROPOSED.
+
+### 2026-07-05T03:22Z — Row 11 narrow retry — still BLOCKED
+- Redirect-URL save retried once more on the authenticated dashboard (repo synced @ `b3f2ecf` first): same failure — save never completes, "No Redirect URLs" persists after reload, incident banner intermittently visible. Evidence: `run-logs/otp-smoke-attempt-20260705T032223Z.md`. OTP smoke not started; Row 11 stays 🔲.
+- Rows 18/19 unchanged (19 = conditional Option B, inactive until 11 + 18 close). **Private testers remain BLOCKED.**

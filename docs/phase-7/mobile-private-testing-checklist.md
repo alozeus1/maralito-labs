@@ -25,6 +25,8 @@ https://<future-borderpass-domain>/**
 - [ ] Install / Add to Home Screen; launches standalone
 - [ ] Login / OTP (magic-link or code) completes
 - [ ] Session persists across app restart + backgrounding
+- [ ] Customer dashboard loads (order list scoped to the signed-in tester only)
+- [ ] Order detail view renders (status + history; inspection/delivery sections where present)
 - [ ] Customer order/request flow with **synthetic** data (all 4 services)
 - [ ] Quote visibility (safe projection; internal notes hidden)
 - [ ] Accepted-quote payment page renders
@@ -60,5 +62,14 @@ https://<future-borderpass-domain>/**
 
 ## 6. Explicit non-goals (out of scope for this release)
 - Production release · public beta · live payments · real PII · real address storage · real RFC/KYC · external notification-provider sending (outbox stays queued placeholder) · courier/delivery-provider integrations.
+
+## 7. UI / design source of truth
+- The **approved Stitch design direction** + the existing BorderPass UI are **canonical** — see
+  `docs/design/Design-to-Frontend-Handoff-Package.md`. Testers QA the app as built.
+- **No new design system** is introduced for private testing.
+- Mobile-first UI polish (if any) happens **only after** the owner starts Phase 8A
+  (`START BORDERPASS PHASE 8 — 8A`); this checklist authorizes QA, not UI work.
+- Claude Design (or similar tools) may be used for **optional, throwaway mockups/inspiration only** —
+  never as a new design system or a replacement source of truth.
 
 > When every box in §5 is checked and the owner signs off (Row 19), this becomes a private internal tester round — still development-only. This checklist does not start Phase 8.

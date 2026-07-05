@@ -106,3 +106,8 @@ themselves are unrun.
 - **Not done:** no OTP requested, no user created, no gate ticked. Evidence: `run-logs/otp-smoke-attempt-20260705T023231Z.md`.
 - **Same-session re-verification (operator Mac, real toolchain):** `pnpm install` ✅ · `preflight` ✅ · `check:db-imports` ✅ · `check:client-stripe` ✅ · `typecheck` 13/13 ✅ · `lint` 13/13 ✅ · `build` ✅ · `stripe:smoke` 5/5 (TEST keys, offline) ✅ · `bash -n scripts/phase7-stripe-gate.sh` ✅. Secret-hygiene scan of tracked files: no real secret values (variable names only); `.env.local` ignored, never staged.
 - Row 11 stays 🔲 · Row 15 stays 🔲 (LIVE deferred) · Row 18 stays 🟡 PARTIAL (rotation REQUIRED BEFORE PRIVATE TESTERS) · Row 19 stays 🔲. **Private testers remain BLOCKED.**
+
+### 2026-07-05T03:10Z — Row 11 re-attempt (post PR #5 merge) — still BLOCKED; owner sign-off packet prepared
+- Redirect-URL save retried on the authenticated dashboard: identical failure (`OPTIONS …/auth/<ref>/config` 204, actual save `Failed to fetch (api.supabase.com)`); allow-list still empty after reload; incident banner + unresolved status-page incident active. Evidence: `run-logs/otp-smoke-attempt-20260705T031019Z.md`. OTP smoke not started (precondition failed). Row 11 stays 🔲.
+- Baseline re-verified on main @ `ad51d05`: preflight ✅ · db-imports ✅ · client-stripe ✅ · typecheck 13/13 ✅ · lint 13/13 ✅ · build ✅.
+- **Row 19 packet ready:** `owner-signoff-packet.md` created — gate summary, tester-round scope (synthetic-only, Stripe TEST, Stitch-canonical UI), Phase 8 posture (ADR-0014 PROPOSED, not started), and owner options A/B/C with signature block. Row 19 stays 🔲 until the owner signs in writing.

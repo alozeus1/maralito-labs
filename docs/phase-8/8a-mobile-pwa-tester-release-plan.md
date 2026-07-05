@@ -41,6 +41,16 @@
   es/en toggle reachable. Match existing Stitch-derived styling; no redesign.
 - **Verify:** typecheck/lint/build + audited routes re-checked at mobile widths.
 - **STOP:** before/after screenshots (synthetic data) + verification results.
+- **✅ 8A.2 outcome (2026-07-05, `START … 8A.2` received):** customer shell shipped —
+  `(customer)/layout.tsx` now renders a mobile-first header (brand link, audited **Sign out** via the existing
+  `signOut` server action + redirect to `/login`) and a Home/Orders/Quotes nav (44px-class tap targets, existing
+  tokens, no new design system); new `(customer)/loading.tsx` skeleton + `(customer)/error.tsx` boundary
+  (generic copy — never renders error internals); root layout gains an explicit `viewport` export
+  (`device-width`, `initial-scale=1`, `viewport-fit=cover`) + `themeColor #fff8f6` (manifest/icons deferred to
+  8A.6). Auth guards unchanged; no payment/domain/schema changes. Verified: preflight/typecheck/lint/build all
+  green; dev-server render at 375px — unauthenticated `/` redirects to `/login`, viewport + theme-color meta
+  emitted, zero console errors. es/en toggle deferred to 8A.3+ (locale plumbing lives with the dashboard work).
+  Shell-behind-auth visual QA lands with 8A.7 (needs Row 11).
 
 ### 8A.3 — Customer dashboard mobile polish
 - **Work:** order list (own orders only) legible and scannable on mobile; empty/loading/error states; status

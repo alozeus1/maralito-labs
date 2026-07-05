@@ -57,6 +57,18 @@
   chips readable; no horizontal scroll.
 - **Verify:** as 8A.2 + RLS-scoped rendering unchanged (no query/data-layer changes).
 - **STOP:** report + screenshots.
+- **✅ 8A.3 outcome (2026-07-05, `START … 8A.3` received):** the three placeholder pages are now real
+  mobile-first UI over the existing RLS-scoped read models only — dashboard (`(customer)/page.tsx`: safe
+  order/quote counts, quotes-ready call-to-action, empty/unavailable states), orders list (card list from
+  `listMyOrders`: ref, humanized status, service type, created date → links to the order's quote/status page),
+  quotes list (card list from `listMyQuotes` safe projection: total, status, validity; "Go to payment" link
+  only for `accepted` quotes — all payment rules stay on the existing `/pay` page). Supporting changes:
+  `listMyOrders` projection gains non-PII `created_at`; new pure `src/lib/format.ts`
+  (runtime-locale `Intl` money/date + status humanizer — not full i18n); nav extracted to a client
+  `CustomerNav` with `aria-current` active-route highlight. No auth-guard, payment, state-machine, or schema
+  changes. Verified: preflight/typecheck/lint/build green; dev-server check — `/`, `/orders`, `/quotes` all
+  still redirect unauthenticated → `/login`, zero console errors. Authenticated visual QA still pends Row 11
+  (8A.7).
 
 ### 8A.4 — Order detail + quote/payment mobile polish
 - **Work:** order detail (status + history), quote view (safe projection; internal notes stay hidden), accepted-

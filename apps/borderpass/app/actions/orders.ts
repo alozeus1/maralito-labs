@@ -154,7 +154,9 @@ export async function submitOrder(input: unknown): Promise<Result> {
 
 /** List the caller's own orders (RLS-scoped). */
 export async function listMyOrders(): Promise<
-  Result<{ id: string; order_ref: string; status: string; service_type: string }[]>
+  Result<
+    { id: string; order_ref: string; status: string; service_type: string; created_at: string }[]
+  >
 > {
   const { s, err } = await guard();
   if (!s) return { ok: false, error: err! };
@@ -167,6 +169,7 @@ export async function listMyOrders(): Promise<
         order_ref: o.orderRef,
         status: o.status,
         service_type: o.serviceType,
+        created_at: o.createdAt.toISOString(),
       })),
     };
   });

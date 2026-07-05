@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getAppSession } from '@/server/auth';
 import { requireCustomerAccess } from '@maralito/auth';
 import { auditAccessDenied, signOut } from '@/server/auth-events';
+import { CustomerNav } from './CustomerNav';
 
 // Phase 8A.2: mobile-first customer shell (header + nav + audited sign-out) over the existing
 // auth guard. Session data is never rendered; links are static customer routes only.
@@ -38,17 +39,7 @@ export default async function CustomerLayout({ children }: { children: React.Rea
             </button>
           </form>
         </div>
-        <nav aria-label="Customer" className="mx-auto flex max-w-md gap-1 px-4 pb-2">
-          <Link href="/" className="rounded-3xl px-4 py-2.5 text-sm font-medium">
-            Home
-          </Link>
-          <Link href="/orders" className="rounded-3xl px-4 py-2.5 text-sm font-medium">
-            Orders
-          </Link>
-          <Link href="/quotes" className="rounded-3xl px-4 py-2.5 text-sm font-medium">
-            Quotes
-          </Link>
-        </nav>
+        <CustomerNav />
       </header>
       {children}
     </div>

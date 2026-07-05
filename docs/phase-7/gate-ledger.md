@@ -24,7 +24,7 @@
 | 16 | KMS / secret-management decision | `decision-kms.md` | ✅ PASS (owner-signed) | Godwill / 2026-07-01 | Ratified: managed secrets dev-only; **Cloud KMS envelope encryption required before any real PII/RFC/KYC/address**. Decision recorded; implementation is a future increment. |
 | 17 | Preview-branching decision | `decision-preview-branching.md` | ✅ PASS (owner-signed) | Godwill / 2026-07-01 | Ratified: **defer** preview branching (Option C) until row 18 + isolation-model choice. No real PII in previews. |
 | 18 | Env/secrets review | `env-secrets-review.md` | 🟡 PARTIAL — NOT fully closed | Godwill / 2026-07-01 | Review recorded for dev-only gates (guards green, no server secret in `NEXT_PUBLIC_`, `.env*` gitignored, CI secret-scan + Semgrep 0 findings). **BUT exposed Supabase `service_role`/secret key + DB password rotation remains REQUIRED BEFORE PRIVATE TESTERS. Do not treat Row 18 as closed until rotation evidence is recorded.** |
-| 19 | Deployment readiness sign-off | `deployment-readiness-checklist.md` | 🔲 UNRUN | | |
+| 19 | Deployment readiness sign-off | `deployment-readiness-checklist.md` | 🟡 CONDITIONAL (owner-signed Option B) | Godwill / 2026-07-05 | Owner selected **Option B** of `owner-signoff-packet.md` in writing: synthetic private mobile tester round approved **conditionally — effective only after Row 11 passes with evidence and Row 18's open action closes**. No gate waived; **testers remain BLOCKED** until rows 11 + 18 close. |
 
 **Rule:** do not claim staging/pilot/production/real-payment/real-PII readiness while any required box is 🔲.
 Locally-verifiable *tooling* for these gates is built and tested (see the completion report), but the gates
@@ -111,3 +111,8 @@ themselves are unrun.
 - Redirect-URL save retried on the authenticated dashboard: identical failure (`OPTIONS …/auth/<ref>/config` 204, actual save `Failed to fetch (api.supabase.com)`); allow-list still empty after reload; incident banner + unresolved status-page incident active. Evidence: `run-logs/otp-smoke-attempt-20260705T031019Z.md`. OTP smoke not started (precondition failed). Row 11 stays 🔲.
 - Baseline re-verified on main @ `ad51d05`: preflight ✅ · db-imports ✅ · client-stripe ✅ · typecheck 13/13 ✅ · lint 13/13 ✅ · build ✅.
 - **Row 19 packet ready:** `owner-signoff-packet.md` created — gate summary, tester-round scope (synthetic-only, Stripe TEST, Stitch-canonical UI), Phase 8 posture (ADR-0014 PROPOSED, not started), and owner options A/B/C with signature block. Row 19 stays 🔲 until the owner signs in writing.
+
+### 2026-07-05T03:16Z — Owner decision pass — Row 11 re-retry BLOCKED; Row 19 conditionally signed (Option B)
+- **Row 11:** redirect-URL save retried again on the authenticated dashboard — same failure (preflight 204, save never completes, "No Redirect URLs" persists after reload, incident banner active). Evidence: `run-logs/otp-smoke-attempt-20260705T031647Z.md`. Row 11 stays 🔲; OTP smoke not started.
+- **Row 19:** owner (Godwill) selected **Option B** of `owner-signoff-packet.md` in writing (2026-07-05): synthetic private mobile tester round **conditionally approved — effective only after Row 11 passes with evidence and Row 18's open action closes**. No gate waived. Row 19 → 🟡 CONDITIONAL.
+- Net effect: **private testers remain BLOCKED** (rows 11 + 18 open). Phase 8 not started; ADR-0014 PROPOSED.

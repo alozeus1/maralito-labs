@@ -49,13 +49,16 @@ secret scan of tracked files + diffs = clean · `.env.local` gitignored and neve
 ## 6. Owner decision (Row 19) — pick exactly one, in writing
 
 - [ ] **A. Do not approve testers yet.** Everything stays as-is; gates continue when unblocked.
-- [ ] **B. Approve a synthetic private mobile tester round** — effective only after Row 11 passes with evidence
+- [x] **B. Approve a synthetic private mobile tester round** — effective only after Row 11 passes with evidence
       and Row 18's open action closes per the ledger. Approving B does not waive any gate.
 - [ ] **C. Request more fixes before approval** (list them below).
 
-**Owner signature (name + date):** ______________________________________
+**Decision recorded:** Owner selected **Option B** in writing via the coordinating session's decision prompt
+on **2026-07-05**. Conditional approval only — it becomes effective **only after** Row 11 passes with recorded
+evidence and Row 18's open action closes per the ledger. **No gate is waived; testers remain blocked today.**
 
-**Notes / requested fixes:**
+**Owner signature (name + date, optional countersignature):** ______________________________________
 
-> Row 19 in `gate-ledger.md` is ticked only when the owner has marked a box and signed above (or replied
-> equivalently in writing). This packet itself does not change any gate.
+**Notes / requested fixes:** none recorded with the decision.
+
+> Row 19 in `gate-ledger.md` now reflects this conditional written sign-off. This packet changes no other gate.

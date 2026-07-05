@@ -90,6 +90,21 @@
   unauthenticated `/orders/[id]/quote|pay` still redirect to `/login`; zero console errors. Authenticated +
   Stripe-test-card visual QA still pends Row 11 (8A.7).
 
+### 8A.4b — Quote accept/decline wiring (added at the 8A.4 stop point)
+- **✅ 8A.4b outcome (2026-07-05, `START … 8A.4b` received):** the quote card now renders customer decision
+  controls via a new `QuoteDecision` client component that calls ONLY the existing `acceptQuote`/`declineQuote`
+  server actions — all rules remain server-side (`sent_to_customer` + unexpired, audited
+  `quote.invalid_transition_attempt` on stale attempts, transitions via `transitionQuote` +
+  `transitionOrderPrivileged` `quote_ready → awaiting_payment` exactly as before). UI gating is
+  presentation-only: controls render only for customer-visible `quote_ready`; client-side expiry check hides
+  Accept for expired quotes (server re-checks); Decline uses a two-step confirm; pending state disables buttons
+  (`aria-busy`); errors are generic; `conflict_state` triggers a refresh so stale views self-correct. After
+  accept, `router.refresh()` re-renders the page and the payment CTA appears through the existing
+  `shouldShowPaymentForm` rule — no payment initiation from accept. Declined quotes show a safe declined note.
+  Verified: preflight/typecheck/lint/build + `check:db-imports` + `check:client-stripe` all green; quote
+  state-machine tests 12/12 (covers the accept/decline rules the UI gates on); unauthenticated quote route
+  still redirects to `/login`; zero console errors. Authenticated end-to-end QA pends Row 11 (8A.7).
+
 ### 8A.5 — Inspection/delivery tracker mobile polish
 - **Work:** customer read-only inspection + delivery-prep visibility on mobile: timeline legibility, non-PII
   scheduling windows only (opaque `delivery_address_ref` — never address text).

@@ -14,6 +14,7 @@ import { shouldShowPaymentForm } from '@/domain/payments/display';
 import { inspectionStatusLabel } from '@/domain/inspections/copy';
 import { deliveryPrepStatusLabel } from '@/domain/delivery/copy';
 import { formatDate, formatDateTime, formatMoneyMinor, humanizeStatus } from '@/lib/format';
+import { QuoteDecision } from './QuoteDecision';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,7 @@ interface OrderHeader {
 }
 interface QuoteView {
   quote: {
+    id: string;
     status: string;
     currency: string;
     total_minor: number;
@@ -137,6 +139,20 @@ export default async function CustomerOrderQuotePage({
           )}
           {quote.quote.customer_message && (
             <p className="text-on-surface-variant mt-2 text-sm">{quote.quote.customer_message}</p>
+          )}
+          {quote.quote.status === 'quote_ready' && (
+            <QuoteDecision
+              quoteId={quote.quote.id}
+              expiresAt={
+                quote.quote.expires_at ? new Date(quote.quote.expires_at).toISOString() : null
+              }
+            />
+          )}
+          {quote.quote.status === 'declined' && (
+            <p className="text-on-surface-variant mt-3 text-sm">
+              You declined this quote. If anything changes, contact us and we&apos;ll prepare a new
+              one.
+            </p>
           )}
         </Card>
       )}

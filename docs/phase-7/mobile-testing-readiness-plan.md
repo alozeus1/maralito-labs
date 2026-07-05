@@ -17,12 +17,13 @@
 | PR CI green (SAST/secret-scan/Semgrep/OSV/tests/build) | 5 | ✅ PASS |
 | KMS decision (dev posture; KMS before real PII) | 16 | ✅ owner-signed |
 | Preview-branching decision (defer) | 17 | ✅ owner-signed |
-| Env/secrets review | 18 | ✅ done — **rotation open action must close first** |
-| **OTP → provisioning → session smoke** | 11 | 🔲 **blocked (Supabase auth-redirect incident)** — required for mobile auth |
-| **Stripe TEST-mode validation** | 12–15 | 🔲 required before payment testing |
+| Env/secrets review | 18 | 🟡 PARTIAL (per ledger) — **rotation open action must close first** |
+| **OTP → provisioning → session smoke** | 11 | 🔲 **blocked (Supabase platform incident; latest attempt 2026-07-05)** — required for mobile auth |
+| Stripe TEST-mode validation | 12–14 | ✅ PASS (TEST mode; evidence in ledger) |
+| Stripe LIVE validation | 15 | 🔲 deferred — **NOT required for TEST-mode testing** |
 | Owner sign-off for testing release | 19 | 🔲 |
 
-**Testers cannot be invited until 11, 12–15, and the row-18 rotation close, plus row-19 sign-off.** Everything below is buildable in parallel now against synthetic data.
+**Testers cannot be invited until row 11 passes, the row-18 rotation closes, and row-19 sign-off is recorded** (rows 12–14 already passed; row 15 is not required for the TEST-mode tester round). Everything below is buildable in parallel now against synthetic data.
 
 ## 1. PWA-first vs Expo React Native — decision
 
@@ -121,7 +122,7 @@ If/when the product moves to **Expo React Native**:
 
 ## 12. Sequencing (recommended)
 
-1. Close **row 18 rotation** + unblock **row 11 OTP** + pass **rows 12–15 Stripe test**.
+1. Close **row 18 rotation** + unblock **row 11 OTP** (rows 12–14 Stripe TEST already passed; row 15 LIVE stays deferred).
 2. Deploy the PWA to a controlled test host; configure Supabase redirect URLs.
 3. Internal QA pass (§10) with synthetic data on iOS + Android.
 4. **Owner sign-off (row 19)** for the private testing release.

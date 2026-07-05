@@ -1,7 +1,9 @@
-# ADR 0015 — Phase 8A: Mobile PWA Private Testing Round (PROPOSED)
+# ADR 0015 — Phase 8A: Mobile PWA Private Testing Round (ACCEPTED — dev-only scope)
 
-- **Status:** **PROPOSED** (not accepted). Accepted only when the owner explicitly accepts it; implementation
-  begins only on **`START BORDERPASS PHASE 8 — 8A`**.
+- **Status:** **ACCEPTED (8A dev-only work)** — owner issued **`START BORDERPASS PHASE 8 — 8A.1`** in writing on
+  2026-07-05, which both accepts this ADR for dev-only 8A execution and starts increment 8A.1. Acceptance covers
+  ONLY the dev-only increments; the tester round itself remains blocked until the activation gates close
+  (Phase 7 rows 11 + 18, then Row 19 Option B activation).
 - **Date:** 2026-07-05 · **Phase:** 8A (planning) · **Builds on:** ADR-0013 (live gates), ADR-0014 (Phase 8 scope — PROPOSED).
 - **Plan:** `docs/phase-8/8a-mobile-pwa-tester-release-plan.md`.
 
@@ -40,5 +42,5 @@ notification/courier providers (8C) · refunds/disputes (8D) · any new order st
 
 ## Status control
 
-**PROPOSED — awaiting owner acceptance and `START BORDERPASS PHASE 8 — 8A`. BorderPass remains development-only;
-private testers remain blocked.**
+**ACCEPTED (dev-only 8A scope) — `START BORDERPASS PHASE 8 — 8A.1` received 2026-07-05; increment 8A.1 underway.
+BorderPass remains development-only; private testers remain blocked until the activation gates close.**

@@ -22,6 +22,13 @@
 
 ## Increments
 
+> **8A.1 outcome (2026-07-05):** audit complete — `8a-route-mobile-audit.md`. Key adjustments: the customer
+> home/orders/quotes pages are **placeholders**, so 8A.3 is "build the dashboard/list UI from the existing
+> read models," not cosmetic polish; and 8A.2 must **add** the missing customer nav/logout shell (the
+> `(customer)` layout is an auth guard only) plus viewport/theme metadata and loading/error boundaries.
+> Layout-breakage risk is low (consistent `max-w-md` mobile-first shell; no tables/grids/fixed widths).
+> Sequencing 8A.2 → 8A.8 unchanged. Admin-area mobile gaps recorded as out-of-8A-scope.
+
 ### 8A.1 — Mobile route/readiness audit (read-only)
 - **Work:** inventory all customer-facing routes (`app/(public|auth|customer)`) on mobile viewports (375×812 /
   360×800); record per-route defects (layout breaks, tap targets, overflow, missing loading/error states);

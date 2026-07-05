@@ -43,6 +43,7 @@ secrets, then record evidence in `gate-ledger.md` Row 18. Until this is done, **
 Do **not** mark Row 18 fully closed until rotation is actually completed + recorded.
 
 ## Status
-✅ **REVIEW COMPLETE — 2026-07-01 (dev-only), with one tracked open action (rotate exposed dev secrets — see above).**
-Gate row 18 in `docs/phase-7/gate-ledger.md` = ✅ (review performed + documented). The deferred rotation is an
-explicit open item that must close before any non-dev/real-PII/real-payment use; it does not block the dev-only review.
+🟡 **REVIEW RECORDED — 2026-07-01 (dev-only) — but the gate is NOT closed.**
+Gate row 18 in `docs/phase-7/gate-ledger.md` = 🟡 **PARTIAL**: the review itself is performed + documented, but the
+exposed `service_role`/secret key + DB password **rotation remains REQUIRED BEFORE PRIVATE TESTERS** (see the
+section above). Do not treat Row 18 as closed, and do not admit any tester, until rotation evidence is recorded.

@@ -1,7 +1,8 @@
 # Phase 8A — Controlled HTTPS Preview Deployment Plan
 
-> **Status:** PLAN (2026-07-05). **No deployment has been performed.** Deploying requires the owner to
-> configure the host + secrets and approve explicitly. This plan enables the eventual on-device QA dry-run
+> **Status:** EXECUTED IN PART (2026-07-05) — project created + preview deployed behind Deployment Protection;
+> see `8a-preview-deployment-evidence.md`. **Env vars, Supabase redirects (incident-blocked), and the Stripe
+> TEST webhook remain owner actions.** This plan enables the eventual on-device QA dry-run
 > (8A.7) — it does **not** invite testers, and it makes no tester/staging/pilot/production readiness claim.
 > Development-only · synthetic data only · **no real PII** · **Stripe TEST mode only** · no live payments.
 

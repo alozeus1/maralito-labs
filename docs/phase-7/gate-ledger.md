@@ -125,3 +125,8 @@ themselves are unrun.
 - status.supabase.com: **All Systems Operational**; the "Project status change failures" incident is in Monitoring; all compute regions (incl. us-east-2) recovered 2026-07-06. Config writes should now succeed.
 - Retry attempt found the operator's **dashboard session expired** (redirected to sign-in). The agent does not authenticate on the operator's behalf; no credentials entered, no config changed.
 - Evidence + exact operator steps: `run-logs/otp-smoke-attempt-20260707T022254Z.md`. Row 11 stays 🔲 until the smoke actually passes.
+
+### 2026-07-07T02:41Z — owner signed in; redirect save retried — ROOT CAUSE = browser extension (not backend)
+- With the owner signed in, the agent entered all four redirect URLs (localhost `/**` + `/auth/callback`; Vercel preview `/**` + `/auth/callback`) and saved. Save failed; reload shows "No Redirect URLs".
+- **Console at save time:** `TypeError: Failed to fetch (api.supabase.com)` thrown inside `chrome-extension://…/injectScriptAdjust.js` — a browser extension in this Chrome profile wraps `window.fetch` and aborts the dashboard save (preflight 204, real request never lands). This explains the week-long failure better than the platform incident.
+- **Fix (owner, ~1 min):** save the four redirect URLs in a clean browser profile / Incognito with the extension off (or pause the ad-block/privacy extension for supabase.com), verify persistence, then run the localhost OTP smoke (can hand back to the agent). Evidence: `run-logs/otp-smoke-attempt-20260707T024113Z.md`. Row 11 stays 🔲.

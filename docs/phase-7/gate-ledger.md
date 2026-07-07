@@ -120,3 +120,8 @@ themselves are unrun.
 ### 2026-07-05T03:22Z — Row 11 narrow retry — still BLOCKED
 - Redirect-URL save retried once more on the authenticated dashboard (repo synced @ `b3f2ecf` first): same failure — save never completes, "No Redirect URLs" persists after reload, incident banner intermittently visible. Evidence: `run-logs/otp-smoke-attempt-20260705T032223Z.md`. OTP smoke not started; Row 11 stays 🔲.
 - Rows 18/19 unchanged (19 = conditional Option B, inactive until 11 + 18 close). **Private testers remain BLOCKED.**
+
+### 2026-07-07T02:22Z — Supabase incident CLEARED; Row 11 now needs only operator sign-in + retry
+- status.supabase.com: **All Systems Operational**; the "Project status change failures" incident is in Monitoring; all compute regions (incl. us-east-2) recovered 2026-07-06. Config writes should now succeed.
+- Retry attempt found the operator's **dashboard session expired** (redirected to sign-in). The agent does not authenticate on the operator's behalf; no credentials entered, no config changed.
+- Evidence + exact operator steps: `run-logs/otp-smoke-attempt-20260707T022254Z.md`. Row 11 stays 🔲 until the smoke actually passes.

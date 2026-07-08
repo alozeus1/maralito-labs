@@ -2,6 +2,7 @@
 // listMyQuotes safe projection (customer-visible status; internal notes never included).
 // The pay link only points at the existing /pay page — all payment rules stay server-side there.
 import Link from 'next/link';
+import { PageMain } from '../../_components/PageMain';
 import { listMyQuotes } from '../../actions/quotes';
 import { formatDate, formatMoneyMinor, humanizeStatus } from '@/lib/format';
 
@@ -12,8 +13,8 @@ export default async function QuotesPage() {
   const quotes = res.ok ? (res.data ?? []) : null;
 
   return (
-    <main className="mx-auto max-w-md p-6">
-      <h1 className="font-heading text-2xl">Your quotes</h1>
+    <PageMain variant="wide">
+      <h1 className="font-heading text-2xl sm:text-3xl">Your quotes</h1>
 
       {quotes === null && (
         <p className="text-on-surface-variant mt-3">
@@ -27,9 +28,9 @@ export default async function QuotesPage() {
         </p>
       )}
 
-      <ul className="mt-4 space-y-3">
+      <ul className="mt-4 grid gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
         {quotes?.map((q) => (
-          <li key={q.id} className="border-outline rounded-lg border p-4">
+          <li key={q.id} className="border-outline flex h-full flex-col rounded-lg border p-4">
             <div className="flex items-baseline justify-between gap-2">
               <span className="font-medium">{formatMoneyMinor(q.total_minor, q.currency)}</span>
               <span className="text-on-surface-variant text-sm">{humanizeStatus(q.status)}</span>
@@ -39,7 +40,7 @@ export default async function QuotesPage() {
                 Valid until {formatDate(q.expires_at)}
               </p>
             )}
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+            <div className="mt-auto flex flex-wrap gap-x-4 gap-y-2 pt-3">
               <Link
                 href={`/orders/${q.order_id}/quote`}
                 className="text-primary py-1 text-sm underline underline-offset-2"
@@ -58,6 +59,6 @@ export default async function QuotesPage() {
           </li>
         ))}
       </ul>
-    </main>
+    </PageMain>
   );
 }

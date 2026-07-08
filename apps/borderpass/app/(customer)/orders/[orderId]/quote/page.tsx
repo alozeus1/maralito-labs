@@ -4,6 +4,7 @@
 // happens on the /pay page and `paid` remains webhook-driven.
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { PageMain } from '../../../../_components/PageMain';
 import { getMyOrder } from '../../../../actions/orders';
 import { getMyOrderQuote } from '../../../../actions/quotes';
 import { getMyOrderPaymentSummary } from '../../../../actions/payments';
@@ -93,11 +94,11 @@ export default async function CustomerOrderQuotePage({
     : [];
 
   return (
-    <main className="mx-auto max-w-md p-6">
+    <PageMain variant="read">
       <Link href="/orders" className="text-on-surface-variant py-2 text-sm underline">
         ← Orders
       </Link>
-      <h1 className="font-heading mt-2 text-2xl">{order ? order.orderRef : 'Order'}</h1>
+      <h1 className="font-heading mt-2 text-2xl sm:text-3xl">{order ? order.orderRef : 'Order'}</h1>
       {order ? (
         <p className="text-on-surface-variant mt-1 text-sm">
           {humanizeStatus(order.status)} · {humanizeStatus(order.serviceType)} · Created{' '}
@@ -215,6 +216,6 @@ export default async function CustomerOrderQuotePage({
       )}
 
       <footer className="text-on-surface-variant mt-10 text-xs">Powered by Maralito Labs</footer>
-    </main>
+    </PageMain>
   );
 }

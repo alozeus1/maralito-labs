@@ -37,8 +37,8 @@ export default function Login() {
   }
 
   return (
-    <main className="mx-auto max-w-md p-6">
-      <h1 className="font-heading text-2xl">Sign in</h1>
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-12 sm:max-w-sm">
+      <h1 className="font-heading text-2xl sm:text-3xl">Sign in</h1>
       {sent ? (
         <p className="text-on-surface-variant mt-3">Check your email for a sign-in link.</p>
       ) : (
@@ -53,9 +53,12 @@ export default function Login() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-surface-variant w-full rounded-md p-3"
+              className="bg-surface-variant focus-visible:ring-primary w-full rounded-md p-3 focus-visible:outline-none focus-visible:ring-2"
             />
-            <button type="submit" className="bg-primary text-on-primary w-full rounded-3xl p-3">
+            <button
+              type="submit"
+              className="bg-primary text-on-primary hover:bg-primary/90 focus-visible:ring-primary w-full rounded-3xl p-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            >
               Send link
             </button>
           </form>
@@ -69,7 +72,7 @@ export default function Login() {
           <button
             type="button"
             onClick={signInWithGoogle}
-            className="border-outline flex w-full items-center justify-center gap-2 rounded-3xl border p-3 font-medium"
+            className="border-outline hover:bg-surface-variant/60 focus-visible:ring-primary flex w-full items-center justify-center gap-2 rounded-3xl border p-3 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
               <path

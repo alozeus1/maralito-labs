@@ -1,8 +1,10 @@
 # Phase 7 — Live Gate Ledger
 
 > ADR-0013 · **Single source of truth for gate status.** A box is ticked **only** after the gate was actually
-> executed and passed in the real environment. As of this document, **ALL live gates are UNRUN** — none may
-> be reported as passed. Development-only until every required gate below is checked + owner-signed.
+> executed and passed in the real environment. **Current state (2026-07-08):** rows 1–14 + 16–17 ✅ (incl.
+> **row 11 ✅ PASS**); row 18 rotation done + propagated (🟡 optional cleanup); row 19 conditional Option B now
+> activatable; **row 15 (Stripe LIVE) deferred.** Development-only until every required gate is checked +
+> owner-signed. Do not claim staging/pilot/production/real-payment/real-PII readiness.
 
 | # | Gate | How to run | Status | Run by / date | Evidence |
 |---|------|------------|--------|---------------|----------|
@@ -16,7 +18,7 @@
 | 8 | All 7 RLS policies applied (live) | apply `rls/*.sql` | ✅ PASS | operator / 2026-07-01 | Pass 2: all 7 policy files applied → 48 policies, RLS enabled on 26 tables. Required grant fix committed `e741a41` (least-privilege grants to `authenticated` only; no anon/public). |
 | 9 | Seed applied (live) | `db:seed` | ✅ PASS | operator / 2026-07-01 | Pass 2: 9 roles + 1 synthetic org. No PII. |
 | 10 | Live two-user RLS isolation gate | `pnpm gate:rls` → `N passed, 0 failed` | ✅ PASS | operator / 2026-07-01 | Pass 2: `gate:rls` = **13 passed, 0 failed**; non-destructive rollback verified (`leaked_gate_org=0`). Cross-domain isolation + staff read + history staff-only + payment write-deny + anon→0, on live Supabase. |
-| 11 | OTP → provisioning → session smoke | operator | 🔲 UNRUN | | |
+| 11 | OTP → provisioning → session smoke | `row11-otp-smoke.ts` | ✅ PASS | agent+operator / 2026-07-08 | Programmatic smoke on the LIVE project (rotated keys + new DB password): OTP minted (admin API) → **verified → real session** → `provisionUserCore` idempotent (1 identity / 1 customer role / 1 baseline profile after 2 runs) → relogin → no duplicate provisioning → cleanup. Synthetic-only; no email; no codes/tokens logged. Evidence: `run-logs/otp-smoke-20260708T045425Z.md`. |
 | 12 | Stripe TEST-mode smoke (offline pre-check) | `stripe:smoke` | ✅ PASS (agent-run, TEST mode) | agent / 2026-07-01 | `stripe:smoke` 5/5 with real `sk_test_`/`whsec_` (keys present · TEST mode · API version 2024-06-20 · offline sig verify · tamper rejected). Live-key refusal separately verified. Evidence: `run-logs/stripe-gate-20260701T2137Z.md`. |
 | 13 | Stripe TEST-mode live round-trip | Stripe CLI (runbook) | ✅ PASS (post-fix, TEST mode) | agent / 2026-07-01 | After state-machine fix: happy path (`pm_card_visa`) → payment `succeeded`, order **`paid`**, `payment_events` `requires_payment→succeeded`, receipt queued. Failure path (`pm_card_chargeDeclined`) → payment `failed`, order stays `awaiting_payment` (never paid). Idempotency: resent `succeeded` → no dup (1 payment/1 event/1 receipt). See `run-logs/stripe-gate-20260701T2137Z.md`. |
 | 14 | Stripe API-version validation | dashboard vs pinned | ✅ PASS | agent / 2026-07-01 | `stripe listen` reports API Version **2024-06-20** == `DEFAULT_STRIPE_API_VERSION`. Webhook signature fail-closed (missing/invalid → 400) and idempotent (redelivered event → 1 ledger row). Evidence: `run-logs/stripe-gate-20260701T2137Z.md`. |
@@ -120,6 +122,16 @@ themselves are unrun.
 ### 2026-07-05T03:22Z — Row 11 narrow retry — still BLOCKED
 - Redirect-URL save retried once more on the authenticated dashboard (repo synced @ `b3f2ecf` first): same failure — save never completes, "No Redirect URLs" persists after reload, incident banner intermittently visible. Evidence: `run-logs/otp-smoke-attempt-20260705T032223Z.md`. OTP smoke not started; Row 11 stays 🔲.
 - Rows 18/19 unchanged (19 = conditional Option B, inactive until 11 + 18 close). **Private testers remain BLOCKED.**
+
+### 2026-07-08T03:53Z — Row 11 auth PROVEN programmatically; provisioning pends DB-password propagation
+- Owner saved current Supabase keys locally and rotated the DB password + JWT signing key (Row 18 core done).
+- New programmatic smoke `packages/db/scripts/row11-otp-smoke.ts` (synthetic-only, no email/rate-limit): **OTP minted via admin API ✅ · OTP verified → real session ✅ · authenticated user id present ✅**. This proves the real Supabase auth path with the rotated keys.
+- **Provisioning BLOCKED:** `28P01 invalid_password` — `.env.local` `DATABASE_URL` still holds the pre-rotation DB password (and has two `DATABASE_URL` lines). No `service_role` REST shortcut (tables granted to `authenticated` only, ADR-0013), so provisioning must use the privileged DB connection. Fix = set one `DATABASE_URL` with the NEW password (also the Row 18 propagation step); then the smoke completes provisioning + idempotency + relogin and Row 11 → PASS. Evidence: `run-logs/otp-smoke-attempt-20260708T035313Z.md`.
+- Row 11 stays 🔲 (auth proven, provisioning pending the 1-line env fix). Row 15 🔲. Row 18 🟡 (rotation done; DATABASE_URL propagation outstanding). Row 19 🟡 conditional. **Private testers remain BLOCKED.**
+
+### 2026-07-08T04:54Z — Row 11 → ✅ PASS (full end-to-end, after DATABASE_URL new-password update)
+- Operator updated `.env.local` `DATABASE_URL` with the rotated DB password. Re-ran `packages/db/scripts/row11-otp-smoke.ts`: **ALL PASS** — OTP mint → verify → real session → provisioning idempotent (1 identity / 1 customer role / 1 baseline profile) → relogin → no duplicate provisioning → cleanup. Live project, synthetic-only, no email, nothing sensitive logged. Evidence: `run-logs/otp-smoke-20260708T045425Z.md`.
+- **Row 11 → ✅ PASS.** Row 18 rotation now propagated to the app (DB password current); the only Row 18 remainder is the optional later removal of old keys from "Previously used keys". Row 15 🔲 (Stripe LIVE, deferred). Row 19 🟡 conditional Option B — with rows 11 + 18 effectively closed, its activation condition is met pending owner confirmation. Remaining before testers: Vercel Preview env `DATABASE_URL` update + owner Row 19 tick.
 
 ### 2026-07-07T02:22Z — Supabase incident CLEARED; Row 11 now needs only operator sign-in + retry
 - status.supabase.com: **All Systems Operational**; the "Project status change failures" incident is in Monitoring; all compute regions (incl. us-east-2) recovered 2026-07-06. Config writes should now succeed.

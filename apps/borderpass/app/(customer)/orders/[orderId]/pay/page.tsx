@@ -6,6 +6,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { notFound } from 'next/navigation';
+import { PageMain } from '../../../../_components/PageMain';
 import { getMyOrderPaymentSummary, initiateQuotePayment } from '../../../../actions/payments';
 import { shouldShowPaymentForm } from '@/domain/payments/display';
 import { formatMoneyMinor } from '@/lib/format';
@@ -23,7 +24,7 @@ function Shell({
   children: React.ReactNode;
 }) {
   return (
-    <main className="mx-auto max-w-md p-6">
+    <PageMain variant="form">
       {backHref && (
         <Link href={backHref} className="text-on-surface-variant py-2 text-sm underline">
           ← Back to order
@@ -32,7 +33,7 @@ function Shell({
       <h1 className="font-heading mt-2 text-2xl">{title}</h1>
       {children}
       <footer className="text-on-surface-variant mt-10 text-xs">Powered by Maralito Labs</footer>
-    </main>
+    </PageMain>
   );
 }
 

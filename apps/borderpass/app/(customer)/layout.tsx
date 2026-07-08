@@ -26,7 +26,7 @@ export default async function CustomerLayout({ children }: { children: React.Rea
   return (
     <div data-shell="customer" className="min-h-screen">
       <header className="border-outline/30 border-b">
-        <div className="mx-auto flex max-w-md items-center justify-between px-6 py-3">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3 sm:px-8">
           <Link href="/" className="font-heading text-primary py-2 text-xl">
             BorderPass
           </Link>

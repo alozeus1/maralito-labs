@@ -12,7 +12,7 @@ const LINKS = [
 export function CustomerNav() {
   const pathname = usePathname();
   return (
-    <nav aria-label="Customer" className="mx-auto flex max-w-md gap-1 px-4 pb-2">
+    <nav aria-label="Customer" className="mx-auto flex max-w-5xl gap-1 px-4 pb-2 sm:px-6">
       {LINKS.map(({ href, label }) => {
         const active = href === '/' ? pathname === '/' : pathname.startsWith(href);
         return (
@@ -23,7 +23,7 @@ export function CustomerNav() {
             className={
               active
                 ? 'bg-surface-variant rounded-3xl px-4 py-2.5 text-sm font-semibold'
-                : 'text-on-surface-variant rounded-3xl px-4 py-2.5 text-sm font-medium'
+                : 'text-on-surface-variant hover:bg-surface-variant/60 rounded-3xl px-4 py-2.5 text-sm font-medium transition-colors'
             }
           >
             {label}

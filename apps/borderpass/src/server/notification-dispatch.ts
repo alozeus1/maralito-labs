@@ -1,7 +1,11 @@
 import 'server-only';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, lt, or } from 'drizzle-orm';
 import { withPrivilegedDbAccess, notificationOutbox } from '@maralito/db';
+import { getServerEnv } from './env';
 import { sendEmail, isResendConfigured } from './resend';
+
+/** A `sending` claim older than this is treated as abandoned (worker crashed) and re-claimable. */
+const SENDING_LEASE_MS = 10 * 60 * 1000;
 
 /**
  * Phase 8C — outbox dispatcher. Reads `queued` notification_outbox rows and sends them via Resend,
@@ -66,14 +70,20 @@ export async function dispatchQueuedNotifications(opts: DispatchOptions): Promis
   if (!isResendConfigured()) return summary; // ship-dark: no provider configured → no-op
 
   const limit = opts.limit ?? 50;
-  const base = opts.appBaseUrl ?? process.env.BORDERPASS_APP_BASE_URL ?? '';
+  // Absolute base for email links. Without one we'd send unresolvable relative hrefs, so we no-op.
+  const base = opts.appBaseUrl ?? getServerEnv().BORDERPASS_APP_URL ?? '';
+  if (!base) return summary;
+
+  // Pick up `queued` rows AND `sending` rows whose claim is stale (a prior run crashed mid-send),
+  // so an interrupted notification is retried instead of being stuck in `sending` forever.
+  const staleBefore = new Date(Date.now() - SENDING_LEASE_MS);
+  const claimable = or(
+    eq(notificationOutbox.status, 'queued'),
+    and(eq(notificationOutbox.status, 'sending'), lt(notificationOutbox.updatedAt, staleBefore)),
+  );
 
   const rows = await withPrivilegedDbAccess('notifications.dispatch:read', (db) =>
-    db
-      .select()
-      .from(notificationOutbox)
-      .where(eq(notificationOutbox.status, 'queued'))
-      .limit(limit),
+    db.select().from(notificationOutbox).where(claimable).limit(limit),
   );
   summary.scanned = rows.length;
 
@@ -84,12 +94,13 @@ export async function dispatchQueuedNotifications(opts: DispatchOptions): Promis
       continue;
     }
 
-    // Claim the row (queued → sending) so a concurrent pass can't double-send it.
+    // Atomically claim the row (→ sending) so a concurrent pass can't double-send it. The predicate
+    // matches the same claimable set (queued OR stale-sending), so exactly one worker wins the row.
     const claimed = await withPrivilegedDbAccess('notifications.dispatch:claim', (db) =>
       db
         .update(notificationOutbox)
         .set({ status: 'sending', updatedAt: new Date() })
-        .where(and(eq(notificationOutbox.id, row.id), eq(notificationOutbox.status, 'queued')))
+        .where(and(eq(notificationOutbox.id, row.id), claimable))
         .returning({ id: notificationOutbox.id }),
     );
     if (claimed.length === 0) {

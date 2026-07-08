@@ -28,7 +28,9 @@ const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const ORG = process.env.BORDERPASS_DEFAULT_CUSTOMER_ORG_ID ?? 'org_dev0000000bp';
 
 if (!URL || !ANON || !SERVICE || !process.env.DATABASE_URL) {
-  console.error('Missing env: NEXT_PUBLIC_SUPABASE_URL / ANON_KEY / SERVICE_ROLE_KEY / DATABASE_URL');
+  console.error(
+    'Missing env: NEXT_PUBLIC_SUPABASE_URL / ANON_KEY / SERVICE_ROLE_KEY / DATABASE_URL',
+  );
   process.exit(2);
 }
 
@@ -42,7 +44,11 @@ const log = (name: string, ok: boolean, note = '') => {
 async function adminGenerateOtp(email: string): Promise<{ otp: string; userId: string }> {
   const r = await fetch(`${URL}/auth/v1/admin/generate_link`, {
     method: 'POST',
-    headers: { apikey: SERVICE!, Authorization: `Bearer ${SERVICE}`, 'Content-Type': 'application/json' },
+    headers: {
+      apikey: SERVICE!,
+      Authorization: `Bearer ${SERVICE}`,
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify({ type: 'magiclink', email }),
   });
   const d = (await r.json()) as Record<string, unknown>;
@@ -52,14 +58,21 @@ async function adminGenerateOtp(email: string): Promise<{ otp: string; userId: s
   return { otp, userId };
 }
 
-async function verifyOtp(email: string, token: string): Promise<{ ok: boolean; hasSession: boolean; userId?: string }> {
+async function verifyOtp(
+  email: string,
+  token: string,
+): Promise<{ ok: boolean; hasSession: boolean; userId?: string }> {
   const r = await fetch(`${URL}/auth/v1/verify`, {
     method: 'POST',
     headers: { apikey: ANON!, 'Content-Type': 'application/json' },
     body: JSON.stringify({ type: 'email', email, token }),
   });
   const d = (await r.json()) as Record<string, unknown>;
-  return { ok: r.ok, hasSession: !!d.access_token, userId: (d.user as Record<string, unknown>)?.id as string };
+  return {
+    ok: r.ok,
+    hasSession: !!d.access_token,
+    userId: (d.user as Record<string, unknown>)?.id as string,
+  };
 }
 
 async function deleteAuthUser(userId: string) {
@@ -93,7 +106,8 @@ async function deleteAuthUser(userId: string) {
         .from(userRoles)
         .where(and(eq(userRoles.authUserId, uid), eq(userRoles.roleKey, 'customer')))
     ).length,
-    profs: (await db.select().from(customerProfiles).where(eq(customerProfiles.authUserId, uid))).length,
+    profs: (await db.select().from(customerProfiles).where(eq(customerProfiles.authUserId, uid)))
+      .length,
   }));
   log('provisioning idempotent: exactly 1 identity', c.ids === 1, `ids=${c.ids}`);
   log('provisioning idempotent: exactly 1 customer role', c.roles === 1, `roles=${c.roles}`);
@@ -105,13 +119,15 @@ async function deleteAuthUser(userId: string) {
   await withPrivilegedDbAccess('provision:row11-smoke', (db) =>
     provisionUserCore(db, { authUserId: uid, orgId: ORG, email }),
   );
-  const roles2 = await withPrivilegedDbAccess('verify:row11-smoke', async (db) =>
-    (
-      await db
-        .select()
-        .from(userRoles)
-        .where(and(eq(userRoles.authUserId, uid), eq(userRoles.roleKey, 'customer')))
-    ).length,
+  const roles2 = await withPrivilegedDbAccess(
+    'verify:row11-smoke',
+    async (db) =>
+      (
+        await db
+          .select()
+          .from(userRoles)
+          .where(and(eq(userRoles.authUserId, uid), eq(userRoles.roleKey, 'customer')))
+      ).length,
   );
   log('relogin: no duplicate provisioning (still 1 role)', roles2 === 1, `roles=${roles2}`);
 

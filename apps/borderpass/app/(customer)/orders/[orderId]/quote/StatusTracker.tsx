@@ -19,7 +19,9 @@ export function StatusTracker({ steps, current }: Props) {
             <span
               aria-hidden
               className={
-                reached ? 'bg-primary h-2 w-full rounded-full' : 'bg-surface-variant h-2 w-full rounded-full'
+                reached
+                  ? 'bg-primary h-2 w-full rounded-full'
+                  : 'bg-surface-variant h-2 w-full rounded-full'
               }
             />
             <span

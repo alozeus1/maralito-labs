@@ -1,8 +1,10 @@
 # Phase 7 — Live Gate Ledger
 
 > ADR-0013 · **Single source of truth for gate status.** A box is ticked **only** after the gate was actually
-> executed and passed in the real environment. As of this document, **ALL live gates are UNRUN** — none may
-> be reported as passed. Development-only until every required gate below is checked + owner-signed.
+> executed and passed in the real environment. **Current state (2026-07-08):** rows 1–14 + 16–17 ✅ (incl.
+> **row 11 ✅ PASS**); row 18 rotation done + propagated (🟡 optional cleanup); row 19 conditional Option B now
+> activatable; **row 15 (Stripe LIVE) deferred.** Development-only until every required gate is checked +
+> owner-signed. Do not claim staging/pilot/production/real-payment/real-PII readiness.
 
 | # | Gate | How to run | Status | Run by / date | Evidence |
 |---|------|------------|--------|---------------|----------|

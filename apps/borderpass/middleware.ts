@@ -15,6 +15,11 @@ const isPublic = (p: string) => PUBLIC_PREFIXES.some((x) => p === x || p.startsW
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
+  // Dev-only tooling under /api/dev/* is never served in production (each route 404s there), so it
+  // doesn't need a session in local/dev. Bypass the auth gate for it outside production only.
+  if (process.env.NODE_ENV !== 'production' && req.nextUrl.pathname.startsWith('/api/dev/')) {
+    return res;
+  }
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anon) return res; // env not wired yet (Phase 1 sandbox) → pass through

@@ -21,7 +21,9 @@ export const NOTIFICATION_TEMPLATE_KEYS = [
   'inspection_update',
   'delivery_update',
 ] as const;
-export const NOTIFICATION_STATUSES = ['queued'] as const; // 'sent'/'failed' arrive with a real provider
+// Phase 8C: real provider states added. Text column (app-level state machine, no DB enum) so no
+// migration needed. 'sending' is a transient claim; 'sent'/'failed' are terminal for a dispatch.
+export const NOTIFICATION_STATUSES = ['queued', 'sending', 'sent', 'failed'] as const;
 
 export const notificationOutbox = pgTable(
   'notification_outbox',

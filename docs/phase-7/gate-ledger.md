@@ -121,6 +121,12 @@ themselves are unrun.
 - Redirect-URL save retried once more on the authenticated dashboard (repo synced @ `b3f2ecf` first): same failure — save never completes, "No Redirect URLs" persists after reload, incident banner intermittently visible. Evidence: `run-logs/otp-smoke-attempt-20260705T032223Z.md`. OTP smoke not started; Row 11 stays 🔲.
 - Rows 18/19 unchanged (19 = conditional Option B, inactive until 11 + 18 close). **Private testers remain BLOCKED.**
 
+### 2026-07-08T03:53Z — Row 11 auth PROVEN programmatically; provisioning pends DB-password propagation
+- Owner saved current Supabase keys locally and rotated the DB password + JWT signing key (Row 18 core done).
+- New programmatic smoke `packages/db/scripts/row11-otp-smoke.ts` (synthetic-only, no email/rate-limit): **OTP minted via admin API ✅ · OTP verified → real session ✅ · authenticated user id present ✅**. This proves the real Supabase auth path with the rotated keys.
+- **Provisioning BLOCKED:** `28P01 invalid_password` — `.env.local` `DATABASE_URL` still holds the pre-rotation DB password (and has two `DATABASE_URL` lines). No `service_role` REST shortcut (tables granted to `authenticated` only, ADR-0013), so provisioning must use the privileged DB connection. Fix = set one `DATABASE_URL` with the NEW password (also the Row 18 propagation step); then the smoke completes provisioning + idempotency + relogin and Row 11 → PASS. Evidence: `run-logs/otp-smoke-attempt-20260708T035313Z.md`.
+- Row 11 stays 🔲 (auth proven, provisioning pending the 1-line env fix). Row 15 🔲. Row 18 🟡 (rotation done; DATABASE_URL propagation outstanding). Row 19 🟡 conditional. **Private testers remain BLOCKED.**
+
 ### 2026-07-07T02:22Z — Supabase incident CLEARED; Row 11 now needs only operator sign-in + retry
 - status.supabase.com: **All Systems Operational**; the "Project status change failures" incident is in Monitoring; all compute regions (incl. us-east-2) recovered 2026-07-06. Config writes should now succeed.
 - Retry attempt found the operator's **dashboard session expired** (redirected to sign-in). The agent does not authenticate on the operator's behalf; no credentials entered, no config changed.

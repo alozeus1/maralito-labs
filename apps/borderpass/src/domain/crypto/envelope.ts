@@ -19,6 +19,8 @@ const VERSION = 'v1';
 const IV_BYTES = 12; // GCM standard nonce
 const DEK_BYTES = 32; // AES-256
 const KEK_BYTES = 32;
+const TAG_BYTES = 16; // GCM auth tag length — pinned so truncated tags are rejected
+const GCM_OPTS = { authTagLength: TAG_BYTES } as const;
 
 const b64 = (b: Buffer) => b.toString('base64url');
 const unb64 = (s: string) => Buffer.from(s, 'base64url');
@@ -34,12 +36,12 @@ export function seal(plaintext: string, kek: Buffer): string {
   assertKek(kek);
   const dek = randomBytes(DEK_BYTES);
   const dataIv = randomBytes(IV_BYTES);
-  const dataCipher = createCipheriv('aes-256-gcm', dek, dataIv) as CipherGCM;
+  const dataCipher = createCipheriv('aes-256-gcm', dek, dataIv, GCM_OPTS) as CipherGCM;
   const ciphertext = Buffer.concat([dataCipher.update(plaintext, 'utf8'), dataCipher.final()]);
   const dataTag = dataCipher.getAuthTag();
 
   const kekIv = randomBytes(IV_BYTES);
-  const kekCipher = createCipheriv('aes-256-gcm', kek, kekIv) as CipherGCM;
+  const kekCipher = createCipheriv('aes-256-gcm', kek, kekIv, GCM_OPTS) as CipherGCM;
   const wrappedDek = Buffer.concat([kekCipher.update(dek), kekCipher.final()]);
   const kekTag = kekCipher.getAuthTag();
 
@@ -55,11 +57,16 @@ export function open(token: string, kek: Buffer): string {
   if (parts.length !== 7 || parts[0] !== VERSION) throw new Error('Malformed envelope');
   const [, dataIvS, dataTagS, ctS, kekIvS, kekTagS, wrappedS] = parts;
   const wrappedDek = unb64(wrappedS!);
-  const kekDecipher = createDecipheriv('aes-256-gcm', kek, unb64(kekIvS!)) as DecipherGCM;
+  const kekDecipher = createDecipheriv('aes-256-gcm', kek, unb64(kekIvS!), GCM_OPTS) as DecipherGCM;
   kekDecipher.setAuthTag(unb64(kekTagS!));
   const dek = Buffer.concat([kekDecipher.update(wrappedDek), kekDecipher.final()]);
 
-  const dataDecipher = createDecipheriv('aes-256-gcm', dek, unb64(dataIvS!)) as DecipherGCM;
+  const dataDecipher = createDecipheriv(
+    'aes-256-gcm',
+    dek,
+    unb64(dataIvS!),
+    GCM_OPTS,
+  ) as DecipherGCM;
   dataDecipher.setAuthTag(unb64(dataTagS!));
   const plaintext = Buffer.concat([dataDecipher.update(unb64(ctS!)), dataDecipher.final()]);
   return plaintext.toString('utf8');

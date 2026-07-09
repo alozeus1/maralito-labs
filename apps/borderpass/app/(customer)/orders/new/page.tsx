@@ -4,6 +4,8 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { X } from 'lucide-react';
+import { getLocale } from '@/server/locale';
+import { getMessages } from '@/i18n';
 import { NewRequestForm } from './NewRequestForm';
 
 export const dynamic = 'force-dynamic';
@@ -14,28 +16,27 @@ export default async function NewRequestPage({
   searchParams: Promise<{ service?: string }>;
 }) {
   const { service } = await searchParams;
+  const m = getMessages(await getLocale()).newRequest;
 
   return (
     <main className="px-margin-mobile md:px-margin-desktop max-w-max-width py-md mx-auto">
       <div className="mb-md flex items-start justify-between gap-4">
         <div>
           <h1 className="font-heading text-headline-lg-mobile md:text-headline-lg text-on-surface">
-            New Request
+            {m.title}
           </h1>
-          <p className="font-body text-on-surface-variant text-body-md mt-1">
-            Tell us what to bring across and we’ll prepare a quote.
-          </p>
+          <p className="font-body text-on-surface-variant text-body-md mt-1">{m.subtitle}</p>
         </div>
         <Link
           href={'/' as Route}
-          aria-label="Cancel"
+          aria-label={m.cancel}
           className="text-on-surface-variant hover:bg-surface-variant/50 rounded-full p-2 transition-colors"
         >
           <X className="h-5 w-5" aria-hidden="true" />
         </Link>
       </div>
 
-      <NewRequestForm {...(service ? { defaultService: service } : {})} />
+      <NewRequestForm messages={m} {...(service ? { defaultService: service } : {})} />
     </main>
   );
 }

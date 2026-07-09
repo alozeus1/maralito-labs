@@ -4,7 +4,17 @@ import type { OrderJourney } from '@/domain/orders/journey';
 // Stitch border-journey timeline: a vertical connector with milestone nodes. Chronological
 // (earliest → latest) for readability; done nodes are filled with a check, the current node is
 // highlighted, upcoming nodes are muted. Purely reflects the mapped order status.
-export function JourneyTimeline({ journey }: { journey: OrderJourney }) {
+// `labels` (key → localized text) + `inProgressLabel` localize the milestone copy; without them
+// it falls back to the domain's English labels.
+export function JourneyTimeline({
+  journey,
+  labels,
+  inProgressLabel = 'In progress',
+}: {
+  journey: OrderJourney;
+  labels?: Record<string, string>;
+  inProgressLabel?: string;
+}) {
   return (
     <ol className="relative" aria-label="Order journey">
       {journey.milestones.map((m, i) => {
@@ -52,9 +62,11 @@ export function JourneyTimeline({ journey }: { journey: OrderJourney }) {
                       : 'text-on-surface-variant'
                 }`}
               >
-                {m.label}
+                {labels?.[m.key] ?? m.label}
               </p>
-              {current && <span className="text-primary text-label-md font-bold">In progress</span>}
+              {current && (
+                <span className="text-primary text-label-md font-bold">{inProgressLabel}</span>
+              )}
             </div>
           </li>
         );

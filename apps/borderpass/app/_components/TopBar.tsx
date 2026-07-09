@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { Route } from 'next';
-import { Bell } from 'lucide-react';
+import { Bell, LogOut } from 'lucide-react';
 import type { Locale, Messages } from '@/i18n';
 import { LocaleToggle } from './LocaleToggle';
 
@@ -66,11 +66,16 @@ export function TopBar({
             <Bell className="h-5 w-5" aria-hidden="true" />
           </button>
           <form action={signOutAction}>
+            {/* Icon on mobile (keeps the bar uncluttered), text on sm+. Always available so phone
+                users can end their session — the bottom-nav Profile also offers sign-out. */}
             <button
               type="submit"
-              className="text-on-surface-variant hover:text-on-surface hidden rounded-full px-3 py-2 text-sm underline underline-offset-2 transition-colors sm:block"
+              aria-label={nav.signOut}
+              title={nav.signOut}
+              className="text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/40 focus-visible:ring-primary flex items-center gap-2 rounded-full p-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 sm:px-3"
             >
-              {nav.signOut}
+              <LogOut className="h-5 w-5 sm:hidden" aria-hidden="true" />
+              <span className="hidden underline underline-offset-2 sm:inline">{nav.signOut}</span>
             </button>
           </form>
         </div>

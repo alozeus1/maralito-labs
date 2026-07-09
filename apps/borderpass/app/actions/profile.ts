@@ -9,9 +9,13 @@ import { writeAudit } from '@/server/audit';
 
 type Result = { ok: true } | { ok: false; error: { code: string; message: string } };
 
-/** Read the caller's own profile (RLS-scoped). Non-PII display fields only. */
+/** Read the caller's own profile (RLS-scoped). Non-PII display + preference fields only. */
 export async function getMyProfile(): Promise<
-  { ok: true; data: { display_name: string; language: string } | null } | { ok: false }
+  | {
+      ok: true;
+      data: { display_name: string; language: string; channels: string[] } | null;
+    }
+  | { ok: false }
 > {
   const session = await getAppSession();
   if (!session) return { ok: false };
@@ -27,7 +31,13 @@ export async function getMyProfile(): Promise<
     });
     return {
       ok: true as const,
-      data: p ? { display_name: p.displayName ?? 'Customer', language: p.language ?? 'es' } : null,
+      data: p
+        ? {
+            display_name: p.displayName ?? 'Customer',
+            language: p.language ?? 'es',
+            channels: p.notificationPrefs?.channels ?? ['email'],
+          }
+        : null,
     };
   });
 }

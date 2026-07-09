@@ -3,19 +3,29 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { Route } from 'next';
 import { Bell } from 'lucide-react';
+import type { Locale, Messages } from '@/i18n';
+import { LocaleToggle } from './LocaleToggle';
 
-// Stitch glass top app bar. Logo + desktop nav + notifications, sticky with backdrop blur.
-// On mobile the primary nav lives in the bottom bar, so the desktop <nav> is hidden below md.
-const NAV: { href: Route; label: string }[] = [
-  { href: '/' as Route, label: 'Home' },
-  { href: '/orders' as Route, label: 'Orders' },
-  { href: '/messages' as Route, label: 'Messages' },
-  { href: '/support' as Route, label: 'Support' },
-];
-
-export function TopBar({ signOutAction }: { signOutAction: () => Promise<void> }) {
+// Stitch glass top app bar. Logo + desktop nav + language toggle + notifications, sticky with
+// backdrop blur. On mobile the primary nav lives in the bottom bar, so the desktop <nav> is hidden.
+export function TopBar({
+  signOutAction,
+  locale,
+  nav,
+}: {
+  signOutAction: () => Promise<void>;
+  locale: Locale;
+  nav: Messages['nav'];
+}) {
   const pathname = usePathname();
   const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href));
+
+  const links: { href: Route; label: string }[] = [
+    { href: '/' as Route, label: nav.home },
+    { href: '/orders' as Route, label: nav.orders },
+    { href: '/messages' as Route, label: nav.messages },
+    { href: '/support' as Route, label: nav.support },
+  ];
 
   return (
     <header className="glass-nav shadow-level-1 sticky top-0 z-50 w-full">
@@ -27,7 +37,7 @@ export function TopBar({ signOutAction }: { signOutAction: () => Promise<void> }
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-6 md:flex">
-          {NAV.map(({ href, label }) => {
+          {links.map(({ href, label }) => {
             const active = isActive(href);
             return (
               <Link
@@ -46,7 +56,8 @@ export function TopBar({ signOutAction }: { signOutAction: () => Promise<void> }
           })}
         </nav>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
+          <LocaleToggle current={locale} />
           <button
             type="button"
             aria-label="Notifications"
@@ -57,9 +68,9 @@ export function TopBar({ signOutAction }: { signOutAction: () => Promise<void> }
           <form action={signOutAction}>
             <button
               type="submit"
-              className="text-on-surface-variant hover:text-on-surface rounded-full px-3 py-2 text-sm underline underline-offset-2 transition-colors"
+              className="text-on-surface-variant hover:text-on-surface hidden rounded-full px-3 py-2 text-sm underline underline-offset-2 transition-colors sm:block"
             >
-              Sign out
+              {nav.signOut}
             </button>
           </form>
         </div>

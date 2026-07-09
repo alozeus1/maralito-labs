@@ -33,7 +33,7 @@ const STAGES: { key: string; label: string; statuses: string[] }[] = [
   {
     key: 'inspection',
     label: 'Inspection',
-    statuses: ['inspection_pending', 'inspection_passed', 'inspection_failed'],
+    statuses: ['inspection_pending', 'inspection_passed'],
   },
   {
     key: 'crossing',
@@ -45,28 +45,45 @@ const STAGES: { key: string; label: string; statuses: string[] }[] = [
   { key: 'delivered', label: 'Delivered', statuses: ['delivered'] },
 ];
 
-const HALTED: Record<string, string> = {
-  rejected: 'This order was not approved.',
-  cancelled: 'This order was cancelled.',
-  refunded: 'This order was refunded.',
-  delivery_failed: 'Delivery could not be completed.',
-  inspection_failed: 'The inspection found an issue.',
+// Halted (off-happy-path) statuses. `stage` = the last stage actually reached before the halt, so
+// the timeline shows real progress instead of marking every milestone (incl. Delivered) as done.
+const HALTED: Record<string, { label: string; stage: string }> = {
+  rejected: { label: 'This order was not approved.', stage: 'placed' },
+  cancelled: { label: 'This order was cancelled.', stage: 'placed' },
+  refunded: { label: 'This order was refunded.', stage: 'paid' },
+  inspection_failed: { label: 'The inspection found an issue.', stage: 'inspection' },
+  delivery_failed: { label: 'Delivery could not be completed.', stage: 'delivery' },
 };
 
 /** Build the milestone list + state for an order status. */
 export function orderJourney(status: string): OrderJourney {
-  const currentIndex = STAGES.findIndex((s) => s.statuses.includes(status));
-  const halted = HALTED[status] ? { label: HALTED[status] } : undefined;
+  const halted = HALTED[status];
+  if (halted) {
+    // Mark done only through the last reached stage; the rest stay upcoming + the halt message.
+    const haltIdx = STAGES.findIndex((s) => s.key === halted.stage);
+    const milestones = STAGES.map((s, i) => ({
+      key: s.key,
+      label: s.label,
+      state: (i <= haltIdx ? 'done' : 'upcoming') as JourneyMilestone['state'],
+    }));
+    return { milestones, halted: { label: halted.label } };
+  }
 
-  // For a halted status that isn't itself in the happy-path index (e.g. cancelled), keep prior
-  // progress; inspection_failed/ delivery_failed do map to a stage, so they still highlight there.
-  const idx = currentIndex >= 0 ? currentIndex : status === 'draft' ? -1 : STAGES.length; // terminal-negative with no stage → treat everything as reached-then-halted
-
+  // Happy path: earlier stages done, the matched stage current, later stages upcoming.
+  // Draft (or any unmatched status) → nothing reached yet. `delivered` is terminal-complete, so
+  // its stage is done (not "in progress").
+  const idx = STAGES.findIndex((s) => s.statuses.includes(status));
+  const complete = status === 'delivered';
   const milestones = STAGES.map((s, i) => ({
     key: s.key,
     label: s.label,
-    state: (i < idx ? 'done' : i === idx ? 'current' : 'upcoming') as JourneyMilestone['state'],
+    state: (i < idx
+      ? 'done'
+      : i === idx
+        ? complete
+          ? 'done'
+          : 'current'
+        : 'upcoming') as JourneyMilestone['state'],
   }));
-
-  return halted ? { milestones, halted } : { milestones };
+  return { milestones };
 }

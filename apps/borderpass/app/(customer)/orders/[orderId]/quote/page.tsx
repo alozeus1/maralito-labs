@@ -19,6 +19,8 @@ import { inspectionStatusLabel } from '@/domain/inspections/copy';
 import { deliveryPrepStatusLabel } from '@/domain/delivery/copy';
 import { orderJourney } from '@/domain/orders/journey';
 import { formatDate, formatDateTime, formatMoneyMinor, humanizeStatus } from '@/lib/format';
+import { getLocale } from '@/server/locale';
+import { getMessages } from '@/i18n';
 import { QuoteDecision } from './QuoteDecision';
 import { StatusTracker } from './StatusTracker';
 
@@ -74,6 +76,8 @@ export default async function CustomerOrderQuotePage({
   const summary = payRes.ok ? payRes.data! : null;
   const inspection = inspRes.ok ? (inspRes.data ?? null) : null;
   const delivery = delRes.ok ? (delRes.data ?? null) : null;
+  const M = getMessages(await getLocale());
+  const m = M.orderDetail;
 
   const fees: [string, number][] = quote
     ? [
@@ -92,7 +96,7 @@ export default async function CustomerOrderQuotePage({
         href={'/orders' as Route}
         className="text-on-surface-variant hover:text-on-surface mb-4 inline-flex items-center gap-1 text-sm transition-colors"
       >
-        <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Orders
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" /> {M.nav.orders}
       </Link>
 
       <div className="mb-md">
@@ -103,7 +107,7 @@ export default async function CustomerOrderQuotePage({
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <StatusChip tone={statusTone(order.status)}>{humanizeStatus(order.status)}</StatusChip>
             <span className="text-on-surface-variant text-body-md">
-              {humanizeStatus(order.serviceType)} · Opened {formatDate(order.createdAt)}
+              {humanizeStatus(order.serviceType)} · {m.opened} {formatDate(order.createdAt)}
             </span>
           </div>
         ) : (
@@ -115,14 +119,18 @@ export default async function CustomerOrderQuotePage({
 
       <div className="space-y-md">
         {order && (
-          <ConciergeCard title="Journey">
-            <JourneyTimeline journey={orderJourney(order.status)} />
+          <ConciergeCard title={m.journey}>
+            <JourneyTimeline
+              journey={orderJourney(order.status)}
+              labels={m.milestones}
+              inProgressLabel={m.inProgress}
+            />
           </ConciergeCard>
         )}
 
         {quote && (
           <ConciergeCard
-            title="Quote"
+            title={m.quote}
             action={
               <StatusChip tone={quote.quote.status === 'declined' ? 'error' : 'active'}>
                 {humanizeStatus(quote.quote.status)}
@@ -152,13 +160,13 @@ export default async function CustomerOrderQuotePage({
                   </div>
                 ))}
               <div className="text-on-surface flex justify-between gap-3 pt-1 font-semibold">
-                <dt>Total</dt>
+                <dt>{m.total}</dt>
                 <dd>{formatMoneyMinor(quote.quote.total_minor, quote.quote.currency)}</dd>
               </div>
             </dl>
             {quote.quote.expires_at && (
               <p className="text-on-surface-variant mt-2 text-sm">
-                Valid until {formatDate(quote.quote.expires_at)}
+                {m.validUntil} {formatDate(quote.quote.expires_at)}
               </p>
             )}
             {quote.quote.customer_message && (
@@ -173,30 +181,27 @@ export default async function CustomerOrderQuotePage({
               />
             )}
             {quote.quote.status === 'declined' && (
-              <p className="text-on-surface-variant mt-3 text-sm">
-                You declined this quote. If anything changes, contact us and we’ll prepare a new
-                one.
-              </p>
+              <p className="text-on-surface-variant mt-3 text-sm">{m.declined}</p>
             )}
           </ConciergeCard>
         )}
 
         {summary && (
-          <ConciergeCard title="Payment">
+          <ConciergeCard title={m.payment}>
             <p className="text-body-md">{paymentStatusLabel(summary.display_state)}</p>
             {shouldShowPaymentForm(summary.display_state) && (
               <Link
                 href={`/orders/${orderId}/pay` as Route}
                 className="bg-primary text-on-primary btn-tactile hover:bg-primary-container hover:text-on-primary-container focus-visible:ring-primary mt-3 inline-block rounded-full px-6 py-3 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               >
-                Pay {formatMoneyMinor(summary.amount_due_minor, summary.currency)}
+                {m.pay} {formatMoneyMinor(summary.amount_due_minor, summary.currency)}
               </Link>
             )}
           </ConciergeCard>
         )}
 
         {inspection && (
-          <ConciergeCard title="Inspection">
+          <ConciergeCard title={m.inspection}>
             <p className="text-body-md">{inspectionStatusLabel(inspection.status)}</p>
             <StatusTracker steps={INSPECTION_STEPS} current={inspection.status} />
             {inspection.scheduled_for && (
@@ -211,7 +216,7 @@ export default async function CustomerOrderQuotePage({
         )}
 
         {delivery && (
-          <ConciergeCard title="Delivery">
+          <ConciergeCard title={m.delivery}>
             <p className="text-body-md">{deliveryPrepStatusLabel(delivery.status)}</p>
             <StatusTracker steps={DELIVERY_STEPS} current={delivery.status} />
             {delivery.customer_summary && (
@@ -228,9 +233,7 @@ export default async function CustomerOrderQuotePage({
 
         {!quote && !summary && order && (
           <ConciergeCard>
-            <p className="text-on-surface-variant text-body-md">
-              No quote yet — we’ll prepare one for this order and it will appear here.
-            </p>
+            <p className="text-on-surface-variant text-body-md">{m.noQuote}</p>
           </ConciergeCard>
         )}
       </div>

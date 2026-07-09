@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { createOrder } from '../../../actions/orders';
+import type { Messages } from '@/i18n';
 
 // Stitch "New Request" flow (draft-first). Creates a DRAFT order — service + items + purpose +
 // declared value. No PII/address is collected or stored (real address storage is KMS-gated:
@@ -19,59 +20,26 @@ import { createOrder } from '../../../actions/orders';
 type ServiceType = 'buy_for_me' | 'package_reception' | 'local_pickup' | 'business_delivery';
 type Purpose = 'personal' | 'gift' | 'business' | 'resale';
 
-const SERVICES: {
-  type: ServiceType;
-  title: string;
-  es: string;
-  desc: string;
-  icon: LucideIcon;
-  buy: boolean;
-}[] = [
-  {
-    type: 'buy_for_me',
-    title: 'Buy for Me',
-    es: 'Compramos por ti',
-    desc: 'We purchase the item on your behalf and handle the rest.',
-    icon: ShoppingCart,
-    buy: true,
-  },
-  {
-    type: 'package_reception',
-    title: 'Package Reception',
-    es: 'Recibir mis paquetes',
-    desc: 'Ship your items to our US address for secure hold.',
-    icon: PackageOpen,
-    buy: false,
-  },
-  {
-    type: 'local_pickup',
-    title: 'Local Pickup',
-    es: 'Recogida local',
-    desc: 'We pick up your item from a local store or individual.',
-    icon: Store,
-    buy: false,
-  },
-  {
-    type: 'business_delivery',
-    title: 'Business Delivery',
-    es: 'Entrega empresarial',
-    desc: 'Freight and pallet reception for commercial entities.',
-    icon: Building2,
-    buy: false,
-  },
+// Icon + buy-flow flags per service; user-facing title/description come from the localized messages.
+const SERVICES: { type: ServiceType; icon: LucideIcon; buy: boolean }[] = [
+  { type: 'buy_for_me', icon: ShoppingCart, buy: true },
+  { type: 'package_reception', icon: PackageOpen, buy: false },
+  { type: 'local_pickup', icon: Store, buy: false },
+  { type: 'business_delivery', icon: Building2, buy: false },
 ];
 
-const PURPOSES: { value: Purpose; label: string }[] = [
-  { value: 'personal', label: 'Personal' },
-  { value: 'gift', label: 'Gift' },
-  { value: 'business', label: 'Business' },
-  { value: 'resale', label: 'Resale' },
-];
+const PURPOSES: Purpose[] = ['personal', 'gift', 'business', 'resale'];
 
 const isServiceType = (v: string | undefined): v is ServiceType =>
   !!v && SERVICES.some((s) => s.type === v);
 
-export function NewRequestForm({ defaultService }: { defaultService?: string }) {
+export function NewRequestForm({
+  messages: t,
+  defaultService,
+}: {
+  messages: Messages['newRequest'];
+  defaultService?: string;
+}) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [service, setService] = useState<ServiceType | null>(
@@ -112,11 +80,11 @@ export function NewRequestForm({ defaultService }: { defaultService?: string }) 
       if (res.ok && res.data) {
         router.push(`/orders/${res.data.order_id}/quote` as Route);
       } else {
-        setError('We couldn’t start your request. Please check the details and try again.');
+        setError(t.error);
         setSubmitting(false);
       }
     } catch {
-      setError('Something went wrong. Please try again shortly.');
+      setError(t.error);
       setSubmitting(false);
     }
   }
@@ -127,7 +95,7 @@ export function NewRequestForm({ defaultService }: { defaultService?: string }) 
     <div className="gap-md grid lg:grid-cols-[1fr_20rem] lg:items-start">
       <div className="space-y-md">
         {/* Step 1 — Choose Service */}
-        <Section n={1} title="Choose Service" step={step} onEdit={() => setStep(1)}>
+        <Section n={1} title={t.chooseService} step={step} edit={t.edit} onEdit={() => setStep(1)}>
           {step === 1 ? (
             <>
               <div className="mt-2 space-y-3">
@@ -149,36 +117,48 @@ export function NewRequestForm({ defaultService }: { defaultService?: string }) 
                         <s.icon className="h-5 w-5" aria-hidden="true" />
                       </span>
                       <span>
-                        <span className="font-heading text-on-surface block">{s.title}</span>
-                        <span className="text-on-surface-variant text-body-md block">{s.desc}</span>
+                        <span className="font-heading text-on-surface block">
+                          {t.services[s.type].title}
+                        </span>
+                        <span className="text-on-surface-variant text-body-md block">
+                          {t.services[s.type].desc}
+                        </span>
                       </span>
                     </button>
                   );
                 })}
               </div>
               <StepButton disabled={!service} onClick={() => setStep(2)}>
-                Continue
+                {t.continue}
               </StepButton>
             </>
           ) : (
-            svc && <p className="text-on-surface-variant text-body-md">{svc.title}</p>
+            svc && (
+              <p className="text-on-surface-variant text-body-md">{t.services[svc.type].title}</p>
+            )
           )}
         </Section>
 
         {/* Step 2 — Product Details */}
-        <Section n={2} title="Product Details" step={step} onEdit={() => service && setStep(2)}>
+        <Section
+          n={2}
+          title={t.productDetails}
+          step={step}
+          edit={t.edit}
+          onEdit={() => service && setStep(2)}
+        >
           {step === 2 && (
             <div className="mt-2 space-y-3">
-              <Field label="What are we moving?">
+              <Field label={t.whatMoving}>
                 <input
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="e.g. Nike Air Max, size 10"
+                  placeholder={t.whatMovingPlaceholder}
                   className="bg-surface-variant focus-visible:ring-primary w-full rounded-md p-3 focus-visible:outline-none focus-visible:ring-2"
                 />
               </Field>
               {svc?.buy && (
-                <Field label="Product link (optional)">
+                <Field label={t.productLink}>
                   <input
                     value={productUrl}
                     onChange={(e) => setProductUrl(e.target.value)}
@@ -189,7 +169,7 @@ export function NewRequestForm({ defaultService }: { defaultService?: string }) 
                 </Field>
               )}
               <div className="grid grid-cols-2 gap-3">
-                <Field label="Quantity">
+                <Field label={t.quantity}>
                   <input
                     type="number"
                     min={1}
@@ -198,7 +178,7 @@ export function NewRequestForm({ defaultService }: { defaultService?: string }) 
                     className="bg-surface-variant focus-visible:ring-primary w-full rounded-md p-3 focus-visible:outline-none focus-visible:ring-2"
                   />
                 </Field>
-                <Field label="Item value (USD)">
+                <Field label={t.itemValueUsd}>
                   <input
                     inputMode="decimal"
                     value={value}
@@ -209,7 +189,7 @@ export function NewRequestForm({ defaultService }: { defaultService?: string }) 
                 </Field>
               </div>
               <StepButton disabled={!step2Valid} onClick={() => setStep(3)}>
-                Continue
+                {t.continue}
               </StepButton>
             </div>
           )}
@@ -218,21 +198,22 @@ export function NewRequestForm({ defaultService }: { defaultService?: string }) 
         {/* Step 3 — Border Information */}
         <Section
           n={3}
-          title="Border Information"
+          title={t.borderInfo}
           step={step}
+          edit={t.edit}
           onEdit={() => step2Valid && setStep(3)}
         >
           {step === 3 && (
             <div className="mt-2 space-y-4">
-              <Field label="Purpose">
+              <Field label={t.purpose}>
                 <div className="flex flex-wrap gap-2">
                   {PURPOSES.map((p) => {
-                    const active = purpose === p.value;
+                    const active = purpose === p;
                     return (
                       <button
-                        key={p.value}
+                        key={p}
                         type="button"
-                        onClick={() => setPurpose(p.value)}
+                        onClick={() => setPurpose(p)}
                         aria-pressed={active}
                         className={`focus-visible:ring-primary rounded-full border px-4 py-2 text-sm transition-colors focus-visible:outline-none ${
                           active
@@ -240,15 +221,14 @@ export function NewRequestForm({ defaultService }: { defaultService?: string }) 
                             : 'border-outline-variant text-on-surface-variant hover:bg-surface-variant/60'
                         }`}
                       >
-                        {p.label}
+                        {t.purposes[p]}
                       </button>
                     );
                   })}
                 </div>
               </Field>
               <p className="text-on-surface-variant bg-surface-container-low rounded-lg p-3 text-sm">
-                We’ll collect your delivery address securely when your quote is ready — no address
-                is stored yet.
+                {t.addressNote}
               </p>
               {error && (
                 <p role="alert" className="text-error text-sm">
@@ -262,7 +242,7 @@ export function NewRequestForm({ defaultService }: { defaultService?: string }) 
                 className="bg-primary text-on-primary btn-tactile hover:bg-primary-container hover:text-on-primary-container focus-visible:ring-primary flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
-                {submitting ? 'Creating request…' : 'Review Request'}
+                {submitting ? t.creating : t.review}
               </button>
             </div>
           )}
@@ -271,15 +251,15 @@ export function NewRequestForm({ defaultService }: { defaultService?: string }) 
 
       {/* Summary */}
       <aside className="bg-surface-container-low p-md rounded-xl lg:sticky lg:top-24">
-        <h2 className="font-heading text-headline-md text-on-surface">Request Summary</h2>
-        <p className="text-on-surface-variant text-sm">Order #PENDING</p>
+        <h2 className="font-heading text-headline-md text-on-surface">{t.requestSummary}</h2>
+        <p className="text-on-surface-variant text-sm">{t.orderPending}</p>
         <dl className="border-outline-variant/60 mt-4 space-y-2 border-t pt-4 text-sm">
-          <Row label="Service" value={svc?.title ?? '—'} />
-          <Row label="Item value" value={totalMinor > 0 ? fmt(totalMinor) : '$TBD'} />
-          <Row label="Est. import duties" value="Pending" muted />
+          <Row label={t.service} value={svc ? t.services[svc.type].title : '—'} />
+          <Row label={t.itemValue} value={totalMinor > 0 ? fmt(totalMinor) : '$TBD'} />
+          <Row label={t.estDuties} value={t.pending} muted />
         </dl>
         <div className="border-outline-variant/60 mt-4 flex items-center justify-between border-t pt-4">
-          <span className="font-heading text-on-surface">Est. Total</span>
+          <span className="font-heading text-on-surface">{t.estTotal}</span>
           <span className="font-heading text-primary">
             {totalMinor > 0 ? `${fmt(totalMinor)}+` : '$TBD'}
           </span>
@@ -293,12 +273,14 @@ function Section({
   n,
   title,
   step,
+  edit,
   onEdit,
   children,
 }: {
   n: number;
   title: string;
   step: number;
+  edit: string;
   onEdit: () => void;
   children: React.ReactNode;
 }) {
@@ -329,7 +311,7 @@ function Section({
             onClick={onEdit}
             className="text-primary text-sm underline underline-offset-2"
           >
-            Edit
+            {edit}
           </button>
         )}
       </div>

@@ -3,29 +3,29 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, Check, LogOut } from 'lucide-react';
 import { upsertMyProfile } from '../../actions/profile';
+import type { Messages } from '@/i18n';
 
 // Real profile editor: display name, language (EN/ES), notification channels. Persists via the
 // RLS-scoped upsertMyProfile action. No PII beyond the display name the customer chooses.
 type Channel = 'email' | 'sms' | 'whatsapp' | 'in_app';
-const CHANNELS: { value: Channel; label: string }[] = [
-  { value: 'email', label: 'Email' },
-  { value: 'whatsapp', label: 'WhatsApp' },
-  { value: 'sms', label: 'SMS' },
-  { value: 'in_app', label: 'In-app' },
-];
+const CHANNELS: Channel[] = ['email', 'whatsapp', 'sms', 'in_app'];
 
 export function ProfileForm({
   initial,
+  messages: t,
+  signOutLabel,
   signOutAction,
 }: {
   initial: { display_name: string; language: string; channels: string[] };
+  messages: Messages['profile'];
+  signOutLabel: string;
   signOutAction: () => Promise<void>;
 }) {
   const router = useRouter();
   const [name, setName] = useState(initial.display_name === 'Customer' ? '' : initial.display_name);
   const [language, setLanguage] = useState<'en' | 'es'>(initial.language === 'en' ? 'en' : 'es');
   const [channels, setChannels] = useState<Set<Channel>>(
-    new Set((initial.channels as Channel[]).filter((c) => CHANNELS.some((x) => x.value === c))),
+    new Set((initial.channels as Channel[]).filter((c) => CHANNELS.includes(c))),
   );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -52,10 +52,10 @@ export function ProfileForm({
         setSaved(true);
         router.refresh();
       } else {
-        setError('Couldn’t save your changes. Please try again.');
+        setError(t.saveError);
       }
     } catch {
-      setError('Something went wrong. Please try again shortly.');
+      setError(t.saveError);
     } finally {
       setSaving(false);
     }
@@ -64,22 +64,22 @@ export function ProfileForm({
   return (
     <div className="space-y-md">
       <section className="bg-surface-container-lowest shadow-level-1 p-md rounded-xl">
-        <h2 className="font-heading text-headline-md text-on-surface mb-4">Your details</h2>
+        <h2 className="font-heading text-headline-md text-on-surface mb-4">{t.yourDetails}</h2>
         <label className="block">
-          <span className="text-on-surface-variant mb-1 block text-sm">Name</span>
+          <span className="text-on-surface-variant mb-1 block text-sm">{t.name}</span>
           <input
             value={name}
             onChange={(e) => {
               setName(e.target.value);
               setSaved(false);
             }}
-            placeholder="How should we address you?"
+            placeholder={t.namePlaceholder}
             className="bg-surface-variant focus-visible:ring-primary w-full rounded-md p-3 focus-visible:outline-none focus-visible:ring-2"
           />
         </label>
 
         <div className="mt-4">
-          <span className="text-on-surface-variant mb-1 block text-sm">Language</span>
+          <span className="text-on-surface-variant mb-1 block text-sm">{t.language}</span>
           <div className="bg-surface-variant inline-flex rounded-full p-1">
             {(['es', 'en'] as const).map((l) => (
               <button
@@ -102,19 +102,17 @@ export function ProfileForm({
       </section>
 
       <section className="bg-surface-container-lowest shadow-level-1 p-md rounded-xl">
-        <h2 className="font-heading text-headline-md text-on-surface mb-1">Notifications</h2>
-        <p className="text-on-surface-variant mb-4 text-sm">
-          How should we reach you about orders?
-        </p>
+        <h2 className="font-heading text-headline-md text-on-surface mb-1">{t.notifications}</h2>
+        <p className="text-on-surface-variant mb-4 text-sm">{t.notificationsBody}</p>
         <div className="flex flex-wrap gap-2">
           {CHANNELS.map((c) => {
-            const on = channels.has(c.value);
+            const on = channels.has(c);
             return (
               <button
-                key={c.value}
+                key={c}
                 type="button"
                 onClick={() => {
-                  toggleChannel(c.value);
+                  toggleChannel(c);
                   setSaved(false);
                 }}
                 aria-pressed={on}
@@ -124,7 +122,7 @@ export function ProfileForm({
                     : 'border-outline-variant text-on-surface-variant hover:bg-surface-variant/60'
                 }`}
               >
-                {c.label}
+                {t.channels[c]}
               </button>
             );
           })}
@@ -146,14 +144,14 @@ export function ProfileForm({
         >
           {saving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
           {saved && !saving && <Check className="h-4 w-4" aria-hidden="true" />}
-          {saved && !saving ? 'Saved' : saving ? 'Saving…' : 'Save changes'}
+          {saved && !saving ? t.saved : saving ? t.saving : t.save}
         </button>
         <form action={signOutAction}>
           <button
             type="submit"
             className="text-on-surface-variant hover:text-on-surface inline-flex items-center gap-2 rounded-full px-4 py-3 text-sm underline underline-offset-2 transition-colors"
           >
-            <LogOut className="h-4 w-4" aria-hidden="true" /> Sign out
+            <LogOut className="h-4 w-4" aria-hidden="true" /> {signOutLabel}
           </button>
         </form>
       </div>

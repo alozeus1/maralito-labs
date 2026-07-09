@@ -9,6 +9,29 @@ import { writeAudit } from '@/server/audit';
 
 type Result = { ok: true } | { ok: false; error: { code: string; message: string } };
 
+/** Read the caller's own profile (RLS-scoped). Non-PII display fields only. */
+export async function getMyProfile(): Promise<
+  { ok: true; data: { display_name: string; language: string } | null } | { ok: false }
+> {
+  const session = await getAppSession();
+  if (!session) return { ok: false };
+  try {
+    requireCustomerAccess(session);
+  } catch {
+    return { ok: false };
+  }
+  if (!getServerEnv().DATABASE_URL) return { ok: false };
+  return withTenant({ authUserId: session.sub, orgId: session.orgId }, async (tx) => {
+    const p = await tx.query.customerProfiles.findFirst({
+      where: eq(customerProfiles.authUserId, session.sub),
+    });
+    return {
+      ok: true as const,
+      data: p ? { display_name: p.displayName ?? 'Customer', language: p.language ?? 'es' } : null,
+    };
+  });
+}
+
 export async function upsertMyProfile(input: unknown): Promise<Result> {
   const session = await getAppSession();
   if (!session)

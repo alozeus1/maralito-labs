@@ -1,59 +1,139 @@
-// Phase 8A.3: mobile-first customer dashboard. Reads ONLY existing RLS-scoped read models
-// (listMyOrders / listMyQuotes) — safe counts + links, no PII, no session internals.
+// Stitch Home (Service Hub): hero greeting + Active Delivery (real RLS-scoped order data,
+// no PII) + Our Services grid. Reads only existing read models; no session internals rendered.
 import Link from 'next/link';
-import { PageMain } from '../_components/PageMain';
+import type { Route } from 'next';
+import { PackageOpen, Truck, Building2, MapPin, Flag, CheckCircle2, Package } from 'lucide-react';
+import { Hero } from '../_components/Hero';
+import { ServiceCard } from '../_components/ServiceCard';
+import { StatusChip, statusTone } from '../_components/StatusChip';
 import { listMyOrders } from '../actions/orders';
-import { listMyQuotes } from '../actions/quotes';
+import { getMyProfile } from '../actions/profile';
+import { formatDate, humanizeStatus } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
+// Statuses that mean "nothing actively in motion" — excluded from the Active Delivery slot.
+const INACTIVE = new Set([
+  'draft',
+  'delivered',
+  'cancelled',
+  'rejected',
+  'refunded',
+  'delivery_failed',
+]);
+
 export default async function Home() {
-  const [ordersRes, quotesRes] = await Promise.all([listMyOrders(), listMyQuotes()]);
+  const [ordersRes, profileRes] = await Promise.all([listMyOrders(), getMyProfile()]);
   const orders = ordersRes.ok ? (ordersRes.data ?? []) : null;
-  const quotes = quotesRes.ok ? (quotesRes.data ?? []) : null;
-  const quotesReady = quotes?.filter((q) => q.status === 'quote_ready').length ?? 0;
+  const displayName = profileRes.ok ? (profileRes.data?.display_name ?? '') : '';
+  const firstName =
+    displayName && displayName !== 'Customer' ? displayName.split(' ')[0] : undefined;
+  const active = orders?.find((o) => !INACTIVE.has(o.status)) ?? null;
 
   return (
-    <PageMain variant="read">
-      <h1 className="font-heading text-2xl sm:text-3xl">Home</h1>
+    <main className="px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto py-md">
+      <Hero {...(firstName ? { name: firstName } : {})} />
 
-      {orders === null && quotes === null ? (
-        <p className="text-on-surface-variant mt-3">
-          Your account is ready. Data isn&apos;t available right now — please check back shortly.
-        </p>
-      ) : (
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4">
-          <Link
-            href="/orders"
-            className="border-outline hover:border-primary/60 focus-visible:ring-primary block rounded-lg border p-4 transition-colors focus-visible:outline-none focus-visible:ring-2 sm:p-6"
-          >
-            <span className="font-heading block text-3xl sm:text-4xl">{orders?.length ?? '—'}</span>
-            <span className="text-on-surface-variant mt-1 block text-sm">Orders</span>
-          </Link>
-          <Link
-            href="/quotes"
-            className="border-outline hover:border-primary/60 focus-visible:ring-primary block rounded-lg border p-4 transition-colors focus-visible:outline-none focus-visible:ring-2 sm:p-6"
-          >
-            <span className="font-heading block text-3xl sm:text-4xl">{quotes?.length ?? '—'}</span>
-            <span className="text-on-surface-variant mt-1 block text-sm">Quotes</span>
-          </Link>
+      {/* Active Delivery */}
+      <section className="mb-lg md:mb-xl">
+        <h2 className="font-heading text-headline-md mb-md">Active Delivery</h2>
+        {active ? (
+          <div className="bg-surface-container-lowest shadow-level-1 rounded-xl p-md">
+            <div className="flex flex-col gap-md sm:flex-row sm:items-center">
+              <div className="bg-surface-dim relative flex h-28 w-full flex-shrink-0 items-center justify-center overflow-hidden rounded-lg sm:h-28 sm:w-28">
+                <Package className="text-on-surface-variant/50 h-10 w-10" aria-hidden="true" />
+                <div className="absolute top-2 right-2">
+                  <StatusChip tone={statusTone(active.status)}>
+                    {humanizeStatus(active.status)}
+                  </StatusChip>
+                </div>
+              </div>
+              <div className="flex-grow">
+                <h3 className="font-heading text-headline-md mb-2">Order #{active.order_ref}</h3>
+                <div className="text-on-surface-variant grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <span className="text-body-md flex items-center gap-2">
+                    <MapPin className="text-primary h-5 w-5" aria-hidden="true" />
+                    Service:{' '}
+                    <strong className="text-on-surface font-medium">
+                      {humanizeStatus(active.service_type)}
+                    </strong>
+                  </span>
+                  <span className="text-body-md flex items-center gap-2">
+                    <Flag className="text-primary h-5 w-5" aria-hidden="true" />
+                    Opened:{' '}
+                    <strong className="text-on-surface font-medium">
+                      {formatDate(active.created_at)}
+                    </strong>
+                  </span>
+                  <span className="text-body-md text-tertiary flex items-center gap-2 font-medium">
+                    <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+                    {humanizeStatus(active.status)}
+                  </span>
+                </div>
+              </div>
+              <div className="flex w-full justify-end sm:w-auto">
+                <Link
+                  href={`/orders/${active.id}/quote` as Route}
+                  className="bg-primary text-on-primary btn-tactile text-label-lg hover:bg-primary-container hover:text-on-primary-container focus-visible:ring-primary w-full rounded-full px-6 py-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:w-auto"
+                >
+                  Track Details
+                </Link>
+              </div>
+            </div>
+            <div className="mt-6 flex items-center gap-1">
+              <span className="bg-primary h-2 flex-1 rounded-full" />
+              <span className="bg-surface-variant h-2 flex-1 rounded-full" />
+            </div>
+          </div>
+        ) : (
+          <div className="bg-surface-container-lowest shadow-level-1 rounded-xl p-lg text-center">
+            <div className="bg-surface-dim mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full">
+              <Package className="text-on-surface-variant h-7 w-7" aria-hidden="true" />
+            </div>
+            <p className="font-heading text-headline-md text-on-surface">No active deliveries</p>
+            <p className="font-body text-on-surface-variant text-body-md mt-1">
+              {orders === null
+                ? "We couldn't load your deliveries just now — please try again shortly."
+                : 'Start a request below and we’ll bring it across for you.'}
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* Our Services */}
+      <section>
+        <h2 className="font-heading text-headline-md mb-md">Our Services</h2>
+        <div className="gap-gutter grid grid-cols-1 md:grid-cols-2">
+          <ServiceCard
+            href={'/orders' as Route}
+            title="Shop from USA"
+            subtitle="Comprar en USA"
+            emoji="🇺🇸"
+            tone="sand"
+          />
+          <ServiceCard
+            href={'/orders' as Route}
+            title="Receive My Packages"
+            subtitle="Recibir mis paquetes"
+            icon={PackageOpen}
+            tone="secondary"
+          />
+          <ServiceCard
+            href={'/orders' as Route}
+            title="Deliver to Juárez"
+            subtitle="Entregar en Juárez"
+            icon={Truck}
+            tone="primary"
+          />
+          <ServiceCard
+            href={'/orders' as Route}
+            title="Business Orders"
+            subtitle="Pedidos empresariales"
+            icon={Building2}
+            tone="variant"
+          />
         </div>
-      )}
-
-      {quotesReady > 0 && (
-        <Link
-          href="/quotes"
-          className="bg-primary text-on-primary hover:bg-primary/90 focus-visible:ring-primary mt-4 block rounded-lg p-4 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:mt-6"
-        >
-          {quotesReady === 1 ? 'A quote is ready for review' : `${quotesReady} quotes are ready`} →
-        </Link>
-      )}
-
-      {orders !== null && orders.length === 0 && (
-        <p className="text-on-surface-variant mt-6">
-          No orders yet. Your orders will appear here once created.
-        </p>
-      )}
-    </PageMain>
+      </section>
+    </main>
   );
 }

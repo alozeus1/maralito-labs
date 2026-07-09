@@ -164,9 +164,12 @@ const MESSAGES = {
       subtitle: 'Tu concierge gestiona tu cruce fronterizo y entrega de principio a fin.',
       conciergeTeam: 'Tu equipo de concierge',
       speaks: 'Habla inglés y español',
-      reach:
-        '¿Tienes una pregunta sobre un pedido? Contáctanos directamente — la mensajería segura en la app está en camino.',
+      reach: '¿Tienes una pregunta sobre un pedido? Escríbenos aquí y tu concierge te responderá.',
       email: 'Correo',
+      placeholder: 'Escribe un mensaje…',
+      send: 'Enviar',
+      emptyThread: 'Aún no hay mensajes. Envía el primero y tu concierge te responderá.',
+      sendError: 'No se pudo enviar. Inténtalo de nuevo.',
     },
   },
   en: {
@@ -321,9 +324,12 @@ const MESSAGES = {
       subtitle: 'Your concierge manages your border crossing and delivery end to end.',
       conciergeTeam: 'Your concierge team',
       speaks: 'Speaks English & Español',
-      reach:
-        'Have a question about an order? Reach us directly — secure in-app messaging is on the way.',
+      reach: 'Have a question about an order? Message us here and your concierge will reply.',
       email: 'Email',
+      placeholder: 'Type a message…',
+      send: 'Send',
+      emptyThread: 'No messages yet. Send the first one and your concierge will reply.',
+      sendError: 'Couldn’t send. Please try again.',
     },
   },
 } as const;

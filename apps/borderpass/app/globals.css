@@ -9,3 +9,26 @@ body {
   background: #fff8f6;
   color: #241915;
 }
+
+@layer components {
+  /* Glassmorphism nav — warm-white blur over content (DESIGN.md: floating navigation). */
+  .glass-nav {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background-color: rgba(255, 248, 246, 0.72);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  /* Tactile pressable weight on primary buttons (DESIGN.md: 2px bottom-weighted inner shadow). */
+  .btn-tactile {
+    box-shadow: inset 0px -2px 0px rgba(0, 0, 0, 0.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

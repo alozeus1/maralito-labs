@@ -6,22 +6,33 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const client = () =>
-    createSupabaseBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
+  // Missing NEXT_PUBLIC_* (e.g. an env not set on the deployment) makes the browser client throw.
+  // Surface that as a real message instead of a silently-dead button.
+  const client = () => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !anon) throw new Error('auth-not-configured');
+    return createSupabaseBrowserClient(url, anon);
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr('');
-    const { error } = await client().auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${location.origin}/auth/callback` },
-    });
-    if (error) setErr('Could not send sign-in link. Please try again.');
-    else setSent(true);
+    setLoading(true);
+    try {
+      const { error } = await client().auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${location.origin}/auth/callback` },
+      });
+      if (error) setErr('Could not send sign-in link. Please try again.');
+      else setSent(true);
+    } catch {
+      setErr('Sign-in is unavailable right now. Please try again shortly.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   // Google OAuth: redirects to Google, then back to /auth/callback?code=... which the existing
@@ -29,11 +40,15 @@ export default function Login() {
   // provider to be enabled in Supabase Auth. Provisioning is identical, so no other app change needed.
   async function signInWithGoogle() {
     setErr('');
-    const { error } = await client().auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${location.origin}/auth/callback` },
-    });
-    if (error) setErr('Could not start Google sign-in. Please try again.');
+    try {
+      const { error } = await client().auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${location.origin}/auth/callback` },
+      });
+      if (error) setErr('Could not start Google sign-in. Please try again.');
+    } catch {
+      setErr('Sign-in is unavailable right now. Please try again shortly.');
+    }
   }
 
   return (
@@ -57,9 +72,10 @@ export default function Login() {
             />
             <button
               type="submit"
-              className="bg-primary text-on-primary hover:bg-primary/90 focus-visible:ring-primary w-full rounded-3xl p-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              disabled={loading}
+              className="bg-primary text-on-primary hover:bg-primary/90 focus-visible:ring-primary w-full rounded-3xl p-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Send link
+              {loading ? 'Sending…' : 'Send link'}
             </button>
           </form>
 

@@ -9,6 +9,8 @@ import { StatusChip, statusTone } from '../_components/StatusChip';
 import { listMyOrders } from '../actions/orders';
 import { getMyProfile } from '../actions/profile';
 import { formatDate, humanizeStatus } from '@/lib/format';
+import { getLocale } from '@/server/locale';
+import { getMessages } from '@/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,14 +31,19 @@ export default async function Home() {
   const firstName =
     displayName && displayName !== 'Customer' ? displayName.split(' ')[0] : undefined;
   const active = orders?.find((o) => !INACTIVE.has(o.status)) ?? null;
+  const m = getMessages(await getLocale());
 
   return (
     <main className="px-margin-mobile md:px-margin-desktop max-w-max-width py-md mx-auto">
-      <Hero {...(firstName ? { name: firstName } : {})} />
+      <Hero
+        {...(firstName ? { name: firstName } : {})}
+        greetingWord={m.home.greeting}
+        subtitle={m.home.subtitle}
+      />
 
       {/* Active Delivery */}
       <section className="mb-lg md:mb-xl">
-        <h2 className="font-heading text-headline-md mb-md">Active Delivery</h2>
+        <h2 className="font-heading text-headline-md mb-md">{m.home.activeDelivery}</h2>
         {active ? (
           <div className="bg-surface-container-lowest shadow-level-1 p-md rounded-xl">
             <div className="gap-md flex flex-col sm:flex-row sm:items-center">
@@ -76,7 +83,7 @@ export default async function Home() {
                   href={`/orders/${active.id}/quote` as Route}
                   className="bg-primary text-on-primary btn-tactile text-label-lg hover:bg-primary-container hover:text-on-primary-container focus-visible:ring-primary w-full rounded-full px-6 py-3 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:w-auto"
                 >
-                  Track Details
+                  {m.home.trackDetails}
                 </Link>
               </div>
             </div>
@@ -90,11 +97,11 @@ export default async function Home() {
             <div className="bg-surface-dim mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full">
               <Package className="text-on-surface-variant h-7 w-7" aria-hidden="true" />
             </div>
-            <p className="font-heading text-headline-md text-on-surface">No active deliveries</p>
+            <p className="font-heading text-headline-md text-on-surface">{m.home.noActive}</p>
             <p className="font-body text-on-surface-variant text-body-md mt-1">
               {orders === null
                 ? "We couldn't load your deliveries just now — please try again shortly."
-                : 'Start a request below and we’ll bring it across for you.'}
+                : m.home.noActiveBody}
             </p>
           </div>
         )}
@@ -102,7 +109,7 @@ export default async function Home() {
 
       {/* Our Services */}
       <section>
-        <h2 className="font-heading text-headline-md mb-md">Our Services</h2>
+        <h2 className="font-heading text-headline-md mb-md">{m.home.ourServices}</h2>
         <div className="gap-gutter grid grid-cols-1 md:grid-cols-2">
           <ServiceCard
             href={'/orders/new?service=buy_for_me' as Route}

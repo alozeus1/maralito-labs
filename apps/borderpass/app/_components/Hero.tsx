@@ -2,9 +2,18 @@ import Image from 'next/image';
 import { ArrowDown } from 'lucide-react';
 
 // Stitch home hero: El Paso ⇄ Ciudad Juárez skyline illustration with a route pill and a
-// warm bilingual greeting. `name` is the customer's first name (already non-PII display copy).
-export function Hero({ name }: { name?: string }) {
-  const greeting = name ? `Hola ${name}.` : 'Hola.';
+// warm bilingual greeting. `name` is the customer's first name (already non-PII display copy);
+// `greetingWord` + `subtitle` are localized.
+export function Hero({
+  name,
+  greetingWord,
+  subtitle,
+}: {
+  name?: string;
+  greetingWord: string;
+  subtitle: string;
+}) {
+  const greeting = name ? `${greetingWord} ${name}.` : `${greetingWord}.`;
   return (
     <section className="shadow-level-1 mb-lg md:mb-xl relative h-[340px] overflow-hidden rounded-xl sm:h-[420px] md:h-[480px]">
       <Image
@@ -29,9 +38,7 @@ export function Hero({ name }: { name?: string }) {
         <h1 className="font-heading text-on-surface md:text-display-lg text-4xl font-bold sm:text-5xl">
           {greeting}
         </h1>
-        <p className="font-body text-on-surface-variant text-body-lg mt-2">
-          What can we help you bring across today?
-        </p>
+        <p className="font-body text-on-surface-variant text-body-lg mt-2">{subtitle}</p>
       </div>
     </section>
   );

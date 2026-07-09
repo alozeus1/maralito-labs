@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Literata, DM_Sans } from 'next/font/google';
 import './globals.css';
 import { RegisterSw } from './RegisterSw';
+import { getLocale } from '@/server/locale';
 
 // Stitch typography: Literata (serif display/headings) over DM Sans (body/UI). Loaded via
 // next/font so weights are self-hosted and there's no FOUT — previously these families were
@@ -35,10 +36,11 @@ export const viewport: Viewport = {
   themeColor: '#fff8f6',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // Phase 1/2: locale from CustomerProfile drives <html lang>. Default: en.
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // UI locale from the bp_locale cookie (LocaleToggle); drives <html lang>. Default: es.
+  const locale = await getLocale();
   return (
-    <html lang="en" className={`${literata.variable} ${dmSans.variable}`}>
+    <html lang={locale} className={`${literata.variable} ${dmSans.variable}`}>
       <body className="font-body text-on-surface bg-surface">
         <RegisterSw />
         {children}

@@ -3,27 +3,28 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { Route } from 'next';
 import { Home, Package2, MessageCircle, LifeBuoy, User, type LucideIcon } from 'lucide-react';
+import type { Messages } from '@/i18n';
 
 // Stitch mobile bottom tab bar (Home / Orders / Messages / Support / Profile). Hidden on md+
 // where the top bar carries navigation. Active state derives from the current path.
-const TABS: { href: Route; label: string; icon: LucideIcon }[] = [
-  { href: '/' as Route, label: 'Home', icon: Home },
-  { href: '/orders' as Route, label: 'Orders', icon: Package2 },
-  { href: '/messages' as Route, label: 'Messages', icon: MessageCircle },
-  { href: '/support' as Route, label: 'Support', icon: LifeBuoy },
-  { href: '/profile' as Route, label: 'Profile', icon: User },
-];
-
-export function BottomNav() {
+export function BottomNav({ nav }: { nav: Messages['nav'] }) {
   const pathname = usePathname();
   const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href));
+
+  const tabs: { href: Route; label: string; icon: LucideIcon }[] = [
+    { href: '/' as Route, label: nav.home, icon: Home },
+    { href: '/orders' as Route, label: nav.orders, icon: Package2 },
+    { href: '/messages' as Route, label: nav.messages, icon: MessageCircle },
+    { href: '/support' as Route, label: nav.support, icon: LifeBuoy },
+    { href: '/profile' as Route, label: nav.profile, icon: User },
+  ];
 
   return (
     <nav
       aria-label="Primary"
       className="shadow-nav-top bg-surface fixed bottom-0 left-0 z-50 flex w-full items-center justify-around rounded-t-lg px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 md:hidden"
     >
-      {TABS.map(({ href, label, icon: Icon }) => {
+      {tabs.map(({ href, label, icon: Icon }) => {
         const active = isActive(href);
         return (
           <Link

@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { getAppSession } from '@/server/auth';
 import { requireCustomerAccess } from '@maralito/auth';
 import { auditAccessDenied, signOut } from '@/server/auth-events';
+import { getLocale } from '@/server/locale';
+import { getMessages } from '@/i18n';
 import { TopBar } from '../_components/TopBar';
 import { BottomNav } from '../_components/BottomNav';
 
@@ -23,11 +25,14 @@ export default async function CustomerLayout({ children }: { children: React.Rea
     redirect('/login');
   }
 
+  const locale = await getLocale();
+  const { nav } = getMessages(locale);
+
   return (
     <div data-shell="customer" className="min-h-screen pb-28 md:pb-0">
-      <TopBar signOutAction={signOutAction} />
+      <TopBar signOutAction={signOutAction} locale={locale} nav={nav} />
       {children}
-      <BottomNav />
+      <BottomNav nav={nav} />
     </div>
   );
 }

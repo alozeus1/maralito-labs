@@ -2,7 +2,7 @@
 // No PII/address/RFC/KYC; status labels are humanized keys.
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Package, ChevronRight } from 'lucide-react';
+import { Package, ChevronRight, Plus } from 'lucide-react';
 import { StatusChip, statusTone } from '../../_components/StatusChip';
 import { listMyOrders } from '../../actions/orders';
 import { formatDate, humanizeStatus } from '@/lib/format';
@@ -15,9 +15,15 @@ export default async function OrdersPage() {
 
   return (
     <main className="px-margin-mobile md:px-margin-desktop max-w-max-width py-md mx-auto">
-      <h1 className="font-heading text-headline-lg-mobile md:text-headline-lg mb-md">
-        Your orders
-      </h1>
+      <div className="mb-md flex items-center justify-between gap-3">
+        <h1 className="font-heading text-headline-lg-mobile md:text-headline-lg">Your orders</h1>
+        <Link
+          href={'/orders/new' as Route}
+          className="bg-primary text-on-primary btn-tactile hover:bg-primary-container hover:text-on-primary-container focus-visible:ring-primary inline-flex flex-shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+        >
+          <Plus className="h-4 w-4" aria-hidden="true" /> New request
+        </Link>
+      </div>
 
       {orders === null && (
         <div className="bg-surface-container-lowest shadow-level-1 p-lg rounded-xl text-center">
@@ -33,9 +39,15 @@ export default async function OrdersPage() {
             <Package className="text-on-surface-variant h-7 w-7" aria-hidden="true" />
           </div>
           <p className="font-heading text-headline-md text-on-surface">No orders yet</p>
-          <p className="font-body text-on-surface-variant text-body-md mt-1">
-            Start a request from Home and your orders will appear here.
+          <p className="font-body text-on-surface-variant text-body-md mx-auto mt-1 max-w-sm">
+            Start a request and we’ll prepare a quote for your cross-border delivery.
           </p>
+          <Link
+            href={'/orders/new' as Route}
+            className="bg-primary text-on-primary btn-tactile hover:bg-primary-container hover:text-on-primary-container focus-visible:ring-primary mt-4 inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" /> New request
+          </Link>
         </div>
       )}
 

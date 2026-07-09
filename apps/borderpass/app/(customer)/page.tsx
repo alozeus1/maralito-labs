@@ -105,28 +105,28 @@ export default async function Home() {
         <h2 className="font-heading text-headline-md mb-md">Our Services</h2>
         <div className="gap-gutter grid grid-cols-1 md:grid-cols-2">
           <ServiceCard
-            href={'/orders' as Route}
+            href={'/orders/new?service=buy_for_me' as Route}
             title="Shop from USA"
             subtitle="Comprar en USA"
             emoji="🇺🇸"
             tone="sand"
           />
           <ServiceCard
-            href={'/orders' as Route}
+            href={'/orders/new?service=package_reception' as Route}
             title="Receive My Packages"
             subtitle="Recibir mis paquetes"
             icon={PackageOpen}
             tone="secondary"
           />
           <ServiceCard
-            href={'/orders' as Route}
+            href={'/orders/new?service=local_pickup' as Route}
             title="Deliver to Juárez"
             subtitle="Entregar en Juárez"
             icon={Truck}
             tone="primary"
           />
           <ServiceCard
-            href={'/orders' as Route}
+            href={'/orders/new?service=business_delivery' as Route}
             title="Business Orders"
             subtitle="Pedidos empresariales"
             icon={Building2}

@@ -31,18 +31,18 @@ export default async function Home() {
   const active = orders?.find((o) => !INACTIVE.has(o.status)) ?? null;
 
   return (
-    <main className="px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto py-md">
+    <main className="px-margin-mobile md:px-margin-desktop max-w-max-width py-md mx-auto">
       <Hero {...(firstName ? { name: firstName } : {})} />
 
       {/* Active Delivery */}
       <section className="mb-lg md:mb-xl">
         <h2 className="font-heading text-headline-md mb-md">Active Delivery</h2>
         {active ? (
-          <div className="bg-surface-container-lowest shadow-level-1 rounded-xl p-md">
-            <div className="flex flex-col gap-md sm:flex-row sm:items-center">
+          <div className="bg-surface-container-lowest shadow-level-1 p-md rounded-xl">
+            <div className="gap-md flex flex-col sm:flex-row sm:items-center">
               <div className="bg-surface-dim relative flex h-28 w-full flex-shrink-0 items-center justify-center overflow-hidden rounded-lg sm:h-28 sm:w-28">
                 <Package className="text-on-surface-variant/50 h-10 w-10" aria-hidden="true" />
-                <div className="absolute top-2 right-2">
+                <div className="absolute right-2 top-2">
                   <StatusChip tone={statusTone(active.status)}>
                     {humanizeStatus(active.status)}
                   </StatusChip>
@@ -74,7 +74,7 @@ export default async function Home() {
               <div className="flex w-full justify-end sm:w-auto">
                 <Link
                   href={`/orders/${active.id}/quote` as Route}
-                  className="bg-primary text-on-primary btn-tactile text-label-lg hover:bg-primary-container hover:text-on-primary-container focus-visible:ring-primary w-full rounded-full px-6 py-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:w-auto"
+                  className="bg-primary text-on-primary btn-tactile text-label-lg hover:bg-primary-container hover:text-on-primary-container focus-visible:ring-primary w-full rounded-full px-6 py-3 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:w-auto"
                 >
                   Track Details
                 </Link>
@@ -86,7 +86,7 @@ export default async function Home() {
             </div>
           </div>
         ) : (
-          <div className="bg-surface-container-lowest shadow-level-1 rounded-xl p-lg text-center">
+          <div className="bg-surface-container-lowest shadow-level-1 p-lg rounded-xl text-center">
             <div className="bg-surface-dim mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full">
               <Package className="text-on-surface-variant h-7 w-7" aria-hidden="true" />
             </div>

@@ -1,7 +1,9 @@
-// Phase 8A.3: customer orders list — mobile card list over the existing RLS-scoped
-// listMyOrders read model. No PII/address/RFC/KYC; status labels are humanized keys.
+// Customer orders list — Stitch concierge cards over the RLS-scoped listMyOrders read model.
+// No PII/address/RFC/KYC; status labels are humanized keys.
 import Link from 'next/link';
-import { PageMain } from '../../_components/PageMain';
+import type { Route } from 'next';
+import { Package, ChevronRight } from 'lucide-react';
+import { StatusChip, statusTone } from '../../_components/StatusChip';
 import { listMyOrders } from '../../actions/orders';
 import { formatDate, humanizeStatus } from '@/lib/format';
 
@@ -12,39 +14,62 @@ export default async function OrdersPage() {
   const orders = res.ok ? (res.data ?? []) : null;
 
   return (
-    <PageMain variant="wide">
-      <h1 className="font-heading text-2xl sm:text-3xl">Your orders</h1>
+    <main className="px-margin-mobile md:px-margin-desktop max-w-max-width py-md mx-auto">
+      <h1 className="font-heading text-headline-lg-mobile md:text-headline-lg mb-md">
+        Your orders
+      </h1>
 
       {orders === null && (
-        <p className="text-on-surface-variant mt-3">
-          Orders aren&apos;t available right now — please try again shortly.
-        </p>
+        <div className="bg-surface-container-lowest shadow-level-1 p-lg rounded-xl text-center">
+          <p className="font-body text-on-surface-variant text-body-md">
+            Orders aren’t available right now — please try again shortly.
+          </p>
+        </div>
       )}
 
       {orders?.length === 0 && (
-        <p className="text-on-surface-variant mt-3">
-          No orders yet. Your orders will appear here once created.
-        </p>
+        <div className="bg-surface-container-lowest shadow-level-1 p-lg rounded-xl text-center">
+          <div className="bg-surface-dim mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full">
+            <Package className="text-on-surface-variant h-7 w-7" aria-hidden="true" />
+          </div>
+          <p className="font-heading text-headline-md text-on-surface">No orders yet</p>
+          <p className="font-body text-on-surface-variant text-body-md mt-1">
+            Start a request from Home and your orders will appear here.
+          </p>
+        </div>
       )}
 
-      <ul className="mt-4 grid gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-        {orders?.map((o) => (
-          <li key={o.id}>
-            <Link
-              href={`/orders/${o.id}/quote`}
-              className="border-outline hover:border-primary/60 focus-visible:ring-primary block h-full rounded-lg border p-4 transition-colors focus-visible:outline-none focus-visible:ring-2"
-            >
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="font-medium">{o.order_ref}</span>
-                <span className="text-on-surface-variant text-sm">{formatDate(o.created_at)}</span>
-              </div>
-              <p className="text-on-surface-variant mt-1 text-sm">
-                {humanizeStatus(o.status)} · {humanizeStatus(o.service_type)}
-              </p>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </PageMain>
+      {orders && orders.length > 0 && (
+        <ul className="gap-gutter grid grid-cols-1 md:grid-cols-2">
+          {orders.map((o) => (
+            <li key={o.id}>
+              <Link
+                href={`/orders/${o.id}/quote` as Route}
+                className="bg-surface-container-lowest shadow-level-1 hover:shadow-level-2 focus-visible:ring-primary p-md group flex h-full items-center gap-4 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2"
+              >
+                <span className="bg-surface-dim flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full">
+                  <Package className="text-on-surface-variant h-6 w-6" aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-grow">
+                  <span className="mb-1 flex items-center justify-between gap-2">
+                    <span className="font-heading text-on-surface truncate text-lg">
+                      {o.order_ref}
+                    </span>
+                    <StatusChip tone={statusTone(o.status)}>{humanizeStatus(o.status)}</StatusChip>
+                  </span>
+                  <span className="text-on-surface-variant text-body-md block">
+                    {humanizeStatus(o.service_type)} · {formatDate(o.created_at)}
+                  </span>
+                </span>
+                <ChevronRight
+                  className="text-outline group-hover:text-primary h-5 w-5 flex-shrink-0 transition-colors"
+                  aria-hidden="true"
+                />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </main>
   );
 }

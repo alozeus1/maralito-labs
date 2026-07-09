@@ -10,3 +10,4 @@ export * from './notifications';
 export * from './inspections';
 export * from './delivery-preparations';
 export * from './messages';
+export * from './addresses';

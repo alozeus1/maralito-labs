@@ -10,6 +10,9 @@ const serverSchema = z.object({
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1).optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   DATABASE_URL: z.string().min(1).optional(),
+  // KMS key-encryption key for PII envelope encryption (ADR-0012/0015). 32 bytes, base64 or hex.
+  // Optional so dev builds don't break; address/PII code paths fail closed when absent.
+  BORDERPASS_KMS_KEY: z.string().min(1).optional(),
   BORDERPASS_APP_URL: z.string().url().optional(),
   BORDERPASS_ENV: z.enum(['local', 'preview', 'staging', 'production']).default('local'),
   MARALITO_PLATFORM_ENV: z.string().optional(),

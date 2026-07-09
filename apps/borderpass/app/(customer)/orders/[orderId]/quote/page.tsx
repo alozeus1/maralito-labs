@@ -21,6 +21,8 @@ import { orderJourney } from '@/domain/orders/journey';
 import { formatDate, formatDateTime, formatMoneyMinor, humanizeStatus } from '@/lib/format';
 import { getLocale } from '@/server/locale';
 import { getMessages } from '@/i18n';
+import { isKmsConfigured } from '@/server/kms';
+import { SubmitRequest } from './SubmitRequest';
 import { QuoteDecision } from './QuoteDecision';
 import { StatusTracker } from './StatusTracker';
 
@@ -126,6 +128,14 @@ export default async function CustomerOrderQuotePage({
               inProgressLabel={m.inProgress}
             />
           </ConciergeCard>
+        )}
+
+        {order && (order.status === 'draft' || order.status === 'missing_information') && (
+          <SubmitRequest
+            orderId={orderId}
+            serviceType={order.serviceType}
+            kmsConfigured={isKmsConfigured()}
+          />
         )}
 
         {quote && (

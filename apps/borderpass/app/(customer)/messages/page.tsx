@@ -1,13 +1,17 @@
-// Messages — concierge contact. Secure in-app threads need a messaging backend (future); until
-// then this connects the customer to their concierge through real channels rather than faking chat.
-import { Mail, MessageCircle, Star } from 'lucide-react';
+// Messages — real concierge thread. Loads the caller's RLS-scoped messages and renders a live
+// thread + composer (MessageThread). A concierge intro card sits on top with an email fallback.
+import { Mail, Star } from 'lucide-react';
 import { getLocale } from '@/server/locale';
 import { getMessages } from '@/i18n';
+import { listMyMessages } from '../../actions/messages';
+import { MessageThread } from './MessageThread';
 
 export const dynamic = 'force-dynamic';
 
 export default async function MessagesPage() {
   const t = getMessages(await getLocale()).messages;
+  const res = await listMyMessages();
+  const initial = res.ok ? (res.data ?? []) : [];
 
   return (
     <main className="px-margin-mobile py-md md:py-lg mx-auto max-w-2xl">
@@ -16,34 +20,34 @@ export default async function MessagesPage() {
       </h1>
       <p className="font-body text-on-surface-variant text-body-md mb-md">{t.subtitle}</p>
 
-      <section className="bg-surface-container-lowest shadow-level-1 p-md rounded-xl text-center">
-        <div className="bg-surface-dim mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-          <MessageCircle className="text-on-surface-variant h-7 w-7" aria-hidden="true" />
-        </div>
-        <h2 className="font-heading text-headline-md text-on-surface">{t.conciergeTeam}</h2>
-        <p className="text-on-surface-variant mt-1 flex items-center justify-center gap-1 text-sm">
-          <Star className="text-primary h-4 w-4" aria-hidden="true" /> {t.speaks}
-        </p>
-        <p className="font-body text-on-surface-variant text-body-md mx-auto mt-3 max-w-md">
-          {t.reach}
-        </p>
-        <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <a
-            href="https://wa.me/message"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-primary text-on-primary btn-tactile hover:bg-primary-container hover:text-on-primary-container focus-visible:ring-primary inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:w-auto"
-          >
-            <MessageCircle className="h-4 w-4" aria-hidden="true" /> WhatsApp
-          </a>
+      <section className="bg-surface-container-lowest shadow-level-1 p-md rounded-xl">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="font-heading text-headline-md text-on-surface">{t.conciergeTeam}</h2>
+            <p className="text-on-surface-variant mt-1 flex items-center gap-1 text-sm">
+              <Star className="text-primary h-4 w-4" aria-hidden="true" /> {t.speaks}
+            </p>
+          </div>
           <a
             href="mailto:support@maralito.uk"
-            className="border-outline text-on-surface hover:bg-surface-variant/60 focus-visible:ring-primary inline-flex w-full items-center justify-center gap-2 rounded-full border px-6 py-3 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:w-auto"
+            aria-label={t.email}
+            className="border-outline text-on-surface hover:bg-surface-variant/60 focus-visible:ring-primary inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2"
           >
-            <Mail className="h-4 w-4" aria-hidden="true" /> {t.email}
+            <Mail className="h-4 w-4" aria-hidden="true" />
           </a>
         </div>
+        <p className="font-body text-on-surface-variant text-body-md mt-2">{t.reach}</p>
       </section>
+
+      <MessageThread
+        initial={initial}
+        labels={{
+          placeholder: t.placeholder,
+          send: t.send,
+          emptyThread: t.emptyThread,
+          sendError: t.sendError,
+        }}
+      />
     </main>
   );
 }

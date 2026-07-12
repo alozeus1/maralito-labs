@@ -46,7 +46,7 @@ beforeAll(async () => {
     create table platform_config(key text primary key, value jsonb, updated_at timestamptz default now());
     create table feature_flags(key text primary key, enabled boolean default false, description text, updated_at timestamptz default now());
     create table orders(id text primary key, order_ref text, customer_id text, org_id text, correlation_id text, created_at timestamptz default now());
-    create table messages(id text primary key, org_id text not null, customer_id text not null, order_id text, sender_role text not null, body text not null, created_at timestamptz default now());
+    create table messages(id text primary key, org_id text not null, customer_id text not null, order_id text, sender_role text not null, body text not null, image_path text, created_at timestamptz default now());
     create role authenticated nologin;
     grant usage on schema public, auth to authenticated;
     grant select, insert, update on all tables in schema public to authenticated;
@@ -105,5 +105,20 @@ describe('messages RLS isolation (real policies + messages-policies on PGlite)',
     const r = await asTenant(OPS, () => rows('select id from messages'));
     expect(r.length).toBeGreaterThanOrEqual(2);
     expect(r.map((x) => x.id)).toEqual(expect.arrayContaining(['m_a', 'm_b']));
+  });
+
+  it('staff can post a photo message into a customer thread, and that customer sees it', async () => {
+    await asTenant(OPS, () =>
+      rows(
+        "insert into messages(id,org_id,customer_id,sender_role,body,image_path) values('m_photo','org_a','cust_a','staff','Here is your package','org_a/cust_a/pkg.jpg')",
+      ),
+    );
+    const seen = await asTenant(A, () =>
+      rows("select id, image_path from messages where id='m_photo'"),
+    );
+    expect(seen).toEqual([{ id: 'm_photo', image_path: 'org_a/cust_a/pkg.jpg' }]);
+    // Customer B must NOT see another customer's photo message.
+    const notSeen = await asTenant(B, () => rows("select id from messages where id='m_photo'"));
+    expect(notSeen).toEqual([]);
   });
 });

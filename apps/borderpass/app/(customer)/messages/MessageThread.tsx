@@ -29,6 +29,7 @@ export function MessageThread({
       id: `pending-${items.length}`,
       sender_role: 'customer',
       body: text,
+      image_url: null,
       created_at: new Date(0).toISOString(),
     };
     setItems((prev) => [...prev, optimistic]);
@@ -60,16 +61,29 @@ export function MessageThread({
           items.map((mmsg) => {
             const mine = mmsg.sender_role === 'customer';
             return (
-              <div key={mmsg.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
-                <p
-                  className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${
-                    mine
-                      ? 'bg-primary text-on-primary rounded-br-sm'
-                      : 'bg-surface-variant text-on-surface rounded-bl-sm'
-                  }`}
-                >
-                  {mmsg.body}
-                </p>
+              <div
+                key={mmsg.id}
+                className={`flex flex-col gap-1 ${mine ? 'items-end' : 'items-start'}`}
+              >
+                {mmsg.image_url && (
+                  // eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL
+                  <img
+                    src={mmsg.image_url}
+                    alt="Shared photo"
+                    className="max-w-[80%] rounded-2xl object-cover"
+                  />
+                )}
+                {mmsg.body && (
+                  <p
+                    className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${
+                      mine
+                        ? 'bg-primary text-on-primary rounded-br-sm'
+                        : 'bg-surface-variant text-on-surface rounded-bl-sm'
+                    }`}
+                  >
+                    {mmsg.body}
+                  </p>
+                )}
               </div>
             );
           })

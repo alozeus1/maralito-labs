@@ -1,6 +1,13 @@
 'use server';
-import { asc, eq } from 'drizzle-orm';
-import { withTenant, messages, orders, newId } from '@maralito/db';
+import { and, asc, eq, isNull } from 'drizzle-orm';
+import {
+  withTenant,
+  withPrivilegedDbAccess,
+  messages,
+  orders,
+  customerProfiles,
+  newId,
+} from '@maralito/db';
 import { requireAdminAccess } from '@maralito/auth';
 import { getAppSession } from '@/server/auth';
 import { getServerEnv } from '@/server/env';
@@ -94,6 +101,78 @@ export async function sendStaffMessage(formData: FormData): Promise<Result<{ id:
       orgId: s.orgId,
       customerId: o.customerId,
       orderId,
+      senderRole: 'staff',
+      body: body || '📷 Photo',
+      imagePath,
+    });
+    return { ok: true as const, data: { id } };
+  });
+}
+
+/** Staff view of a customer's GENERAL concierge thread (not tied to an order). */
+export async function listCustomerThread(customerId: string): Promise<Result<MessageView[]>> {
+  const { s, err } = await guard();
+  if (!s) return { ok: false, error: err! };
+  return withTenant({ authUserId: s.sub, orgId: s.orgId }, async (tx) => {
+    const rows = await tx
+      .select()
+      .from(messages)
+      .where(and(eq(messages.customerId, customerId), isNull(messages.orderId)))
+      .orderBy(asc(messages.createdAt));
+    const data = await Promise.all(
+      rows.map(async (r) => ({
+        id: r.id,
+        sender_role: r.senderRole,
+        body: r.body,
+        image_url: await signMessageImage(r.imagePath),
+        created_at: r.createdAt.toISOString(),
+      })),
+    );
+    return { ok: true as const, data };
+  });
+}
+
+/** Send a staff message (optional photo) directly to a customer's general thread. */
+export async function sendStaffDirectMessage(formData: FormData): Promise<Result<{ id: string }>> {
+  const { s, err } = await guard();
+  if (!s) return { ok: false, error: err! };
+  const customerId = String(formData.get('customer_id') ?? '');
+  const body = String(formData.get('body') ?? '').trim();
+  const file = formData.get('image');
+  const hasImage = file instanceof File && file.size > 0;
+  if (!customerId.startsWith('cust_'))
+    return { ok: false, error: { code: 'validation_failed', message: 'Invalid customer.' } };
+  if (!body && !hasImage)
+    return { ok: false, error: { code: 'validation_failed', message: 'Message is empty.' } };
+  if (body.length > 2000)
+    return { ok: false, error: { code: 'validation_failed', message: 'Message too long.' } };
+
+  // Customer must belong to the staff member's org (no staff RLS on customer_profiles → privileged).
+  const inOrg = await withPrivilegedDbAccess('admin.dm.verify_customer', async (db) => {
+    const rows = await db
+      .select({ id: customerProfiles.id })
+      .from(customerProfiles)
+      .where(and(eq(customerProfiles.id, customerId), eq(customerProfiles.orgId, s.orgId)));
+    return rows.length > 0;
+  });
+  if (!inOrg) return { ok: false, error: { code: 'not_found', message: 'Customer not found.' } };
+
+  let imagePath: string | null = null;
+  if (hasImage) {
+    if (!isMediaConfigured())
+      return { ok: false, error: { code: 'media_unavailable', message: 'Photos not enabled.' } };
+    const up = await uploadMessageImage(s.orgId, customerId, file);
+    if (!up.ok) return { ok: false, error: { code: up.error, message: 'Could not upload photo.' } };
+    imagePath = up.path;
+  }
+
+  return withTenant({ authUserId: s.sub, orgId: s.orgId }, async (tx) => {
+    const id = newId('msg');
+    await tx.insert(messages).values({
+      id,
+      orgId: s.orgId,
+      customerId,
+      orderId: null,
       senderRole: 'staff',
       body: body || '📷 Photo',
       imagePath,

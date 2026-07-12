@@ -5,6 +5,7 @@ import { withTenant, messages, customerProfiles, orders, newId } from '@maralito
 import { requireCustomerAccess } from '@maralito/auth';
 import { getAppSession } from '@/server/auth';
 import { getServerEnv } from '@/server/env';
+import { signMessageImage } from '@/server/message-media';
 
 type Result<T = void> =
   { ok: true; data?: T } | { ok: false; error: { code: string; message: string } };
@@ -26,6 +27,7 @@ export interface MessageView {
   id: string;
   sender_role: 'customer' | 'staff';
   body: string;
+  image_url: string | null;
   created_at: string;
 }
 
@@ -42,15 +44,16 @@ export async function listMyMessages(orderId?: string): Promise<Result<MessageVi
       ? and(eq(messages.customerId, profile.id), eq(messages.orderId, orderId))
       : eq(messages.customerId, profile.id);
     const rows = await tx.select().from(messages).where(where).orderBy(asc(messages.createdAt));
-    return {
-      ok: true as const,
-      data: rows.map((r) => ({
+    const data = await Promise.all(
+      rows.map(async (r) => ({
         id: r.id,
         sender_role: r.senderRole,
         body: r.body,
+        image_url: await signMessageImage(r.imagePath),
         created_at: r.createdAt.toISOString(),
       })),
-    };
+    );
+    return { ok: true as const, data };
   });
 }
 

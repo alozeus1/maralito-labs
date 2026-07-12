@@ -23,6 +23,9 @@ export const messages = pgTable(
     orderId: text('order_id').references(() => orders.id),
     senderRole: text('sender_role').$type<(typeof MESSAGE_SENDER_ROLES)[number]>().notNull(),
     body: text('body').notNull(),
+    // Optional attached image, stored as an object path in the private `message-media` bucket.
+    // Never a public URL — the app hands out short-lived signed URLs, RLS-gated per message.
+    imagePath: text('image_path'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => ({

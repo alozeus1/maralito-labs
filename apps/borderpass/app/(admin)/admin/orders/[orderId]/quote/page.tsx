@@ -3,9 +3,12 @@
 import { getOrderPaymentForStaff } from '../../../../../actions/admin-payments';
 import { getOrderInspectionForStaff } from '../../../../../actions/admin-inspections';
 import { getOrderDeliveryForStaff } from '../../../../../actions/admin-delivery';
+import { listOrderThread } from '../../../../../actions/admin-messages';
 import { paymentStatusLabel } from '@/domain/payments/copy';
+import { isMediaConfigured } from '@/server/message-media';
 import { InspectionPanel } from './InspectionPanel';
 import { DeliveryPanel } from './DeliveryPanel';
+import { StaffMessagePanel } from './StaffMessagePanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +32,8 @@ export default async function AdminOrderQuotePage({
   const inspection = inspRes.ok ? (inspRes.data ?? null) : null;
   const delRes = await getOrderDeliveryForStaff(orderId);
   const delivery = delRes.ok ? (delRes.data ?? null) : null;
+  const threadRes = await listOrderThread(orderId);
+  const thread = threadRes.ok ? (threadRes.data ?? []) : [];
 
   return (
     <main className="p-6">
@@ -73,6 +78,7 @@ export default async function AdminOrderQuotePage({
 
       <InspectionPanel orderId={orderId} inspection={inspection} />
       <DeliveryPanel orderId={orderId} delivery={delivery} />
+      <StaffMessagePanel orderId={orderId} initial={thread} mediaEnabled={isMediaConfigured()} />
     </main>
   );
 }

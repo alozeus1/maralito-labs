@@ -1,5 +1,7 @@
 // Protected by (admin) guard. Phase 3 (quote) + Phase 5 READ-ONLY payment + Phase 6 inspection/delivery panels.
 // Payment stays read-only (no payment ops). Inspection/delivery are staff read/write via existing actions.
+import Link from 'next/link';
+import type { Route } from 'next';
 import { getOrderPaymentForStaff } from '../../../../../actions/admin-payments';
 import { getOrderInspectionForStaff } from '../../../../../actions/admin-inspections';
 import { getOrderDeliveryForStaff } from '../../../../../actions/admin-delivery';
@@ -36,10 +38,13 @@ export default async function AdminOrderQuotePage({
   const thread = threadRes.ok ? (threadRes.data ?? []) : [];
 
   return (
-    <main className="p-6">
-      <h1 className="font-heading text-2xl">Order quote</h1>
-      <p className="text-on-surface-variant mt-2">
-        Create/edit draft, submit for approval, send (Phase 3 foundation).
+    <main className="px-margin-mobile md:px-margin-desktop max-w-max-width py-md mx-auto">
+      <Link href={'/admin/orders' as Route} className="text-on-surface-variant text-sm">
+        ← Orders
+      </Link>
+      <h1 className="font-heading text-headline-lg-mobile md:text-headline-lg mt-2">Order</h1>
+      <p className="text-on-surface-variant mt-1 text-sm">
+        Manage payment, inspection, delivery, and message the customer.
       </p>
 
       <section className="border-outline mt-6 rounded-lg border p-4">

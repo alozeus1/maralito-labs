@@ -14,6 +14,9 @@ const serverSchema = z.object({
   // Optional so dev builds don't break; address/PII code paths fail closed when absent.
   BORDERPASS_KMS_KEY: z.string().min(1).optional(),
   BORDERPASS_APP_URL: z.string().url().optional(),
+  // Where the post-delivery review-request email CTA points (e.g. a Google/Trustpilot review page).
+  // Optional — falls back to the order page under BORDERPASS_APP_URL when unset.
+  BORDERPASS_REVIEW_URL: z.string().url().optional(),
   // n8n automation: order-event webhook (e.g. review-request workflow). Optional — events are a
   // no-op when the URL is absent. The secret is sent as X-BorderPass-Secret for the workflow to check.
   N8N_ORDER_EVENTS_WEBHOOK_URL: z.string().url().optional(),

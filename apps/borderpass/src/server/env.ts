@@ -14,6 +14,10 @@ const serverSchema = z.object({
   // Optional so dev builds don't break; address/PII code paths fail closed when absent.
   BORDERPASS_KMS_KEY: z.string().min(1).optional(),
   BORDERPASS_APP_URL: z.string().url().optional(),
+  // n8n automation: order-event webhook (e.g. review-request workflow). Optional — events are a
+  // no-op when the URL is absent. The secret is sent as X-BorderPass-Secret for the workflow to check.
+  N8N_ORDER_EVENTS_WEBHOOK_URL: z.string().url().optional(),
+  N8N_WEBHOOK_SECRET: z.string().min(1).optional(),
   BORDERPASS_ENV: z.enum(['local', 'preview', 'staging', 'production']).default('local'),
   MARALITO_PLATFORM_ENV: z.string().optional(),
   // ---- Stripe (Phase 4, server-only). All optional so dev builds don't break; Stripe code paths

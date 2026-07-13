@@ -1,12 +1,17 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@maralito/auth';
+import { verifyEmailCode } from '../../actions/auth';
 
 export default function Login() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [code, setCode] = useState('');
   const [err, setErr] = useState('');
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   // Missing NEXT_PUBLIC_* (e.g. an env not set on the deployment) makes the browser client throw.
   // Surface that as a real message instead of a silently-dead button.
@@ -26,7 +31,7 @@ export default function Login() {
         email,
         options: { emailRedirectTo: `${location.origin}/auth/callback` },
       });
-      if (error) setErr('Could not send sign-in link. Please try again.');
+      if (error) setErr('Could not send the code. Please try again.');
       else setSent(true);
     } catch {
       setErr('Sign-in is unavailable right now. Please try again shortly.');
@@ -35,9 +40,27 @@ export default function Login() {
     }
   }
 
-  // Google OAuth: redirects to Google, then back to /auth/callback?code=... which the existing
-  // callback exchanges for a session + provisions (same path as magic-link). Requires the Google
-  // provider to be enabled in Supabase Auth. Provisioning is identical, so no other app change needed.
+  // Verify the 6-digit code server-side (works on any device — no PKCE verifier needed, unlike the
+  // emailed link which only works in the browser that requested it).
+  async function verify(e: React.FormEvent) {
+    e.preventDefault();
+    setErr('');
+    setVerifying(true);
+    try {
+      const res = await verifyEmailCode(email, code);
+      if (res.ok) {
+        router.push('/');
+        router.refresh();
+      } else {
+        setErr('That code didn’t work. Check it and try again, or resend.');
+        setVerifying(false);
+      }
+    } catch {
+      setErr('Sign-in is unavailable right now. Please try again shortly.');
+      setVerifying(false);
+    }
+  }
+
   async function signInWithGoogle() {
     setErr('');
     try {
@@ -54,8 +77,47 @@ export default function Login() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-12 sm:max-w-sm">
       <h1 className="font-heading text-2xl sm:text-3xl">Sign in</h1>
+
       {sent ? (
-        <p className="text-on-surface-variant mt-3">Check your email for a sign-in link.</p>
+        <>
+          <p className="text-on-surface-variant mt-3 text-sm">
+            We emailed <span className="text-on-surface font-medium">{email}</span> a 6-digit code
+            and a sign-in link. Enter the code below (works on any device), or tap the link in the
+            same browser.
+          </p>
+          <form onSubmit={verify} className="mt-4 space-y-3">
+            <label htmlFor="code" className="block text-sm">
+              6-digit code
+            </label>
+            <input
+              id="code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+              placeholder="000000"
+              className="bg-surface-variant focus-visible:ring-primary w-full rounded-md p-3 text-center text-2xl tracking-[0.4em] focus-visible:outline-none focus-visible:ring-2"
+            />
+            <button
+              type="submit"
+              disabled={verifying || code.length < 6}
+              className="bg-primary text-on-primary hover:bg-primary/90 focus-visible:ring-primary w-full rounded-3xl p-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {verifying ? 'Verifying…' : 'Verify & sign in'}
+            </button>
+          </form>
+          <button
+            type="button"
+            onClick={() => {
+              setSent(false);
+              setCode('');
+            }}
+            className="text-on-surface-variant mt-3 text-sm underline underline-offset-2"
+          >
+            Use a different email
+          </button>
+        </>
       ) : (
         <>
           <form onSubmit={submit} className="mt-4 space-y-3">
@@ -75,7 +137,7 @@ export default function Login() {
               disabled={loading}
               className="bg-primary text-on-primary hover:bg-primary/90 focus-visible:ring-primary w-full rounded-3xl p-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? 'Sending…' : 'Send link'}
+              {loading ? 'Sending…' : 'Send code'}
             </button>
           </form>
 

@@ -3,7 +3,7 @@ import { buildReviewEmail } from './review-email';
 
 describe('buildReviewEmail', () => {
   it('renders Spanish copy by default locale with the review link and name', () => {
-    const { subject, html } = buildReviewEmail({
+    const { subject, html, text } = buildReviewEmail({
       locale: 'es',
       customerName: 'María',
       orderRef: 'BP-1042',
@@ -15,6 +15,11 @@ describe('buildReviewEmail', () => {
     // `&` in the URL is HTML-encoded for the href attribute.
     expect(html).toContain('href="https://example.com/review?o=1"');
     expect(html).toContain('BP-1042');
+    // Plain-text alternative + required footer are present.
+    expect(text).toContain('Hola María:');
+    expect(text).toContain('Dejar una reseña: https://example.com/review?o=1');
+    expect(text).toContain('BorderPass · Powered by Maralito Labs');
+    expect(html).toContain('BorderPass · Powered by Maralito Labs');
   });
 
   it('renders English copy and a nameless greeting when no name is present', () => {

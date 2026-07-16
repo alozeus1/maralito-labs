@@ -7,6 +7,7 @@ export * from './orders';
 export * from './quotes';
 export * from './payments';
 export * from './notifications';
+export * from './email-events';
 export * from './inspections';
 export * from './delivery-preparations';
 export * from './messages';

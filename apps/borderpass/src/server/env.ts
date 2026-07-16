@@ -21,6 +21,21 @@ const serverSchema = z.object({
   // no-op when the URL is absent. The secret is sent as X-BorderPass-Secret for the workflow to check.
   N8N_ORDER_EVENTS_WEBHOOK_URL: z.string().url().optional(),
   N8N_WEBHOOK_SECRET: z.string().min(1).optional(),
+  // ---- Resend transactional email (server-only; never NEXT_PUBLIC). All optional so dev builds don't
+  // break; the send boundary fails closed when the key/From are absent. See src/server/resend.ts. ----
+  RESEND_API_KEY: z.string().min(1).optional(),
+  RESEND_FROM_EMAIL: z.string().min(1).optional(), // legacy single From (fallback for EMAIL_FROM_DEFAULT)
+  RESEND_WEBHOOK_SECRET: z.string().min(1).optional(), // Svix signing secret for /api/webhooks/resend
+  // Verified-domain sender registry (notifications.maralito.uk). "Name <addr@domain>".
+  EMAIL_FROM_DEFAULT: z.string().min(1).optional(),
+  EMAIL_FROM_AUTH: z.string().min(1).optional(),
+  EMAIL_FROM_ORDERS: z.string().min(1).optional(),
+  EMAIL_FROM_SECURITY: z.string().min(1).optional(),
+  EMAIL_FROM_SUPPORT: z.string().min(1).optional(),
+  EMAIL_REPLY_TO: z.string().min(1).optional(), // monitored reply address (e.g. support@maralito.uk)
+  // 'false' hard-disables sending (default enabled). Set 'false' in Preview/Development.
+  EMAIL_DELIVERY_ENABLED: z.enum(['true', 'false']).optional(),
+  EMAIL_SAFE_RECIPIENT: z.string().min(1).optional(), // redirect ALL recipients here (preview/dev safety)
   BORDERPASS_ENV: z.enum(['local', 'preview', 'staging', 'production']).default('local'),
   MARALITO_PLATFORM_ENV: z.string().optional(),
   // ---- Stripe (Phase 4, server-only). All optional so dev builds don't break; Stripe code paths

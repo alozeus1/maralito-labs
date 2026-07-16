@@ -1,4 +1,5 @@
 import 'server-only';
+import { FOOTER_HTML, FOOTER_TEXT } from './email-footer';
 
 /**
  * Post-delivery review-request email copy. Localized (Spanish default, per ADR-0009 i18n), rendered
@@ -44,7 +45,11 @@ function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (c) => ESCAPE[c] ?? c);
 }
 
-export function buildReviewEmail(input: ReviewEmailInput): { subject: string; html: string } {
+export function buildReviewEmail(input: ReviewEmailInput): {
+  subject: string;
+  html: string;
+  text: string;
+} {
   const t = COPY[input.locale];
   const name = input.customerName?.trim();
   const greeting = name ? t.greeting(escapeHtml(name)) : t.greetingNoName;
@@ -59,7 +64,14 @@ export function buildReviewEmail(input: ReviewEmailInput): { subject: string; ht
     `<p style="margin:28px 0"><a href="${href}" style="background:#a33e06;color:#fff8f6;text-decoration:none;padding:12px 22px;border-radius:9999px;display:inline-block;font-weight:600">${t.cta}</a></p>` +
     `<p style="color:#565e74;font-size:14px;margin-top:32px">Order ${ref}</p>` +
     `<p style="color:#565e74;font-size:14px">${t.thanks}<br>${t.sign}</p>` +
+    FOOTER_HTML +
     '</div>';
 
-  return { subject: t.subject(input.orderRef), html };
+  // Plain-text alternative (multipart improves deliverability). Uses the raw, unescaped values.
+  const plainGreeting = name ? t.greeting(name) : t.greetingNoName;
+  const text =
+    `${plainGreeting}\n\n${t.body}\n\n${t.cta}: ${input.reviewUrl}\n\n` +
+    `Order ${input.orderRef}\n${t.thanks}\n${t.sign}\n\n${FOOTER_TEXT}`;
+
+  return { subject: t.subject(input.orderRef), html, text };
 }

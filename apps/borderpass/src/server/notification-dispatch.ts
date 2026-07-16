@@ -3,6 +3,8 @@ import { and, eq, lt, or } from 'drizzle-orm';
 import { withPrivilegedDbAccess, notificationOutbox } from '@maralito/db';
 import { getServerEnv } from './env';
 import { sendEmail, isResendConfigured } from './resend';
+import { isEmailSuppressed } from './email-suppression';
+import { FOOTER_HTML, FOOTER_TEXT } from './email-footer';
 
 /** A `sending` claim older than this is treated as abandoned (worker crashed) and re-claimable. */
 const SENDING_LEASE_MS = 10 * 60 * 1000;
@@ -37,32 +39,39 @@ export interface DispatchSummary {
   skipped: number;
 }
 
-/** Minimal, NON-PII email bodies keyed by template. Links to the order; no names/amounts/addresses. */
-function renderTemplate(row: OutboxRow, appBaseUrl: string): { subject: string; html: string } {
+/** Minimal, NON-PII email bodies keyed by template. Links to the order; no names/amounts/addresses.
+ *  Returns HTML + a plain-text alternative (multipart improves deliverability) with the shared footer. */
+function renderTemplate(
+  row: OutboxRow,
+  appBaseUrl: string,
+): { subject: string; html: string; text: string } {
   const orderLink = `${appBaseUrl}/orders/${row.orderId}/quote`;
-  const view = `<p><a href="${orderLink}">View your order</a></p>`;
-  switch (row.templateKey) {
-    case 'payment_receipt':
-      return {
-        subject: 'BorderPass — payment received',
-        html: `<p>We received your payment.</p>${view}`,
-      };
-    case 'inspection_update':
-      return {
-        subject: 'BorderPass — inspection update',
-        html: `<p>There is an update on your inspection.</p>${view}`,
-      };
-    case 'delivery_update':
-      return {
-        subject: 'BorderPass — delivery update',
-        html: `<p>There is an update on your delivery.</p>${view}`,
-      };
-    default:
-      return {
-        subject: 'BorderPass — order update',
-        html: `<p>There is an update on your order.</p>${view}`,
-      };
-  }
+  const copy: Record<string, { subject: string; line: string }> = {
+    payment_receipt: {
+      subject: 'BorderPass — payment received',
+      line: 'We received your payment.',
+    },
+    inspection_update: {
+      subject: 'BorderPass — inspection update',
+      line: 'There is an update on your inspection.',
+    },
+    delivery_update: {
+      subject: 'BorderPass — delivery update',
+      line: 'There is an update on your delivery.',
+    },
+  };
+  const c = copy[row.templateKey] ?? {
+    subject: 'BorderPass — order update',
+    line: 'There is an update on your order.',
+  };
+  const html =
+    '<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;color:#1b1b1b;line-height:1.5">' +
+    `<p>${c.line}</p>` +
+    `<p style="margin:24px 0"><a href="${orderLink}" style="background:#a33e06;color:#fff8f6;text-decoration:none;padding:12px 22px;border-radius:9999px;display:inline-block;font-weight:600">View your order</a></p>` +
+    FOOTER_HTML +
+    '</div>';
+  const text = `${c.line}\n\nView your order: ${orderLink}\n\n${FOOTER_TEXT}`;
+  return { subject: c.subject, html, text };
 }
 
 export async function dispatchQueuedNotifications(opts: DispatchOptions): Promise<DispatchSummary> {
@@ -93,6 +102,11 @@ export async function dispatchQueuedNotifications(opts: DispatchOptions): Promis
       summary.skipped++;
       continue;
     }
+    // Never re-mail a recipient who hard-bounced or complained (suppression list).
+    if (await isEmailSuppressed(to)) {
+      summary.skipped++;
+      continue;
+    }
 
     // Atomically claim the row (→ sending) so a concurrent pass can't double-send it. The predicate
     // matches the same claimable set (queued OR stale-sending), so exactly one worker wins the row.
@@ -108,14 +122,19 @@ export async function dispatchQueuedNotifications(opts: DispatchOptions): Promis
       continue;
     }
 
-    const { subject, html } = renderTemplate(row, base);
-    const result = await sendEmail({ to, subject, html });
-    // Failed + retryable → back to `queued` for a later pass; non-retryable → `failed`.
+    const { subject, html, text } = renderTemplate(row, base);
+    const result = await sendEmail({ to, subject, html, text, kind: 'orders' });
+    // Failed + retryable → back to `queued` for a later pass; non-retryable → `failed`. On success we
+    // store the provider message id so the delivery webhook can advance this row (sent → delivered/…).
     const nextStatus = result.ok ? 'sent' : result.retryable ? 'queued' : 'failed';
     await withPrivilegedDbAccess('notifications.dispatch:mark', (db) =>
       db
         .update(notificationOutbox)
-        .set({ status: nextStatus, updatedAt: new Date() })
+        .set({
+          status: nextStatus,
+          ...(result.ok ? { providerMessageId: result.id } : {}),
+          updatedAt: new Date(),
+        })
         .where(eq(notificationOutbox.id, row.id)),
     );
     if (result.ok) summary.sent++;

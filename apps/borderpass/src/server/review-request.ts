@@ -5,6 +5,7 @@ import { withPrivilegedDbAccess, orders, customerProfiles } from '@maralito/db';
 import { getServerEnv } from './env';
 import { isResendConfigured, sendEmail } from './resend';
 import { buildReviewEmail } from './review-email';
+import { isEmailSuppressed } from './email-suppression';
 import { writeAudit } from './audit';
 
 /**
@@ -21,7 +22,12 @@ export type ReviewRequestResult =
   | { status: 'sent'; id: string }
   | {
       status: 'skipped';
-      reason: 'resend_unconfigured' | 'service_unconfigured' | 'no_review_url' | 'no_email';
+      reason:
+        | 'resend_unconfigured'
+        | 'service_unconfigured'
+        | 'no_review_url'
+        | 'no_email'
+        | 'suppressed';
     }
   | { status: 'not_found' }
   | { status: 'not_deliverable'; orderStatus: string }
@@ -70,17 +76,20 @@ export async function sendOrderReviewRequest(orderId: string): Promise<ReviewReq
   const email = data?.user?.email;
   if (error || !email) return { status: 'skipped', reason: 'no_email' };
 
-  // 5) Localized copy (per-customer language; Spanish default) + send.
+  // 5) Never re-mail a recipient who hard-bounced or complained.
+  if (await isEmailSuppressed(email)) return { status: 'skipped', reason: 'suppressed' };
+
+  // 6) Localized copy (per-customer language; Spanish default) + send from the Orders identity.
   const locale = row.language === 'en' ? 'en' : 'es';
-  const { subject, html } = buildReviewEmail({
+  const { subject, html, text } = buildReviewEmail({
     locale,
     customerName: row.displayName,
     orderRef: row.orderRef,
     reviewUrl,
   });
-  const result = await sendEmail({ to: email, subject, html });
+  const result = await sendEmail({ to: email, subject, html, text, kind: 'orders' });
 
-  // 6) Audit the egress — outcome + locale only, never the recipient address.
+  // 7) Audit the egress — outcome + locale only, never the recipient address.
   await writeAudit({
     action: 'automation.review_request',
     orgId: row.orgId,

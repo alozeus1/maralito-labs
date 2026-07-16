@@ -21,9 +21,20 @@ export const NOTIFICATION_TEMPLATE_KEYS = [
   'inspection_update',
   'delivery_update',
 ] as const;
-// Phase 8C: real provider states added. Text column (app-level state machine, no DB enum) so no
-// migration needed. 'sending' is a transient claim; 'sent'/'failed' are terminal for a dispatch.
-export const NOTIFICATION_STATUSES = ['queued', 'sending', 'sent', 'failed'] as const;
+// Phase 8C: real provider states. Text column (app-level state machine, no DB enum). 'sending' is a
+// transient claim; 'sent' means the provider accepted it; 'delivered'/'delivery_delayed'/'bounced'/
+// 'complained' are set later by the Resend delivery webhook; 'failed' is a terminal send failure.
+// A provider 200 (accepted) is NOT delivery — only the webhook advances 'sent' → 'delivered'.
+export const NOTIFICATION_STATUSES = [
+  'queued',
+  'sending',
+  'sent',
+  'delivered',
+  'delivery_delayed',
+  'bounced',
+  'complained',
+  'failed',
+] as const;
 
 export const notificationOutbox = pgTable(
   'notification_outbox',
@@ -51,6 +62,10 @@ export const notificationOutbox = pgTable(
       .notNull()
       .default('queued'),
     idempotencyKey: text('idempotency_key').notNull(), // e.g. receipt:<payment_id>, inspection_update:<id>:<status>
+    // Resend message id from a successful send, used to correlate delivery-webhook events back to this
+    // row. Safe reference (opaque id) — NOT a recipient address or any PII.
+    providerMessageId: text('provider_message_id'),
+    lastEventAt: timestamp('last_event_at', { withTimezone: true }), // last delivery-webhook event time
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
@@ -59,6 +74,7 @@ export const notificationOutbox = pgTable(
     customerIdx: index('notification_outbox_customer_idx').on(t.customerId),
     orderIdx: index('notification_outbox_order_idx').on(t.orderId),
     paymentIdx: index('notification_outbox_payment_idx').on(t.paymentId),
+    providerIdx: index('notification_outbox_provider_idx').on(t.providerMessageId), // webhook lookup
     idemUq: uniqueIndex('notification_outbox_idem_uq').on(t.idempotencyKey), // dedupe duplicate enqueues
   }),
 );

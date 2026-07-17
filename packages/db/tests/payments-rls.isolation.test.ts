@@ -54,7 +54,9 @@ beforeAll(async () => {
     create table payments(id text primary key, org_id text not null, customer_id text not null, order_id text not null, quote_id text not null, provider text default 'stripe', status text default 'requires_payment', amount_minor int not null, currency text default 'USD', stripe_customer_id text, stripe_payment_intent_id text, stripe_checkout_session_id text, idempotency_key text not null, metadata jsonb, created_at timestamptz default now(), updated_at timestamptz default now());
     create table payment_events(id text primary key, org_id text not null, payment_id text not null, order_id text not null, quote_id text not null, event_type text, from_status text, to_status text, provider text default 'stripe', provider_event_id text, payload_summary jsonb, created_at timestamptz default now());
     create table stripe_webhook_events(id text primary key, stripe_event_id text not null, event_type text not null, api_version text, livemode boolean default false, processing_status text default 'received', processed_at timestamptz, error_message text, created_at timestamptz default now());
-    create table refunds(id text primary key, org_id text not null, payment_id text not null, stripe_refund_id text, amount_minor int not null, currency text default 'USD', status text default 'placeholder', reason text, created_at timestamptz default now(), updated_at timestamptz default now());
+    create table refunds(id text primary key, org_id text not null, payment_id text not null, order_id text not null, quote_id text not null, customer_id text not null, provider text not null default 'stripe', status text not null default 'requested', amount_minor int not null, currency text default 'USD', stripe_refund_id text, reason text, idempotency_key text not null, metadata jsonb, created_at timestamptz default now(), updated_at timestamptz default now());
+    create table refund_status_history(id text primary key, org_id text not null, refund_id text not null, payment_id text not null, order_id text not null, from_status text, to_status text not null, provider_event_id text, reason text, created_at timestamptz default now());
+    create table payment_disputes(id text primary key, org_id text not null, payment_id text not null, order_id text not null, customer_id text not null, stripe_dispute_id text not null, status text not null, reason text, amount_minor int not null, currency text default 'USD', created_at timestamptz default now(), updated_at timestamptz default now());
     create role authenticated nologin;
     grant usage on schema public, auth to authenticated;
     grant select, insert, update on all tables in schema public to authenticated;
@@ -78,7 +80,9 @@ beforeAll(async () => {
       ('pay_b','org_a','cust_b','ord_b','qte_b','requires_payment',20000,'USD','pi_qte_b','pi_b');
     insert into payment_events(id,org_id,payment_id,order_id,quote_id,event_type,to_status) values('pme_a','org_a','pay_a','ord_a','qte_a','payment.intent_created','requires_payment');
     insert into stripe_webhook_events(id,stripe_event_id,event_type) values('swe_a','evt_a','payment_intent.succeeded');
-    insert into refunds(id,org_id,payment_id,amount_minor) values('ref_a','org_a','pay_a',0);
+    insert into refunds(id,org_id,payment_id,order_id,quote_id,customer_id,status,amount_minor,idempotency_key) values('ref_a','org_a','pay_a','ord_a','qte_a','cust_a','succeeded',4000,'re_pay_a_1');
+    insert into refund_status_history(id,org_id,refund_id,payment_id,order_id,to_status) values('rsh_a','org_a','ref_a','pay_a','ord_a','succeeded');
+    insert into payment_disputes(id,org_id,payment_id,order_id,customer_id,stripe_dispute_id,status,amount_minor) values('dsp_a','org_a','pay_a','ord_a','cust_a','dp_a','needs_response',10000);
   `);
 });
 
@@ -112,6 +116,22 @@ describe('payments RLS isolation (real policy files on PGlite)', () => {
     expect(await asTenant(A, () => rows('select id from refunds'))).toEqual([{ id: 'ref_a' }]);
     expect(await asTenant(B, () => rows('select * from refunds'))).toHaveLength(0);
     expect(await asTenant(OPS, () => rows('select id from refunds'))).toHaveLength(1);
+  });
+  // Phase 8D (ADR-0015): refund_status_history is staff-only; disputes follow the refund model.
+  it('refund_status_history is staff-only (customer 0, staff sees)', async () => {
+    expect(await asTenant(A, () => rows('select * from refund_status_history'))).toHaveLength(0);
+    expect(await asTenant(OPS, () => rows('select id from refund_status_history'))).toHaveLength(1);
+  });
+  it('customer reads OWN dispute; other customer sees none; staff sees org', async () => {
+    expect(await asTenant(A, () => rows('select id from payment_disputes'))).toEqual([{ id: 'dsp_a' }]);
+    expect(await asTenant(B, () => rows('select * from payment_disputes'))).toHaveLength(0);
+    expect(await asTenant(OPS, () => rows('select id from payment_disputes'))).toHaveLength(1);
+  });
+  it('customer cannot UPDATE a refund (no write policy → 0 rows)', async () => {
+    const updated = await asTenant(A, () =>
+      rows("update refunds set status='canceled' where id='ref_a' returning id"),
+    );
+    expect(updated).toHaveLength(0);
   });
   it('missing claims → no payments', async () =>
     expect(await asTenant(null, () => rows('select * from payments'))).toHaveLength(0));

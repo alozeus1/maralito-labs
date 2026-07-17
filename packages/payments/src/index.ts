@@ -15,4 +15,6 @@ export {
 export { getStripeClient, __resetStripeClientForTests } from './stripe/client';
 export { createPaymentIntent, retrievePaymentIntent } from './stripe/payment-intent';
 export type { CreatePaymentIntentInput, PaymentIntentResult } from './stripe/payment-intent';
+export { createRefund } from './stripe/refund'; // Phase 8D (ADR-0015) — TEST-mode refunds
+export type { CreateRefundInput, RefundResult } from './stripe/refund';
 export { verifyStripeWebhook } from './stripe/webhook';

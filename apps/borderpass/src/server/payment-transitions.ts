@@ -22,6 +22,8 @@ const NAME_FOR: Record<PaymentStatus, string> = {
   failed: 'payment.failed',
   canceled: 'payment.canceled',
   refunded_placeholder: 'payment.refunded_placeholder',
+  partially_refunded: 'payment.partially_refunded',
+  refunded: 'payment.refunded',
 };
 
 /**

@@ -67,9 +67,12 @@ export function toPaymentDisplayState(
     case 'canceled':
       return 'canceled';
     // `succeeded` while the order is still awaiting_payment = cascade in flight; show success.
-    // `refunded_placeholder` has no refund UX in Phase 5 — treat as captured.
+    // refunded_placeholder / partially_refunded / refunded are post-capture (Phase 8D) and are
+    // unreachable while the order is still awaiting_payment, but must be covered for exhaustiveness.
     case 'succeeded':
     case 'refunded_placeholder':
+    case 'partially_refunded':
+    case 'refunded':
       return 'succeeded';
   }
 }

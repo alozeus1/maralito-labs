@@ -12,7 +12,9 @@ export const PAYMENT_STATUSES = [
   'succeeded',
   'failed',
   'canceled',
-  'refunded_placeholder',
+  'refunded_placeholder', // legacy (Phase 4); superseded by refunded/partially_refunded in Phase 8D
+  'partially_refunded', // Phase 8D (ADR-0015)
+  'refunded', // Phase 8D (ADR-0015) — fully refunded
 ] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
@@ -30,13 +32,16 @@ export const LEGAL_PAYMENT_TRANSITIONS: Record<PaymentStatus, readonly PaymentSt
   requires_payment: ['processing', 'requires_action', 'succeeded', 'failed', 'canceled'],
   processing: ['succeeded', 'failed', 'requires_action', 'canceled'],
   requires_action: ['processing', 'succeeded', 'failed', 'canceled'],
-  succeeded: ['refunded_placeholder'], // future placeholder only; no refund logic in Phase 4
+  // Phase 8D: a succeeded payment may be (partially) refunded via the refund webhook cascade.
+  succeeded: ['partially_refunded', 'refunded', 'refunded_placeholder'],
+  partially_refunded: ['partially_refunded', 'refunded'], // further partial refunds, then full
   failed: ['requires_payment'],
   canceled: [],
+  refunded: [],
   refunded_placeholder: [],
 };
 
-const TERMINAL: readonly PaymentStatus[] = ['canceled', 'refunded_placeholder'];
+const TERMINAL: readonly PaymentStatus[] = ['canceled', 'refunded', 'refunded_placeholder'];
 
 export function isLegalPaymentTransition(from: PaymentStatus, to: PaymentStatus): boolean {
   return LEGAL_PAYMENT_TRANSITIONS[from]?.includes(to) ?? false;

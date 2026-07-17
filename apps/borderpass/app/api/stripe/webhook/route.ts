@@ -7,6 +7,12 @@ import { transitionPayment } from '@/server/payment-transitions';
 import { isLegalPaymentTransition, type PaymentStatus } from '@/domain/payments/state-machine';
 import { writeAudit } from '@/server/audit';
 import { emitPaymentEvent } from '@/server/payment-events';
+import {
+  handleStripeRefundUpdate,
+  handleStripeDispute,
+  REFUND_WEBHOOK_EVENTS,
+  DISPUTE_WEBHOOK_EVENTS,
+} from '@/server/refund-webhook';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs'; // Stripe SDK needs Node crypto — never the edge runtime
@@ -108,7 +114,27 @@ export async function POST(req: Request): Promise<Response> {
     event_type: event.type,
   });
 
-  // 3) Route supported events; ignore the rest safely.
+  // 3a) Phase 8D — refund + dispute events (idempotent; refunds settle the refund + cascade the payment,
+  // disputes are RECORD-ONLY and never move money). Handled before the payment_intent routing below.
+  if (REFUND_WEBHOOK_EVENTS.has(event.type) || DISPUTE_WEBHOOK_EVENTS.has(event.type)) {
+    try {
+      if (REFUND_WEBHOOK_EVENTS.has(event.type)) await handleStripeRefundUpdate(event);
+      else await handleStripeDispute(event);
+      await markWebhook(event.id, 'completed');
+      return NextResponse.json({ received: true }, { status: 200 });
+    } catch {
+      await markWebhook(event.id, 'failed', 'refund_processing_error');
+      await writeAudit({
+        action: 'payment.webhook_failed',
+        entityType: 'stripe_event',
+        entityId: event.id,
+        after: { reason: 'refund_processing_error', type: event.type },
+      });
+      return NextResponse.json({ error: 'processing_error' }, { status: 500 });
+    }
+  }
+
+  // 3b) Route supported payment_intent events; ignore the rest safely.
   const target = EVENT_MAP[event.type];
   if (!target) {
     await markWebhook(event.id, 'ignored');

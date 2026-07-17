@@ -11,7 +11,8 @@ import {
 } from './state-machine';
 
 describe('payment state machine', () => {
-  it('has 7 statuses', () => expect(PAYMENT_STATUSES).toHaveLength(7));
+  it('has 9 statuses (7 core + Phase 8D partially_refunded/refunded)', () =>
+    expect(PAYMENT_STATUSES).toHaveLength(9));
 
   it('allows the spec-legal transitions (incl. Stripe card paths with no `processing` event)', () => {
     const legal: [PaymentStatus, PaymentStatus][] = [
@@ -32,6 +33,11 @@ describe('payment state machine', () => {
       ['requires_action', 'canceled'],
       ['failed', 'requires_payment'],
       ['succeeded', 'refunded_placeholder'],
+      // Phase 8D refund cascade (ADR-0015).
+      ['succeeded', 'partially_refunded'],
+      ['succeeded', 'refunded'],
+      ['partially_refunded', 'partially_refunded'],
+      ['partially_refunded', 'refunded'],
     ];
     for (const [f, t] of legal) expect(isLegalPaymentTransition(f, t)).toBe(true);
   });
@@ -64,13 +70,19 @@ describe('payment state machine', () => {
       'failed',
       'canceled',
       'refunded_placeholder',
+      'partially_refunded',
+      'refunded',
     ] as PaymentStatus[])
       expect(paymentSucceeds(s)).toBe(false);
   });
 
-  it('terminals are canceled + refunded_placeholder', () => {
+  it('terminals are canceled + refunded + refunded_placeholder', () => {
     expect(isTerminalPaymentStatus('canceled')).toBe(true);
+    expect(isTerminalPaymentStatus('refunded')).toBe(true);
     expect(isTerminalPaymentStatus('refunded_placeholder')).toBe(true);
     expect(getNextAllowedPaymentStatuses('canceled')).toHaveLength(0);
+    expect(getNextAllowedPaymentStatuses('refunded')).toHaveLength(0);
+    // partially_refunded is NOT terminal — further partials or a full refund may follow.
+    expect(isTerminalPaymentStatus('partially_refunded')).toBe(false);
   });
 });

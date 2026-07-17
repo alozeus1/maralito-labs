@@ -10,6 +10,10 @@ const PUBLIC_PREFIXES = [
   '/auth',
   '/unauthorized',
   '/api/health',
+  // External webhooks: unauthenticated by nature (no session cookie), authenticated instead by their
+  // own signature verification (fail-closed) inside the route. Must bypass the auth redirect gate.
+  '/api/stripe/webhook',
+  '/api/webhooks/resend',
 ];
 const isPublic = (p: string) => PUBLIC_PREFIXES.some((x) => p === x || p.startsWith(x + '/'));
 

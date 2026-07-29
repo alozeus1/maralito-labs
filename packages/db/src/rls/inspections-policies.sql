@@ -9,17 +9,22 @@ alter table inspection_status_history enable row level security;
 
 -- Inspections: customer reads OWN records (via their customer_profile); staff read + manage org-scoped.
 -- (staff_notes is a column → hidden from customers by APP PROJECTION, since RLS is row-level.)
+drop policy if exists inspections_customer_select on inspections;
 create policy inspections_customer_select on inspections for select
   using (customer_id in (select id from customer_profiles where auth_user_id = auth.uid()));
+drop policy if exists inspections_staff_select on inspections;
 create policy inspections_staff_select on inspections for select
   using (org_id = app_current_org_id() and app_is_staff());
+drop policy if exists inspections_staff_insert on inspections;
 create policy inspections_staff_insert on inspections for insert
   with check (org_id = app_current_org_id() and app_is_staff());
+drop policy if exists inspections_staff_update on inspections;
 create policy inspections_staff_update on inspections for update
   using (org_id = app_current_org_id() and app_is_staff())
   with check (org_id = app_current_org_id() and app_is_staff());
 
 -- Status history: STAFF read only (customers never read the history ledger directly).
+drop policy if exists inspection_history_staff_select on inspection_status_history;
 create policy inspection_history_staff_select on inspection_status_history for select
   using (org_id = app_current_org_id() and app_is_staff());
 

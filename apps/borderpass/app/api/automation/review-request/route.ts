@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { timingSafeEqual } from 'node:crypto';
 import { getServerEnv } from '@/server/env';
+import { secretOk } from '@/server/automation-auth';
 import { sendOrderReviewRequest } from '@/server/review-request';
 
 export const dynamic = 'force-dynamic';
@@ -9,16 +9,10 @@ export const runtime = 'nodejs'; // Supabase admin API + node crypto — never t
 /**
  * Automation endpoint: send a post-delivery review-request email for one order. Called by the n8n
  * "Post-Delivery Review Request" workflow after its 1-day wait. FAIL CLOSED on the shared secret
- * (constant-time compare); no secret configured or a mismatch → 401. The order is re-checked to be
- * `delivered` server-side, so a spoofed order_id for a non-delivered order sends nothing.
+ * (`secretOk`, constant-time compare); no secret configured or a mismatch → 401. The order is
+ * re-checked to be `delivered` server-side, so a spoofed order_id for a non-delivered order sends
+ * nothing.
  */
-function secretOk(provided: string | null, expected: string | undefined): boolean {
-  if (!expected || !provided) return false;
-  const a = Buffer.from(provided);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) return false; // timingSafeEqual requires equal lengths
-  return timingSafeEqual(a, b);
-}
 
 export async function POST(req: Request): Promise<Response> {
   const env = getServerEnv();

@@ -7,10 +7,12 @@
 alter table notification_outbox enable row level security;
 
 -- Customer reads OWN queued notification METADATA only (references + status; no body/PII exists).
+drop policy if exists notification_outbox_customer_select on notification_outbox;
 create policy notification_outbox_customer_select on notification_outbox for select
   using (customer_id in (select id from customer_profiles where auth_user_id = auth.uid()));
 
 -- Staff/admin/ops read org-scoped.
+drop policy if exists notification_outbox_staff_select on notification_outbox;
 create policy notification_outbox_staff_select on notification_outbox for select
   using (org_id = app_current_org_id() and app_is_staff());
 

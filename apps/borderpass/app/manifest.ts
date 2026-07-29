@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
-// Phase 8A.6: PWA manifest (installability). Placeholder solid-brand icons — replace with the
-// Stitch-designed icon set before any tester round if design provides one.
+// Phase 8A.6/8A.9: PWA manifest (installability). Real BorderPass brand icon (bridge + "B" monogram,
+// terracotta on cream) generated from the owner-supplied source; dedicated full-bleed maskable variant.
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'BorderPass',
@@ -14,7 +14,7 @@ export default function manifest(): MetadataRoute.Manifest {
     icons: [
       { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
       { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-      { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
   };
 }

@@ -46,9 +46,44 @@ const serverSchema = z.object({
   STRIPE_PAYMENT_CURRENCY: z.string().optional(),
   STRIPE_SUCCESS_URL: z.string().url().optional(),
   STRIPE_CANCEL_URL: z.string().url().optional(),
+  // ---- Rate limiting (server-only; never NEXT_PUBLIC). See src/server/rate-limit.ts. Optional so
+  // local/preview builds work on the in-memory store — but production/staging FAIL CLOSED (every
+  // request 429s) until UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN are provisioned. ----
+  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
+  // Salt mixed into the SHA-256 of the client IP / user id before it becomes a counter key. Raw IPs
+  // are never stored or logged; the salt stops the (small) IPv4 space being reversed by brute force.
+  BORDERPASS_RATE_LIMIT_SALT: z.string().min(1).optional(),
+  // Redis key namespace (e.g. 'prod'). Set when several environments share one Upstash database.
+  BORDERPASS_RATE_LIMIT_PREFIX: z.string().min(1).optional(),
+  // ---- Content-Security-Policy rollout (read by next.config.mjs at build time). ----
+  // 'true' emits Content-Security-Policy-Report-Only instead of the enforcing header — use on a
+  // preview deploy to validate a tightened policy before enforcing it in production.
+  BORDERPASS_CSP_REPORT_ONLY: z.enum(['true', 'false']).optional(),
+  BORDERPASS_CSP_REPORT_URI: z.string().url().optional(), // adds `report-uri` to the policy
+  // ---- Observability (@maralito/observability). ALL OPTIONAL so dev builds don't break: with no
+  // SENTRY_DSN, error capture is a silent no-op and structured logging still goes to stdout.
+  // The DSN authorises writes to the Sentry project, so it is server-only — never NEXT_PUBLIC. ----
+  SENTRY_DSN: z.string().url().optional(), // https://<publicKey>@<host>/<projectId>
+  SENTRY_RELEASE: z.string().min(1).optional(), // falls back to VERCEL_GIT_COMMIT_SHA
+  OBSERVABILITY_SERVICE: z.string().min(1).optional(), // log `service` field; default 'borderpass'
+  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(), // accepted; tracing NOT wired yet
+  // PostHog is browser-side product analytics — publishable by design, hence NEXT_PUBLIC.
+  // Accepted and reported as `unwired`; wiring it needs the posthog-js dependency.
+  NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
+  NEXT_PUBLIC_POSTHOG_HOST: z.string().url().optional(),
 });
 
 let cached: z.infer<typeof serverSchema> | null = null;
+
+/**
+ * Clear the parsed-env cache. TEST ONLY — mirrors `__resetStripeClientForTests` in
+ * `@maralito/payments`. Without this, a suite that mutates `process.env` between cases keeps reading
+ * the first parse (e.g. a key it just deleted still looks present).
+ */
+export function __resetServerEnvForTests(): void {
+  cached = null;
+}
 /** Lazy parse so build doesn't fail when envs are absent; throws clearly at first server use. */
 export function getServerEnv() {
   if (!cached) cached = serverSchema.parse(process.env);

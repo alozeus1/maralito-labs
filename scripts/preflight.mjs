@@ -40,6 +40,10 @@ run(
   'client Stripe boundary (check:client-stripe)',
   'node scripts/check-client-stripe-boundary.mjs',
 );
+run(
+  'server-only boundary for edge-imported modules (check:server-only)',
+  'node scripts/check-server-only-boundary.mjs',
+);
 checkFile('.env.example has Supabase + Stripe + DB keys', '.env.example', [
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_ANON_KEY',
@@ -48,16 +52,32 @@ checkFile('.env.example has Supabase + Stripe + DB keys', '.env.example', [
   'STRIPE_WEBHOOK_SECRET',
   'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
 ]);
-checkFile('all RLS policy files present', 'packages/db/src/rls/policies.sql');
-for (const f of [
-  'orders-policies.sql',
-  'quotes-policies.sql',
-  'payments-policies.sql',
-  'notifications-policies.sql',
-  'inspections-policies.sql',
-  'delivery-preparations-policies.sql',
-]) {
-  checkFile(`  rls/${f}`, `packages/db/src/rls/${f}`);
+// RLS policy coverage — driven by the CANONICAL registry (Phase 9 / D1). The registry validates in
+// both directions, so a policy file added to packages/db/src/rls/ without being registered (and
+// therefore applied by nothing — a FAIL-OPEN risk) fails this gate.
+{
+  const { RLS_POLICY_FILES, validateRlsRegistry } = await import(
+    '../packages/db/src/rls/registry.mjs'
+  );
+  const r = validateRlsRegistry();
+  process.stdout.write('• RLS policy registry in sync (canonical, fail-closed) ... ');
+  if (r.ok) {
+    console.log(`PASS (${RLS_POLICY_FILES.length} files, application order pinned)`);
+  } else {
+    failed++;
+    console.log('FAIL');
+    if (r.unregistered.length) {
+      console.log(
+        `   UNREGISTERED (on disk, applied by NOTHING → those tables may end up with NO RLS): ${r.unregistered.join(', ')}`,
+      );
+      console.log('   → add them to RLS_POLICY_FILES in packages/db/src/rls/registry.mjs');
+    }
+    if (r.missing.length) console.log(`   MISSING on disk: ${r.missing.join(', ')}`);
+    if (r.duplicates.length) console.log(`   DUPLICATED: ${r.duplicates.join(', ')}`);
+  }
+  for (const f of RLS_POLICY_FILES) {
+    checkFile(`  rls/${f}`, `packages/db/src/rls/${f}`);
+  }
 }
 checkFile('live-rls-gate script present', 'packages/db/scripts/live-rls-gate.ts', [
   'DATABASE_URL',

@@ -53,10 +53,19 @@ Deferred features will require storing real customer PII/address content that is
 - **Access / audit controls + break-glass:** defined at Option B implementation time; not required for the current synthetic-only dev posture.
 - **Decided by / date:** Godwill (owner) / 2026-07-01.
 
+## Implementation status (Phase 8B, ADR-0017)
+
+- ✅ **Option B seam IMPLEMENTED (dev-only):** `@maralito/crypto` — AES-256-GCM envelope encryption + KMS
+  provider abstraction. Local dev provider is **fail-closed in production**; AWS/GCP adapters throw until wired.
+  Verified 9/9 offline (round-trip, tamper-reject, wrong-key, prod-refusal). See `docs/decisions/adr/0017-*.md`.
+- 🔲 **STILL REQUIRED before any real PII:** implement + configure a **cloud-KMS provider** (AWS/GCP), validate
+  it, and obtain **owner sign-off**. The dev provider must NOT protect real production PII.
+
 ## Status
 
 ```
-DECIDED — OWNER-SIGNED 2026-07-01 (dev-only posture; Option B required before real PII)
+DECIDED — OWNER-SIGNED 2026-07-01 (dev-only posture). Option B SEAM implemented dev-only (ADR-0017);
+real PII still gated on cloud-KMS provider + validation + owner sign-off.
 ```
 
 Gate row 16 in `docs/phase-7/gate-ledger.md` = ✅ (decision recorded). **Guardrail still in force:** BorderPass stores **no real address/PII/RFC/KYC** content until the Option B KMS approach is implemented + validated. That implementation is a future increment (not Phase 7).

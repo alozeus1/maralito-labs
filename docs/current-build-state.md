@@ -1,3 +1,15 @@
+> # ⚠️ SUPERSEDED — NOT THE SOURCE OF TRUTH (as of 2026-07-28)
+>
+> This document describes the repo as of **Phase 6**. It is now materially wrong — it states
+> "nothing is deployed" and lists blockers that have since closed. Phases 7, 8A, 8B, 8C and 8D have
+> all landed since it was written.
+>
+> **Use instead:**
+> - Gate status → [`docs/phase-7/gate-ledger.md`](./phase-7/gate-ledger.md)
+> - Production readiness → [`docs/production-readiness/current-state.md`](./production-readiness/current-state.md)
+>
+> Retained for history. Nothing below this banner should be relied on.
+
 # BorderPass — Current Build State
 
 > Single source of truth for "where we are." Update at the end of every phase/patch.

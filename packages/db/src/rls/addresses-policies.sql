@@ -3,10 +3,13 @@
 -- cannot read address PII — fulfillment references the opaque address id on the order instead.
 alter table addresses enable row level security;
 
+drop policy if exists addresses_customer_select on addresses;
 create policy addresses_customer_select on addresses for select
   using (customer_id in (select id from customer_profiles where auth_user_id = auth.uid()));
+drop policy if exists addresses_customer_insert on addresses;
 create policy addresses_customer_insert on addresses for insert
   with check (customer_id in (select id from customer_profiles where auth_user_id = auth.uid()));
+drop policy if exists addresses_customer_update on addresses;
 create policy addresses_customer_update on addresses for update
   using (customer_id in (select id from customer_profiles where auth_user_id = auth.uid()))
   with check (customer_id in (select id from customer_profiles where auth_user_id = auth.uid()));

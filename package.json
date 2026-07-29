@@ -17,7 +17,8 @@
     "check:db-imports": "node scripts/check-db-imports.mjs",
     "check:client-stripe": "node scripts/check-client-stripe-boundary.mjs",
     "preflight": "node scripts/preflight.mjs",
-    "gate:rls": "pnpm --filter @maralito/db gate:rls"
+    "gate:rls": "pnpm --filter @maralito/db gate:rls",
+    "check:server-only": "node scripts/check-server-only-boundary.mjs"
   },
   "devDependencies": {
     "eslint": "9.39.4",

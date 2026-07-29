@@ -43,28 +43,27 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Apply migrations
         run: pnpm --filter @maralito/db db:migrate
-      - name: Apply RLS policies (all 7 files, foundation first)
+      # Fail the job BEFORE touching the database if any policy file on disk is unregistered.
+      # An unregistered file is applied by nothing, which would leave its tables with NO RLS
+      # (fail-open). See packages/db/src/rls/registry.mjs (Phase 9 / defect D1).
+      - name: Verify RLS policy registry is in sync (fail-closed)
+        run: node packages/db/src/rls/registry.mjs --check
+
+      - name: Apply ALL registered RLS policies (canonical order from the registry)
         run: |
           set -euo pipefail
-          RLS_DIR=packages/db/src/rls
-          # Order matters: policies.sql defines roles/helpers the domain files depend on.
-          FILES=(
-            policies.sql
-            orders-policies.sql
-            quotes-policies.sql
-            payments-policies.sql
-            notifications-policies.sql
-            inspections-policies.sql
-            delivery-preparations-policies.sql
-          )
+          # The registry is the single source of truth for both the file set and the order.
+          # --list re-validates and refuses to emit a partial list.
+          mapfile -t FILES < <(node packages/db/src/rls/registry.mjs --list)
+          echo "Applying ${#FILES[@]} registered policy files"
           for f in "${FILES[@]}"; do
-            echo "::group::apply $f"
-            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$RLS_DIR/$f"
+            echo "::group::apply $(basename "$f")"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f"
             echo "::endgroup::"
           done
       - name: Apply dev seed (synthetic org + roles; no PII)
         run: pnpm --filter @maralito/db db:seed
-      - name: Live RLS isolation gate (all 7 policy files)
+      - name: Live RLS isolation gate (all registered policy files)
         run: pnpm --filter @maralito/db gate:rls
       # OTP smoke, Stripe test-mode smoke, KMS + preview-branching decisions are documented manual steps
       # (docs/phase-7/live-gate-runbook.md) — they are not auto-run here.

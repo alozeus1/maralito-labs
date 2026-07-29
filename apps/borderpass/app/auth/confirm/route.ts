@@ -3,6 +3,7 @@ import type { EmailOtpType } from '@supabase/supabase-js';
 import { getServerSupabase } from '@/server/supabase';
 import { auditSignIn } from '@/server/auth-events';
 import { provisionAuthenticatedUser } from '@/server/provisioning';
+import { recordLoginSession } from '@/server/session-guard';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,9 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
     if (!error && data.user) {
       await provisionAuthenticatedUser(data.user.id, data.user.email ?? undefined);
+      // Session registry (dark by default) — see the note in /auth/callback. No-op unless the flag
+      // is exactly 'on'; always best-effort, so it can never block a successful confirmation.
+      await recordLoginSession(data.user.id);
       await auditSignIn(data.user.id, true);
       return NextResponse.redirect(`${origin}${next}`);
     }

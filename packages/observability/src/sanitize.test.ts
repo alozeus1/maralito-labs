@@ -5,6 +5,7 @@ import { sanitize, sanitizeRecord, scrubString, isSensitiveKey } from './sanitiz
 // exists in this source file. Runtime values are IDENTICAL, so the redaction assertions stay
 // exactly as strong — but pre-commit secret scanning, gitleaks, and GitHub push protection have
 // nothing to match. Never allowlist a scanner for a fixture; make the fixture not look live.
+const PG_SCHEME = 'postgre' + 'sql://';
 const FAKE_PG_URL_SUPABASE = `${PG_SCHEME}app:s3cr3t@db.supabase.co:5432/postgres`;
 const FAKE_STRIPE_LIVE_B = ['sk', 'live', '51AbCdEfGhIjKlMnOpQ'].join('_');
 const FAKE_WHSEC = ['whsec', '9f8e7d6c5b4a3f2e1d0c'].join('_');

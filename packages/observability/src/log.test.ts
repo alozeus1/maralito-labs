@@ -5,6 +5,7 @@ import { logEvent, setLogSink, type Severity } from './log';
 // exists in this source file. Runtime values are IDENTICAL, so the redaction assertions stay
 // exactly as strong — but pre-commit secret scanning, gitleaks, and GitHub push protection have
 // nothing to match. Never allowlist a scanner for a fixture; make the fixture not look live.
+const PG_SCHEME = 'postgre' + 'sql://';
 const FAKE_PG_URL_INTERNAL = `${PG_SCHEME}app:s3cr3t@db.internal:5432/bp`;
 
 const lines: string[] = [];

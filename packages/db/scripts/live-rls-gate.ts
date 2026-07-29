@@ -15,6 +15,7 @@
  * This script ASSERTS RLS — it does not create tables/policies (the operator applies those first).
  */
 import postgres from 'postgres';
+import { readFileSync } from 'node:fs';
 
 const url = process.env.DATABASE_URL;
 if (!url) {
@@ -59,6 +60,68 @@ async function asTenant<T>(
 const count = async (q: postgres.TransactionSql, table: string, where = '') =>
   Number((await q.unsafe(`select count(*)::int n from ${table} ${where}`))[0].n);
 
+/**
+ * RLS COVERAGE GATE (Phase 9 / defect D1).
+ *
+ * The isolation checks below only exercise the handful of domains they were written for. On
+ * 2026-07-28 this gate reported "13 passed, 0 failed" against a live database in which `addresses`
+ * (the PII table), `messages`, and the email-event tables DID NOT EXIST AT ALL — their migrations had
+ * silently never applied. A green gate was therefore not evidence of anything.
+ *
+ * This check closes that hole generically: it derives the full set of tables that the CANONICAL
+ * policy registry claims to protect (every `alter table X enable row level security` across all
+ * registered files) and asserts, for each one, that the table exists AND has rowsecurity = true.
+ *
+ * It needs no maintenance — registering a new policy file automatically extends the gate.
+ */
+async function checkRlsCoverage(): Promise<void> {
+  const { RLS_POLICY_FILES, rlsPolicyPath, assertRlsRegistryValid } = await import(
+    '../src/rls/registry.mjs'
+  );
+  try {
+    assertRlsRegistryValid(); // registry must agree with disk before we trust it
+    check('rls-coverage: policy registry in sync', true, `${RLS_POLICY_FILES.length} files`);
+  } catch (e) {
+    check('rls-coverage: policy registry in sync', false, String(e));
+    return;
+  }
+
+  // Derive the protected-table set from the policy files themselves.
+  const expected = new Map<string, string>(); // table -> declaring file
+  const re = /alter\s+table\s+(?:"?public"?\.)?"?([a-z_][a-z0-9_]*)"?\s+enable\s+row\s+level\s+security/gi;
+  for (const name of RLS_POLICY_FILES) {
+    const sqlText = readFileSync(rlsPolicyPath(name), 'utf8');
+    for (const m of sqlText.matchAll(re)) if (m[1] && !expected.has(m[1])) expected.set(m[1], name);
+  }
+  if (expected.size === 0) {
+    check('rls-coverage: parsed protected tables', false, 'parsed 0 tables — parser or files broken');
+    return;
+  }
+
+  const rows = await sql<{ tablename: string; rowsecurity: boolean }[]>`
+    select tablename, rowsecurity from pg_tables where schemaname = 'public'`;
+  const live = new Map(rows.map((r) => [r.tablename, r.rowsecurity]));
+
+  const missing: string[] = [];
+  const unprotected: string[] = [];
+  for (const [table, file] of expected) {
+    const rowsecurity = live.get(table);
+    if (rowsecurity === undefined) missing.push(`${table} (${file})`);
+    else if (!rowsecurity) unprotected.push(`${table} (${file})`);
+  }
+
+  check(
+    `rls-coverage: all ${expected.size} registered tables exist`,
+    missing.length === 0,
+    missing.length ? `MISSING (migration not applied?): ${missing.join(', ')}` : `${expected.size} tables`,
+  );
+  check(
+    `rls-coverage: all ${expected.size} registered tables have RLS enabled`,
+    unprotected.length === 0,
+    unprotected.length ? `RLS OFF (fail-open!): ${unprotected.join(', ')}` : 'rowsecurity=true for all',
+  );
+}
+
 async function main() {
   // 1-3. connection + role assumption + claims read
   try {
@@ -67,6 +130,9 @@ async function main() {
   } catch (e) {
     check('1 DATABASE_URL connection', false, String(e));
   }
+  // Coverage gate (D1) — must run before isolation checks so a missing table is reported plainly.
+  await checkRlsCoverage();
+
   let canAssume = false;
   try {
     await sql.begin(async (tx) => {

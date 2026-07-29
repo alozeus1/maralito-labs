@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { resolveRateLimitPolicy, enforceRateLimit } from '@/server/rate-limit';
 
 // Public paths (no session required). Route groups don't appear in the URL, so we gate by path.
 const PUBLIC_PREFIXES = [
@@ -14,11 +15,30 @@ const PUBLIC_PREFIXES = [
   // own signature verification (fail-closed) inside the route. Must bypass the auth redirect gate.
   '/api/stripe/webhook',
   '/api/webhooks/resend',
+  // Automation (n8n) endpoints: same reasoning — no session cookie. Every route under this prefix
+  // MUST fail closed on the `x-borderpass-secret` shared secret (constant-time `secretOk` vs
+  // N8N_WEBHOOK_SECRET) before doing any work. Without this bypass the auth gate 302s them to
+  // /login and the workflow silently "succeeds" against an HTML page instead of the API.
+  '/api/automation',
 ];
 const isPublic = (p: string) => PUBLIC_PREFIXES.some((x) => p === x || p.startsWith(x + '/'));
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
+
+  // ---- Rate limiting (Phase 9) --------------------------------------------------------------
+  // Runs FIRST — before the Supabase session lookup — so abusive traffic can't drive auth calls or
+  // DB work. Only paths with a matching policy are limited (OTP/login, auth callback, order create,
+  // quote actions, payment initiation, automation APIs, Stripe webhook); everything else is
+  // untouched. Denials return JSON 429 + Retry-After, never an HTML page.
+  // FAIL CLOSED: in production with no durable store configured, limited routes are denied by
+  // design (see docs/production-readiness/rate-limiting-and-headers.md — provision the store).
+  const rlPolicy = resolveRateLimitPolicy(req.nextUrl.pathname, req.method);
+  if (rlPolicy) {
+    const denied = await enforceRateLimit(req, rlPolicy);
+    if (denied) return denied;
+  }
+
   // Dev-only tooling under /api/dev/* is never served in production (each route 404s there), so it
   // doesn't need a session in local/dev. Bypass the auth gate for it outside production only.
   if (process.env.NODE_ENV !== 'production' && req.nextUrl.pathname.startsWith('/api/dev/')) {

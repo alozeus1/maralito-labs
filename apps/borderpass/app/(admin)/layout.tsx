@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { getAppSession } from '@/server/auth';
 import { requireAdminAccess } from '@maralito/auth';
 import { auditAccessDenied, signOut } from '@/server/auth-events';
+import { guardSession } from '@/server/session-guard';
 
 // Staff console shell (Stitch): glass top bar + nav over the admin guard. Session data is never
 // rendered. Guarded to staff/admin roles only.
@@ -15,6 +16,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   } catch {
     await auditAccessDenied(session.sub, session.orgId, 'admin');
     redirect('/unauthorized');
+  }
+
+  // Session registry gate — identical contract to the customer shell. No work at all while
+  // BORDERPASS_SESSION_ENFORCEMENT is unset/off; fail-closed once it is exactly 'on'.
+  // NOTE: `redirect()` throws a Next control-flow signal — it must stay outside any try/catch.
+  if (await guardSession({ surface: 'admin', authUserId: session.sub, orgId: session.orgId })) {
+    redirect('/login?reason=session');
   }
 
   async function signOutAction() {

@@ -2,8 +2,8 @@
 
 > ADR-0013 · **Single source of truth for gate status.** A box is ticked **only** after the gate was actually
 > executed and passed in the real environment. **Current state (2026-07-08):** rows 1–14 + 16–17 ✅ (incl.
-> **row 11 ✅ PASS**); row 18 rotation done + propagated (🟡 optional cleanup); row 19 conditional Option B now
-> activatable; **row 15 (Stripe LIVE) deferred.** Development-only until every required gate is checked +
+> **row 11 ✅ PASS**); **rows 18 + 19 ✅ CLOSED (owner-attested 2026-07-15)**; **row 15 (Stripe LIVE)
+> deferred.** Phase 7 is closed except the deferred Stripe-LIVE row. Development-only until every required gate is checked +
 > owner-signed. Do not claim staging/pilot/production/real-payment/real-PII readiness.
 
 | # | Gate | How to run | Status | Run by / date | Evidence |
@@ -25,8 +25,8 @@
 | 15 | Stripe LIVE validation (before real payments) | operator | 🔲 UNRUN | | Stripe LIVE validation deferred. TEST-mode Stripe validation is already proven in rows 12–14 (redacted evidence: `run-logs/stripe-gate-20260701T2137Z.md`). LIVE validation requires explicit owner approval and live-mode keys before any real payments. |
 | 16 | KMS / secret-management decision | `decision-kms.md` | ✅ PASS (owner-signed) | Godwill / 2026-07-01 | Ratified: managed secrets dev-only; **Cloud KMS envelope encryption required before any real PII/RFC/KYC/address**. Decision recorded; implementation is a future increment. |
 | 17 | Preview-branching decision | `decision-preview-branching.md` | ✅ PASS (owner-signed) | Godwill / 2026-07-01 | Ratified: **defer** preview branching (Option C) until row 18 + isolation-model choice. No real PII in previews. |
-| 18 | Env/secrets review | `env-secrets-review.md` | 🟡 PARTIAL — NOT fully closed | Godwill / 2026-07-01 | Review recorded for dev-only gates (guards green, no server secret in `NEXT_PUBLIC_`, `.env*` gitignored, CI secret-scan + Semgrep 0 findings). **BUT exposed Supabase `service_role`/secret key + DB password rotation remains REQUIRED BEFORE PRIVATE TESTERS. Do not treat Row 18 as closed until rotation evidence is recorded.** |
-| 19 | Deployment readiness sign-off | `deployment-readiness-checklist.md` | 🟡 CONDITIONAL (owner-signed Option B) | Godwill / 2026-07-05 | Owner selected **Option B** of `owner-signoff-packet.md` in writing: synthetic private mobile tester round approved **conditionally — effective only after Row 11 passes with evidence and Row 18's open action closes**. No gate waived; **testers remain BLOCKED** until rows 11 + 18 close. |
+| 18 | Env/secrets review | `env-secrets-review.md` | ✅ CLOSED (owner-attested) | Godwill / 2026-07-15 | Dev-only review previously recorded (guards green, no server secret in `NEXT_PUBLIC_`, `.env*` gitignored, CI secret-scan + Semgrep 0 findings). Rotation done + propagated (row 11 ran on rotated keys/DB password, `run-logs/otp-smoke-20260708T045425Z.md`). **2026-07-15 — owner (Godwill) attests the remaining open actions are complete** (old keys removed from Supabase *Previously used keys*; rotated `DATABASE_URL` set on Vercel Preview). Row 18 closed by owner attestation. |
+| 19 | Deployment readiness sign-off | `deployment-readiness-checklist.md` | ✅ PASS (owner sign-off) | Godwill / 2026-07-15 | Owner's **Option B** conditional approval (2026-07-05) activated: its condition (row 11 PASS + row 18 closed) is now met. **2026-07-15 — owner confirms sign-off for the synthetic private tester round.** Scope unchanged: synthetic-only, Stripe TEST, no real PII. Row 15 (Stripe LIVE) remains deferred. |
 
 **Rule:** do not claim staging/pilot/production/real-payment/real-PII readiness while any required box is 🔲.
 Locally-verifiable *tooling* for these gates is built and tested (see the completion report), but the gates

@@ -9,17 +9,22 @@ alter table delivery_prep_status_history   enable row level security;
 
 -- Delivery preparations: customer reads OWN records; staff read + manage org-scoped.
 -- (staff_notes + delivery_address_ref are columns → hidden from customers by APP PROJECTION later.)
+drop policy if exists delivery_prep_customer_select on delivery_preparations;
 create policy delivery_prep_customer_select on delivery_preparations for select
   using (customer_id in (select id from customer_profiles where auth_user_id = auth.uid()));
+drop policy if exists delivery_prep_staff_select on delivery_preparations;
 create policy delivery_prep_staff_select on delivery_preparations for select
   using (org_id = app_current_org_id() and app_is_staff());
+drop policy if exists delivery_prep_staff_insert on delivery_preparations;
 create policy delivery_prep_staff_insert on delivery_preparations for insert
   with check (org_id = app_current_org_id() and app_is_staff());
+drop policy if exists delivery_prep_staff_update on delivery_preparations;
 create policy delivery_prep_staff_update on delivery_preparations for update
   using (org_id = app_current_org_id() and app_is_staff())
   with check (org_id = app_current_org_id() and app_is_staff());
 
 -- Status history: STAFF read only (customers never read the history ledger directly).
+drop policy if exists delivery_prep_history_staff_select on delivery_prep_status_history;
 create policy delivery_prep_history_staff_select on delivery_prep_status_history for select
   using (org_id = app_current_org_id() and app_is_staff());
 
@@ -27,3 +32,9 @@ grant select, insert, update on delivery_preparations to authenticated;
 grant select on delivery_prep_status_history to authenticated;
 
 -- History writes run via the privileged/staff seam (audited). No customer access to history.
+
+-- Phase 8B (ADR-0017) — encrypted_pii: PRIVILEGED-ONLY. RLS enabled with NO policy → neither customers nor
+-- staff can read the ciphertext via a tenant session. Encrypt/decrypt happens only in the server-only PII
+-- vault seam (withPrivilegedDbAccess). Ciphertext is opaque anyway; this keeps the KEK-gated blobs out of reach.
+alter table encrypted_pii enable row level security;
+-- (intentionally no CREATE POLICY: authenticated role can never select/insert/update encrypted_pii)

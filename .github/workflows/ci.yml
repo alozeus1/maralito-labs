@@ -33,6 +33,16 @@ jobs:
         run: pnpm check:db-imports
       - name: Client Stripe boundary guard
         run: pnpm check:client-stripe
+      # Phase 9 / defect D4 — `rate-limit.ts` is imported by middleware (edge runtime) so it cannot
+      # carry the `server-only` marker (that marker throws outside the react-server condition and
+      # would crash every request). This guard restores the equivalent client-bundle protection.
+      - name: Server-only boundary guard (edge-safe modules)
+        run: pnpm check:server-only
+      # Phase 9 / defect D1 — blocking on EVERY PR (not just the secret-gated live-gates workflow).
+      # An RLS policy file present on disk but absent from the canonical registry is applied by no
+      # provisioning path, so its tables would end up with NO row-level security (fail-open).
+      - name: RLS policy registry in sync (fail-closed)
+        run: node packages/db/src/rls/registry.mjs --check
       - name: Unit tests
         run: pnpm test
       - name: Build

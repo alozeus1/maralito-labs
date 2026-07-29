@@ -13,7 +13,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx src/seed/dev-seed.ts",
     "test:rls": "vitest run tests/rls.isolation.test.ts",
-    "gate:rls": "tsx scripts/live-rls-gate.ts"
+    "gate:rls": "tsx scripts/live-rls-gate.ts",
+    "db:apply": "node scripts/apply-migrations.mjs"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

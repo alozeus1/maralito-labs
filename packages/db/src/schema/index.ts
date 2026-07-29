@@ -12,3 +12,6 @@ export * from './inspections';
 export * from './delivery-preparations';
 export * from './messages';
 export * from './addresses';
+export * from './pii';
+export * from './sessions';
+export * from './consents';

@@ -29,3 +29,8 @@ spike/**/.checkpoint*
 
 # local operator evidence (may contain environment-specific details)
 /docs/phase-7/run-logs/
+
+# generated StudioOS catalog snapshot (rebuild from the external asset root)
+/apps/studio-os/var/
+.vercel
+.env*

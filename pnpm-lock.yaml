@@ -37,6 +37,9 @@ importers:
       '@maralito/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@maralito/crypto':
+        specifier: workspace:*
+        version: link:../../packages/crypto
       '@maralito/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -256,6 +259,18 @@ importers:
       typescript-eslint:
         specifier: 8.62.0
         version: 8.62.0(eslint@9.39.4(jiti@1.21.7))(typescript@5.9.3)
+
+  packages/crypto:
+    devDependencies:
+      '@maralito/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+      vitest:
+        specifier: 3.2.6
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.20.0)(jiti@1.21.7)(jsdom@25.0.1)(tsx@4.22.4)(yaml@2.9.0)
 
   packages/db:
     dependencies:

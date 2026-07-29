@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getAppSession } from '@/server/auth';
 import { requireCustomerAccess } from '@maralito/auth';
 import { auditAccessDenied, signOut } from '@/server/auth-events';
+import { guardSession } from '@/server/session-guard';
 import { getLocale } from '@/server/locale';
 import { getMessages } from '@/i18n';
 import { TopBar } from '../_components/TopBar';
@@ -17,6 +18,15 @@ export default async function CustomerLayout({ children }: { children: React.Rea
   } catch {
     await auditAccessDenied(session.sub, session.orgId, 'customer');
     redirect('/unauthorized');
+  }
+
+  // Session registry gate (Node runtime — middleware.ts is Edge and cannot reach the database).
+  // Returns null and does NO work unless BORDERPASS_SESSION_ENFORCEMENT === 'on'; once on it is
+  // fail-closed, so expired / revoked / device-limit-evicted / unverifiable sessions are denied.
+  // The precise reason is in the audit log; the URL carries only a coarse marker.
+  // NOTE: `redirect()` throws a Next control-flow signal — it must stay outside any try/catch.
+  if (await guardSession({ surface: 'customer', authUserId: session.sub, orgId: session.orgId })) {
+    redirect('/login?reason=session');
   }
 
   async function signOutAction() {

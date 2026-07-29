@@ -63,6 +63,7 @@ beforeAll(async () => {
     create table inspection_status_history(id text primary key, org_id text not null, inspection_id text not null, order_id text not null, from_status text, to_status text not null, actor_user_id text, actor_role text, reason text, created_at timestamptz default now());
     create table delivery_preparations(id text primary key, org_id text not null, customer_id text not null, order_id text not null, status text not null default 'pending', delivery_address_ref text, scheduled_window_start timestamptz, scheduled_window_end timestamptz, staff_notes text, customer_summary text, created_at timestamptz default now(), updated_at timestamptz default now());
     create table delivery_prep_status_history(id text primary key, org_id text not null, delivery_prep_id text not null, order_id text not null, from_status text, to_status text not null, actor_user_id text, actor_role text, reason text, created_at timestamptz default now());
+    create table encrypted_pii(id text primary key, org_id text not null, subject_type text not null, subject_ref text not null, ciphertext jsonb not null, key_ref text not null, created_at timestamptz default now(), updated_at timestamptz default now());
     create role authenticated nologin;
     grant usage on schema public, auth to authenticated;
     grant select, insert, update on all tables in schema public to authenticated;
@@ -89,6 +90,7 @@ beforeAll(async () => {
     insert into orders(id,order_ref,customer_id,org_id,status,correlation_id) values('ord_a','BP-1','cust_a','org_a','arrived_juarez','ord_a'),('ord_b','BP-2','cust_b','org_a','arrived_juarez','ord_b');
     insert into delivery_preparations(id,org_id,customer_id,order_id,status,delivery_address_ref,staff_notes,customer_summary) values('dlp_a','org_a','cust_a','ord_a','preparing','addr_ref_opaque','internal','Preparing your delivery');
     insert into delivery_prep_status_history(id,org_id,delivery_prep_id,order_id,to_status) values('dph_a','org_a','dlp_a','ord_a','preparing');
+    insert into encrypted_pii(id,org_id,subject_type,subject_ref,ciphertext,key_ref) values('epi_a','org_a','delivery_address','addr_ref_opaque','{"v":1,"alg":"AES-256-GCM","keyRef":"local-dev","iv":"x","ct":"y","tag":"z","dek":"w"}','local-dev');
   `);
 });
 
@@ -129,6 +131,19 @@ describe('delivery_preparations RLS isolation (real policy files on PGlite)', ()
     expect(
       await asTenant(OPS, () => rows('select id from delivery_prep_status_history')),
     ).toHaveLength(1);
+  });
+  // Phase 8B (ADR-0017): encrypted_pii is PRIVILEGED-ONLY — no tenant (customer OR staff) can read ciphertext.
+  it('encrypted_pii is unreadable by customer AND staff (privileged-only)', async () => {
+    expect(await asTenant(A, () => rows('select * from encrypted_pii'))).toHaveLength(0);
+    expect(await asTenant(OPS, () => rows('select * from encrypted_pii'))).toHaveLength(0);
+  });
+  it('customer cannot INSERT into encrypted_pii (no write policy → rejected/0)', async () => {
+    const inserted = await asTenant(A, () =>
+      rows(
+        "insert into encrypted_pii(id,org_id,subject_type,subject_ref,ciphertext,key_ref) values('epi_x','org_a','delivery_address','r','{}','local-dev') returning id",
+      ).catch(() => []),
+    );
+    expect(inserted).toHaveLength(0);
   });
   it('missing claims → no delivery-preps', async () =>
     expect(await asTenant(null, () => rows('select * from delivery_preparations'))).toHaveLength(

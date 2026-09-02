@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@maralito/auth';
-import { verifyEmailCode } from '../../actions/auth';
+import { requestEmailCode, verifyEmailCode } from '../../actions/auth';
 
 export default function Login() {
   const router = useRouter();
@@ -22,17 +22,16 @@ export default function Login() {
     return createSupabaseBrowserClient(url, anon);
   };
 
+  // The code is requested through a server action (not the browser Supabase client) so the request
+  // POSTs to /login and is rate-limited by the middleware `otpLogin` policy. See actions/auth.ts.
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr('');
     setLoading(true);
     try {
-      const { error } = await client().auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: `${location.origin}/auth/callback` },
-      });
-      if (error) setErr('Could not send the code. Please try again.');
-      else setSent(true);
+      const res = await requestEmailCode(email);
+      if (res.ok) setSent(true);
+      else setErr('Could not send the code. Please try again.');
     } catch {
       setErr('Sign-in is unavailable right now. Please try again shortly.');
     } finally {

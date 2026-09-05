@@ -40,7 +40,10 @@ describe('@maralito/crypto — envelope encryption (Phase 8B, ADR-0017)', () => 
 
   it('rejects a wrong KEK (different key material) on unwrap', async () => {
     const f = await encryptField('secret', provider());
-    const wrong = new LocalDevKmsProvider({ keyMaterial: 'another-dev-secret-abcdefghij', isProduction: false });
+    const wrong = new LocalDevKmsProvider({
+      keyMaterial: 'another-dev-secret-abcdefghij',
+      isProduction: false,
+    });
     await expect(decryptField(f, wrong)).rejects.toThrow();
   });
 
@@ -48,9 +51,9 @@ describe('@maralito/crypto — envelope encryption (Phase 8B, ADR-0017)', () => 
     expect(() => new LocalDevKmsProvider({ keyMaterial: KEY, isProduction: true })).toThrow(
       KmsProviderUnavailableError,
     );
-    expect(() => getKmsProvider({ provider: 'local', localKeyMaterial: KEY, appEnv: 'production' })).toThrow(
-      KmsProviderUnavailableError,
-    );
+    expect(() =>
+      getKmsProvider({ provider: 'local', localKeyMaterial: KEY, appEnv: 'production' }),
+    ).toThrow(KmsProviderUnavailableError);
   });
 
   it('aws/gcp providers throw until wired (no silent misconfig)', () => {

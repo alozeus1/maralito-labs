@@ -4,6 +4,18 @@ packages:
 
 # Supply-chain controls supported by the pinned pnpm 10 release.
 minimumReleaseAge: 10080
+# qs 6.16.0 is the patched release for GHSA-4mjr-xmp4-gh2g (DoS via attacker-controlled
+# isBuffer) and GHSA-x5fp-wj9c-mxmx (array-limit bypass), both of which osv-scanner reports
+# against qs 6.15.3 reached via `@maralito/payments > stripe`. stripe's own `^6.11.0` range
+# already admits it, so no override is needed — only this waiting period held it back.
+# Published 2026-08-29T23:50:15Z, i.e. ~6d17h old when this exception was added, so the
+# 7-day window closes 2026-09-05T23:50:15Z and the exception is a no-op from then on.
+# Owner-approved on 2026-09-05 to take the security fix a few hours early. Version-scoped
+# on purpose (same shape as trustPolicyExclude below): it applies to this one reviewed
+# version and expires by construction — any FUTURE qs release still serves the full 7 days.
+# Remove this entry once the lockfile has moved past 6.16.0.
+minimumReleaseAgeExclude:
+  - 'qs@6.16.0'
 trustPolicy: no-downgrade
 # undici-types 6.21.0 is an old, integrity-pinned type-only package whose
 # historical npm publish lacks trust metadata; keep the exception version-scoped.
@@ -13,8 +25,18 @@ blockExoticSubdeps: true
 
 overrides:
   esbuild: 0.25.12
-  postcss: 8.5.10
+  # GHSA-6g55-p6wh-862q / GHSA-r28c-9q8g-f849 — sourceMappingURL path traversal.
+  # Also forces next's exact `postcss@8.4.31` pin up. 8.5.26 pulls nanoid >=3.3.17,
+  # clearing GHSA nanoid unbounded-loop advisories on the same chain.
+  postcss: 8.5.26
   vite: 6.4.3
+  # next declares `sharp: ^0.34.3 || ^0.35.3` (optional). The 0.34.x branch carries
+  # inherited libvips CVEs; hold the resolution on the patched 0.35.x branch.
+  sharp: 0.35.4
+  # @opentelemetry/sdk-node@0.219.0 (via inngest@3.54.2, the latest release) pins
+  # propagator-jaeger to an exact 2.8.0, which is affected by the OTel DoS advisory.
+  # No inngest release ships the fix, so lift just this package to the patched 2.x.
+  '@opentelemetry/propagator-jaeger': 2.10.0
 
 allowBuilds:
   esbuild: true

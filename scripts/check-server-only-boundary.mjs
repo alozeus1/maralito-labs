@@ -23,7 +23,10 @@ const APP_DIR = resolve('apps/borderpass');
 
 /** Server modules that are edge-imported and therefore must stay `server-only`-free. */
 const EDGE_SAFE_SERVER_MODULES = [
-  { file: 'src/server/rate-limit.ts', specifiers: ['@/server/rate-limit', './rate-limit', '../server/rate-limit'] },
+  {
+    file: 'src/server/rate-limit.ts',
+    specifiers: ['@/server/rate-limit', './rate-limit', '../server/rate-limit'],
+  },
 ];
 
 const SOURCE_EXT = /\.(ts|tsx|js|jsx|mjs)$/;

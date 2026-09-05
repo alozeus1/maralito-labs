@@ -38,7 +38,11 @@ export async function storeEncryptedPII(input: StoreEncryptedPiiInput): Promise<
       })
       .onConflictDoUpdate({
         target: [encryptedPii.orgId, encryptedPii.subjectType, encryptedPii.subjectRef],
-        set: { ciphertext: field as unknown as Record<string, unknown>, keyRef: field.keyRef, updatedAt: new Date() },
+        set: {
+          ciphertext: field as unknown as Record<string, unknown>,
+          keyRef: field.keyRef,
+          updatedAt: new Date(),
+        },
       });
   });
   return { id };
@@ -51,20 +55,22 @@ export async function readDecryptedPII<T = unknown>(args: {
   subjectRef: string;
 }): Promise<T | null> {
   if (!isKmsConfigured()) throw new Error('KMS not configured; cannot read encrypted PII.');
-  const row = await withPrivilegedDbAccess('pii.read', async (db) =>
-    (
-      await db
-        .select({ ciphertext: encryptedPii.ciphertext })
-        .from(encryptedPii)
-        .where(
-          and(
-            eq(encryptedPii.orgId, args.orgId),
-            eq(encryptedPii.subjectType, args.subjectType),
-            eq(encryptedPii.subjectRef, args.subjectRef),
-          ),
-        )
-        .limit(1)
-    )[0] ?? null,
+  const row = await withPrivilegedDbAccess(
+    'pii.read',
+    async (db) =>
+      (
+        await db
+          .select({ ciphertext: encryptedPii.ciphertext })
+          .from(encryptedPii)
+          .where(
+            and(
+              eq(encryptedPii.orgId, args.orgId),
+              eq(encryptedPii.subjectType, args.subjectType),
+              eq(encryptedPii.subjectRef, args.subjectRef),
+            ),
+          )
+          .limit(1)
+      )[0] ?? null,
   );
   if (!row) return null;
   return decryptPII<T>(row.ciphertext as unknown as EncryptedField);
@@ -81,8 +87,17 @@ export interface DeliveryAddress {
   phone?: string;
 }
 export function storeDeliveryAddress(orgId: string, addressRef: string, address: DeliveryAddress) {
-  return storeEncryptedPII({ orgId, subjectType: 'delivery_address', subjectRef: addressRef, value: address });
+  return storeEncryptedPII({
+    orgId,
+    subjectType: 'delivery_address',
+    subjectRef: addressRef,
+    value: address,
+  });
 }
 export function readDeliveryAddress(orgId: string, addressRef: string) {
-  return readDecryptedPII<DeliveryAddress>({ orgId, subjectType: 'delivery_address', subjectRef: addressRef });
+  return readDecryptedPII<DeliveryAddress>({
+    orgId,
+    subjectType: 'delivery_address',
+    subjectRef: addressRef,
+  });
 }

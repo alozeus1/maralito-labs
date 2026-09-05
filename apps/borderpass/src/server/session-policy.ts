@@ -86,7 +86,11 @@ export function resolveSessionPolicy(env: SessionPolicyEnv = {}): SessionPolicy 
     1,
     MAX_MAX_ACTIVE_SESSIONS,
   );
-  return { absoluteLifetimeSeconds: absolute, idleTimeoutSeconds: idle, maxActiveSessions: maxActive };
+  return {
+    absoluteLifetimeSeconds: absolute,
+    idleTimeoutSeconds: idle,
+    maxActiveSessions: maxActive,
+  };
 }
 
 /* ------------------------------------------------------------------ *
@@ -197,7 +201,8 @@ export function evaluateSession(
   if (!session) return { kind: 'unknown' };
   // Structural guard: an unparseable date is corruption, not permission.
   const times = [session.issuedAt, session.absoluteExpiresAt, session.idleExpiresAt];
-  if (times.some((d) => !(d instanceof Date) || Number.isNaN(d.getTime()))) return { kind: 'unknown' };
+  if (times.some((d) => !(d instanceof Date) || Number.isNaN(d.getTime())))
+    return { kind: 'unknown' };
 
   if (session.status === 'revoked') return { kind: 'revoked', sessionId: session.id };
   if (session.status === 'expired')
@@ -227,7 +232,8 @@ export function isWithinAbsoluteLifetime(
   now: Date,
   policy: SessionPolicy = DEFAULT_SESSION_POLICY,
 ): boolean {
-  if (typeof issuedAtEpochSeconds !== 'number' || !Number.isFinite(issuedAtEpochSeconds)) return false;
+  if (typeof issuedAtEpochSeconds !== 'number' || !Number.isFinite(issuedAtEpochSeconds))
+    return false;
   const issuedMs = issuedAtEpochSeconds * 1000;
   // Allow 60s of clock skew for a token minted "in the future"; more than that is not trustworthy.
   if (issuedMs > now.getTime() + 60_000) return false;

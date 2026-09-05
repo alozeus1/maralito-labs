@@ -25,7 +25,10 @@ export function canInitiateRefund(input: {
     return { ok: false, code: 'invalid_amount' };
   const remaining = input.paymentAmountMinor - input.alreadyRefundedMinor;
   if (input.requestedMinor > remaining) return { ok: false, code: 'exceeds_remaining' };
-  const kind = input.alreadyRefundedMinor + input.requestedMinor === input.paymentAmountMinor ? 'full' : 'partial';
+  const kind =
+    input.alreadyRefundedMinor + input.requestedMinor === input.paymentAmountMinor
+      ? 'full'
+      : 'partial';
   return { ok: true, kind };
 }
 

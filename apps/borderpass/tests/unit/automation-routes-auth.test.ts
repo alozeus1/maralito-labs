@@ -18,7 +18,10 @@ import { fakeState, resetFakeState, wasCalled } from '../fakes/automation/state'
 
 // Collaborators are replaced, not the auth: `@/server/automation-auth` stays REAL in every test.
 vi.mock('@/server/env', () => import('../fakes/automation/env'));
-vi.mock('@/server/notification-dispatch', () => import('../fakes/automation/notification-dispatch'));
+vi.mock(
+  '@/server/notification-dispatch',
+  () => import('../fakes/automation/notification-dispatch'),
+);
 vi.mock('@/server/audit', () => import('../fakes/automation/audit'));
 vi.mock('@/server/review-request', () => import('../fakes/automation/review-request'));
 vi.mock('@maralito/db', () => import('../fakes/automation/db'));

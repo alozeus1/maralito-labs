@@ -173,7 +173,9 @@ describe('key derivation — the IP is hashed, never stored or logged raw', () =
     const a = await hashIdentifier(RAW_IP, 'otp_login', {});
     const b = await hashIdentifier(RAW_IP, 'otp_login', {});
     const other = await hashIdentifier(RAW_IP, 'order_create', {});
-    const salted = await hashIdentifier(RAW_IP, 'otp_login', { BORDERPASS_RATE_LIMIT_SALT: 's3cr3t' });
+    const salted = await hashIdentifier(RAW_IP, 'otp_login', {
+      BORDERPASS_RATE_LIMIT_SALT: 's3cr3t',
+    });
     expect(a).toBe(b);
     expect(a).not.toBe(other);
     expect(a).not.toBe(salted);
@@ -267,7 +269,9 @@ describe('createUpstashStore — REST adapter', () => {
   it('assumes a full window when PTTL has no usable expiry', async () => {
     vi.stubGlobal('fetch', () =>
       Promise.resolve(
-        new Response(JSON.stringify([{ result: 1 }, { result: 0 }, { result: -1 }]), { status: 200 }),
+        new Response(JSON.stringify([{ result: 1 }, { result: 0 }, { result: -1 }]), {
+          status: 200,
+        }),
       ),
     );
     const out = await createUpstashStore('https://example.upstash.io', 'tok').incr('k', 60_000);
@@ -286,7 +290,9 @@ describe('createUpstashStore — REST adapter', () => {
 describe('resolveRateLimitPolicy — route mapping', () => {
   it('maps the sensitive routes', () => {
     expect(resolveRateLimitPolicy('/api/stripe/webhook', 'POST')?.name).toBe('stripe_webhook');
-    expect(resolveRateLimitPolicy('/api/automation/review-request', 'POST')?.name).toBe('automation_api');
+    expect(resolveRateLimitPolicy('/api/automation/review-request', 'POST')?.name).toBe(
+      'automation_api',
+    );
     expect(resolveRateLimitPolicy('/auth/callback', 'GET')?.name).toBe('auth_callback');
     expect(resolveRateLimitPolicy('/auth/confirm', 'GET')?.name).toBe('auth_callback');
     expect(resolveRateLimitPolicy('/login', 'POST')?.name).toBe('otp_login');

@@ -73,7 +73,11 @@ export async function getMyOrderDisputes(orderId: string): Promise<Result<Custom
       .where(eq(paymentDisputes.orderId, orderId));
     return {
       ok: true as const,
-      data: rows.map((r) => ({ status: r.status, amount_minor: r.amountMinor, currency: r.currency })),
+      data: rows.map((r) => ({
+        status: r.status,
+        amount_minor: r.amountMinor,
+        currency: r.currency,
+      })),
     };
   });
 }

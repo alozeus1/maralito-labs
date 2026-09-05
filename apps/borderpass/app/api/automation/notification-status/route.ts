@@ -39,10 +39,14 @@ export async function POST(req: Request): Promise<Response> {
   }
   const requested = body.status;
 
-  let outcome: { kind: 'not_found' } | { kind: 'noop' } | { kind: 'conflict'; from: string } | {
-    kind: 'updated';
-    from: string;
-  };
+  let outcome:
+    | { kind: 'not_found' }
+    | { kind: 'noop' }
+    | { kind: 'conflict'; from: string }
+    | {
+        kind: 'updated';
+        from: string;
+      };
   try {
     outcome = await withPrivilegedDbAccess('notifications.status_callback', async (db) => {
       const row = (

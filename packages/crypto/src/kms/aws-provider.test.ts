@@ -151,7 +151,9 @@ describe('toAmzDate / regionFromKeyArn', () => {
   });
   it('extracts the region from key and alias ARNs, and returns undefined otherwise', () => {
     expect(regionFromKeyArn('arn:aws:kms:us-east-2:111122223333:key/abcd-1234')).toBe('us-east-2');
-    expect(regionFromKeyArn('arn:aws:kms:eu-west-1:111122223333:alias/borderpass-pii')).toBe('eu-west-1');
+    expect(regionFromKeyArn('arn:aws:kms:eu-west-1:111122223333:alias/borderpass-pii')).toBe(
+      'eu-west-1',
+    );
     expect(regionFromKeyArn('alias/borderpass-pii')).toBeUndefined();
     expect(regionFromKeyArn('abcd-1234')).toBeUndefined();
   });
@@ -159,7 +161,9 @@ describe('toAmzDate / regionFromKeyArn', () => {
 
 describe('configuration — fail closed', () => {
   it('isAwsKmsConfigured requires key, region and both credentials', () => {
-    expect(isAwsKmsConfigured({ keyId: 'k', region: 'r', accessKeyId: 'a', secretAccessKey: 's' })).toBe(true);
+    expect(
+      isAwsKmsConfigured({ keyId: 'k', region: 'r', accessKeyId: 'a', secretAccessKey: 's' }),
+    ).toBe(true);
     expect(isAwsKmsConfigured({ keyId: 'k', region: 'r', accessKeyId: 'a' })).toBe(false);
     expect(isAwsKmsConfigured({ region: 'r', accessKeyId: 'a', secretAccessKey: 's' })).toBe(false);
     expect(isAwsKmsConfigured({})).toBe(false);
@@ -168,7 +172,11 @@ describe('configuration — fail closed', () => {
   it('createAwsKmsProvider throws naming the MISSING VARIABLES ONLY (never a value)', () => {
     expect(() => createAwsKmsProvider({})).toThrow(KmsProviderUnavailableError);
     try {
-      createAwsKmsProvider({ keyId: 'alias/borderpass-pii', accessKeyId: 'AKIA_x', secretAccessKey: 'shhh' });
+      createAwsKmsProvider({
+        keyId: 'alias/borderpass-pii',
+        accessKeyId: 'AKIA_x',
+        secretAccessKey: 'shhh',
+      });
       throw new Error('expected throw');
     } catch (e) {
       const msg = (e as Error).message;
@@ -199,20 +207,30 @@ function fakeKms() {
     calls.push({ target, body, headers });
     if (target.endsWith('Encrypt')) {
       return new Response(
-        JSON.stringify({ CiphertextBlob: `wrapped:${String(body.Plaintext)}`, KeyId: String(body.KeyId) }),
+        JSON.stringify({
+          CiphertextBlob: `wrapped:${String(body.Plaintext)}`,
+          KeyId: String(body.KeyId),
+        }),
         { status: 200 },
       );
     }
     const blob = String(body.CiphertextBlob);
     if (!blob.startsWith('wrapped:')) {
-      return new Response(JSON.stringify({ __type: 'InvalidCiphertextException' }), { status: 400 });
+      return new Response(JSON.stringify({ __type: 'InvalidCiphertextException' }), {
+        status: 400,
+      });
     }
-    return new Response(JSON.stringify({ Plaintext: blob.slice('wrapped:'.length) }), { status: 200 });
+    return new Response(JSON.stringify({ Plaintext: blob.slice('wrapped:'.length) }), {
+      status: 200,
+    });
   };
   return { calls, fetchImpl };
 }
 
-const provider = (fetchImpl: typeof fetch, over: Partial<ConstructorParameters<typeof AwsKmsProvider>[0]> = {}) =>
+const provider = (
+  fetchImpl: typeof fetch,
+  over: Partial<ConstructorParameters<typeof AwsKmsProvider>[0]> = {},
+) =>
   new AwsKmsProvider({
     keyId: 'arn:aws:kms:us-east-2:111122223333:alias/borderpass-pii',
     region: 'us-east-2',
@@ -234,7 +252,9 @@ describe('AwsKmsProvider — request contract', () => {
     const c = calls[0]!;
     expect(c.target).toBe('TrentService.Encrypt');
     expect(c.headers.get('content-type')).toBe('application/x-amz-json-1.1');
-    expect(c.headers.get('authorization')).toMatch(/^AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE\/20150830\/us-east-2\/kms\/aws4_request, /);
+    expect(c.headers.get('authorization')).toMatch(
+      /^AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE\/20150830\/us-east-2\/kms\/aws4_request, /,
+    );
     expect(c.headers.get('authorization')).not.toContain(SK);
     expect(c.body.KeyId).toBe('arn:aws:kms:us-east-2:111122223333:alias/borderpass-pii');
     expect(c.body.Plaintext).toBe(Buffer.alloc(32, 7).toString('base64'));
@@ -277,7 +297,9 @@ describe('AwsKmsProvider — request contract', () => {
       seenUrl = String(url);
       return fetchImpl(url, init);
     };
-    await provider(wrapped, { endpoint: 'https://kms-fips.us-east-2.amazonaws.com' }).wrapDataKey(Buffer.alloc(32));
+    await provider(wrapped, { endpoint: 'https://kms-fips.us-east-2.amazonaws.com' }).wrapDataKey(
+      Buffer.alloc(32),
+    );
     expect(seenUrl).toBe('https://kms-fips.us-east-2.amazonaws.com/');
   });
 });
@@ -285,11 +307,21 @@ describe('AwsKmsProvider — request contract', () => {
 describe('AwsKmsProvider — fail-closed error handling', () => {
   it('throws (never returns) on a 4xx, exposing only status + sanitized AWS error type', async () => {
     const fetchImpl: typeof fetch = async () =>
-      new Response(JSON.stringify({ __type: 'com.amazonaws.kms#AccessDeniedException', message: 'secret detail' }), {
-        status: 400,
-      });
-    await expect(provider(fetchImpl).wrapDataKey(Buffer.alloc(32))).rejects.toThrow(/HTTP 400 \(AccessDeniedException\)/);
-    await expect(provider(fetchImpl).wrapDataKey(Buffer.alloc(32))).rejects.not.toThrow(/secret detail/);
+      new Response(
+        JSON.stringify({
+          __type: 'com.amazonaws.kms#AccessDeniedException',
+          message: 'secret detail',
+        }),
+        {
+          status: 400,
+        },
+      );
+    await expect(provider(fetchImpl).wrapDataKey(Buffer.alloc(32))).rejects.toThrow(
+      /HTTP 400 \(AccessDeniedException\)/,
+    );
+    await expect(provider(fetchImpl).wrapDataKey(Buffer.alloc(32))).rejects.not.toThrow(
+      /secret detail/,
+    );
   });
 
   it('does NOT retry a non-transient 4xx', async () => {
@@ -308,7 +340,9 @@ describe('AwsKmsProvider — fail-closed error handling', () => {
       n++;
       return new Response('{}', { status: 500 });
     };
-    await expect(provider(fetchImpl, { maxAttempts: 3 }).wrapDataKey(Buffer.alloc(32))).rejects.toThrow(/HTTP 500/);
+    await expect(
+      provider(fetchImpl, { maxAttempts: 3 }).wrapDataKey(Buffer.alloc(32)),
+    ).rejects.toThrow(/HTTP 500/);
     expect(n).toBe(3);
   });
 
@@ -317,10 +351,13 @@ describe('AwsKmsProvider — fail-closed error handling', () => {
     const real = fakeKms();
     const fetchImpl: typeof fetch = async (u, i) => {
       n++;
-      if (n === 1) return new Response(JSON.stringify({ __type: 'ThrottlingException' }), { status: 400 });
+      if (n === 1)
+        return new Response(JSON.stringify({ __type: 'ThrottlingException' }), { status: 400 });
       return real.fetchImpl(u, i);
     };
-    await expect(provider(fetchImpl, { maxAttempts: 3 }).wrapDataKey(Buffer.alloc(32))).resolves.toContain('wrapped:');
+    await expect(
+      provider(fetchImpl, { maxAttempts: 3 }).wrapDataKey(Buffer.alloc(32)),
+    ).resolves.toContain('wrapped:');
     expect(n).toBe(2);
   });
 
@@ -328,26 +365,35 @@ describe('AwsKmsProvider — fail-closed error handling', () => {
     const fetchImpl: typeof fetch = async () => {
       throw new Error('connect ECONNREFUSED 10.0.0.1:443 authorization=AWS4...');
     };
-    await expect(provider(fetchImpl, { maxAttempts: 1 }).wrapDataKey(Buffer.alloc(32))).rejects.toThrow(
-      /AWS KMS Encrypt: network error\.$/,
-    );
+    await expect(
+      provider(fetchImpl, { maxAttempts: 1 }).wrapDataKey(Buffer.alloc(32)),
+    ).rejects.toThrow(/AWS KMS Encrypt: network error\.$/);
   });
 
   it('refuses an empty DEK and an empty wrapped blob', async () => {
     const { fetchImpl } = fakeKms();
-    await expect(provider(fetchImpl).wrapDataKey(Buffer.alloc(0))).rejects.toThrow(KmsProviderUnavailableError);
-    await expect(provider(fetchImpl).unwrapDataKey('')).rejects.toThrow(KmsProviderUnavailableError);
+    await expect(provider(fetchImpl).wrapDataKey(Buffer.alloc(0))).rejects.toThrow(
+      KmsProviderUnavailableError,
+    );
+    await expect(provider(fetchImpl).unwrapDataKey('')).rejects.toThrow(
+      KmsProviderUnavailableError,
+    );
   });
 
   it('throws when Encrypt returns no CiphertextBlob', async () => {
-    const fetchImpl: typeof fetch = async () => new Response(JSON.stringify({ KeyId: 'k' }), { status: 200 });
-    await expect(provider(fetchImpl).wrapDataKey(Buffer.alloc(32))).rejects.toThrow(/no CiphertextBlob/);
+    const fetchImpl: typeof fetch = async () =>
+      new Response(JSON.stringify({ KeyId: 'k' }), { status: 200 });
+    await expect(provider(fetchImpl).wrapDataKey(Buffer.alloc(32))).rejects.toThrow(
+      /no CiphertextBlob/,
+    );
   });
 
   it('surfaces a tampered blob as a KMS rejection (fail-closed, no plaintext)', async () => {
     const { fetchImpl } = fakeKms();
     const p = provider(fetchImpl);
     const wrapped = await p.wrapDataKey(Buffer.alloc(32, 3));
-    await expect(p.unwrapDataKey(`tampered${wrapped}`)).rejects.toThrow(/InvalidCiphertextException/);
+    await expect(p.unwrapDataKey(`tampered${wrapped}`)).rejects.toThrow(
+      /InvalidCiphertextException/,
+    );
   });
 });

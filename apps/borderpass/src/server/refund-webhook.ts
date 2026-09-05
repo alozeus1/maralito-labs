@@ -1,17 +1,8 @@
 import 'server-only';
 import type Stripe from 'stripe';
 import { and, eq } from 'drizzle-orm';
-import {
-  withPrivilegedDbAccess,
-  refunds,
-  payments,
-  paymentDisputes,
-  newId,
-} from '@maralito/db';
-import {
-  isLegalRefundTransition,
-  type RefundStatus,
-} from '@/domain/payments/refund-state-machine';
+import { withPrivilegedDbAccess, refunds, payments, paymentDisputes, newId } from '@maralito/db';
+import { isLegalRefundTransition, type RefundStatus } from '@/domain/payments/refund-state-machine';
 import { paymentRefundCascadeTarget } from '@/domain/payments/refund-rules';
 import { isLegalPaymentTransition, type PaymentStatus } from '@/domain/payments/state-machine';
 import { transitionRefund } from './refund-transitions';
@@ -48,15 +39,24 @@ export async function handleStripeRefundUpdate(event: Stripe.Event): Promise<voi
   const target = mapStripeRefundStatus(obj.status ?? null);
   if (!target) return;
 
-  const row = await withPrivilegedDbAccess('refund.webhook.find', async (db) =>
-    (await db.select().from(refunds).where(eq(refunds.stripeRefundId, obj.id)).limit(1))[0] ?? null,
+  const row = await withPrivilegedDbAccess(
+    'refund.webhook.find',
+    async (db) =>
+      (await db.select().from(refunds).where(eq(refunds.stripeRefundId, obj.id)).limit(1))[0] ??
+      null,
   );
   if (!row) return; // unmatched refund → ignore (initiation records the id before Stripe fires)
 
   const from = row.status as RefundStatus;
   if (isLegalRefundTransition(from, target)) {
     await transitionRefund(
-      { id: row.id, orgId: row.orgId, paymentId: row.paymentId, orderId: row.orderId, status: from },
+      {
+        id: row.id,
+        orgId: row.orgId,
+        paymentId: row.paymentId,
+        orderId: row.orderId,
+        status: from,
+      },
       target,
       SYSTEM,
       { providerEventId: event.id, reason: `webhook.${event.type}` },
@@ -66,7 +66,9 @@ export async function handleStripeRefundUpdate(event: Stripe.Event): Promise<voi
   // Cascade the payment ONLY when this refund reached succeeded.
   if (target === 'succeeded') {
     await withPrivilegedDbAccess('refund.webhook.cascade', async (db) => {
-      const pay = (await db.select().from(payments).where(eq(payments.id, row.paymentId)).limit(1))[0];
+      const pay = (
+        await db.select().from(payments).where(eq(payments.id, row.paymentId)).limit(1)
+      )[0];
       if (!pay) return;
       const succeededRows = await db
         .select({ amountMinor: refunds.amountMinor })
@@ -80,10 +82,20 @@ export async function handleStripeRefundUpdate(event: Stripe.Event): Promise<voi
       );
       if (to && isLegalPaymentTransition(pay.status as PaymentStatus, to)) {
         await transitionPayment(
-          { id: pay.id, orgId: pay.orgId, orderId: pay.orderId, quoteId: pay.quoteId, status: pay.status as PaymentStatus },
+          {
+            id: pay.id,
+            orgId: pay.orgId,
+            orderId: pay.orderId,
+            quoteId: pay.quoteId,
+            status: pay.status as PaymentStatus,
+          },
           to,
           SYSTEM,
-          { eventType: `webhook.${event.type}`, providerEventId: event.id, payloadSummary: { refunded_minor: succeededMinor } },
+          {
+            eventType: `webhook.${event.type}`,
+            providerEventId: event.id,
+            payloadSummary: { refunded_minor: succeededMinor },
+          },
         );
       }
     });
@@ -97,14 +109,21 @@ export async function handleStripeRefundUpdate(event: Stripe.Event): Promise<voi
  */
 export async function handleStripeDispute(event: Stripe.Event): Promise<void> {
   const d = event.data.object as Stripe.Dispute;
-  const pi = typeof d.payment_intent === 'string' ? d.payment_intent : d.payment_intent?.id ?? null;
+  const pi =
+    typeof d.payment_intent === 'string' ? d.payment_intent : (d.payment_intent?.id ?? null);
   if (!pi) return;
 
   await withPrivilegedDbAccess('dispute.webhook.record', async (db) => {
-    const pay = (await db.select().from(payments).where(eq(payments.stripePaymentIntentId, pi)).limit(1))[0];
+    const pay = (
+      await db.select().from(payments).where(eq(payments.stripePaymentIntentId, pi)).limit(1)
+    )[0];
     if (!pay) return;
     const existing = (
-      await db.select().from(paymentDisputes).where(eq(paymentDisputes.stripeDisputeId, d.id)).limit(1)
+      await db
+        .select()
+        .from(paymentDisputes)
+        .where(eq(paymentDisputes.stripeDisputeId, d.id))
+        .limit(1)
     )[0];
     if (existing) {
       await db

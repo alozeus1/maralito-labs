@@ -304,7 +304,9 @@ export function clientIpFromHeaders(headers: Headers): string | null {
     if (first) return first;
   }
   const single =
-    headers.get('x-real-ip') ?? headers.get('cf-connecting-ip') ?? headers.get('x-vercel-forwarded-for');
+    headers.get('x-real-ip') ??
+    headers.get('cf-connecting-ip') ??
+    headers.get('x-vercel-forwarded-for');
   const trimmed = single?.trim();
   return trimmed ? trimmed : null;
 }
@@ -490,12 +492,28 @@ const startsWith = (prefix: string) => (p: string) => p === prefix || p.startsWi
  * actions post back to the page URL), which is what the otpLogin rule catches.
  */
 const ROUTE_RULES: readonly RouteRule[] = [
-  { policy: RATE_LIMIT_POLICIES.stripeWebhook, methods: ['POST'], match: startsWith('/api/stripe/webhook') },
+  {
+    policy: RATE_LIMIT_POLICIES.stripeWebhook,
+    methods: ['POST'],
+    match: startsWith('/api/stripe/webhook'),
+  },
   { policy: RATE_LIMIT_POLICIES.automationApi, methods: [], match: startsWith('/api/automation') },
   { policy: RATE_LIMIT_POLICIES.authCallback, methods: [], match: startsWith('/auth') },
-  { policy: RATE_LIMIT_POLICIES.otpLogin, methods: ['POST'], match: (p) => startsWith('/login')(p) || startsWith('/sign-up')(p) },
-  { policy: RATE_LIMIT_POLICIES.paymentInitiate, methods: ['POST'], match: (p) => /\/pay(\/|$)/.test(p) },
-  { policy: RATE_LIMIT_POLICIES.quoteAction, methods: ['POST'], match: (p) => /\/quotes?(\/|$)/.test(p) },
+  {
+    policy: RATE_LIMIT_POLICIES.otpLogin,
+    methods: ['POST'],
+    match: (p) => startsWith('/login')(p) || startsWith('/sign-up')(p),
+  },
+  {
+    policy: RATE_LIMIT_POLICIES.paymentInitiate,
+    methods: ['POST'],
+    match: (p) => /\/pay(\/|$)/.test(p),
+  },
+  {
+    policy: RATE_LIMIT_POLICIES.quoteAction,
+    methods: ['POST'],
+    match: (p) => /\/quotes?(\/|$)/.test(p),
+  },
   { policy: RATE_LIMIT_POLICIES.orderCreate, methods: ['POST'], match: startsWith('/orders/new') },
 ];
 

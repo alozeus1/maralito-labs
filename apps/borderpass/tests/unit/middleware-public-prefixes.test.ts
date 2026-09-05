@@ -44,7 +44,9 @@ function extractPublicPrefixes(source: string): string[] {
  * the (TypeScript-annotated) real predicate can be evaluated as plain JS without rewriting it.
  */
 function extractIsPublic(source: string, prefixes: readonly string[]): (p: string) => boolean {
-  const match = /const isPublic\s*=\s*\(\s*(\w+)\s*:\s*string\s*\)\s*=>\s*([\s\S]*?);\n/.exec(source);
+  const match = /const isPublic\s*=\s*\(\s*(\w+)\s*:\s*string\s*\)\s*=>\s*([\s\S]*?);\n/.exec(
+    source,
+  );
   if (!match || match[1] === undefined || match[2] === undefined) {
     throw new Error('could not locate the isPublic predicate in middleware.ts');
   }

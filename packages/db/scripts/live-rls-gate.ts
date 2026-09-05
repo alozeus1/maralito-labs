@@ -75,9 +75,8 @@ const count = async (q: postgres.TransactionSql, table: string, where = '') =>
  * It needs no maintenance — registering a new policy file automatically extends the gate.
  */
 async function checkRlsCoverage(): Promise<void> {
-  const { RLS_POLICY_FILES, rlsPolicyPath, assertRlsRegistryValid } = await import(
-    '../src/rls/registry.mjs'
-  );
+  const { RLS_POLICY_FILES, rlsPolicyPath, assertRlsRegistryValid } =
+    await import('../src/rls/registry.mjs');
   try {
     assertRlsRegistryValid(); // registry must agree with disk before we trust it
     check('rls-coverage: policy registry in sync', true, `${RLS_POLICY_FILES.length} files`);
@@ -88,13 +87,18 @@ async function checkRlsCoverage(): Promise<void> {
 
   // Derive the protected-table set from the policy files themselves.
   const expected = new Map<string, string>(); // table -> declaring file
-  const re = /alter\s+table\s+(?:"?public"?\.)?"?([a-z_][a-z0-9_]*)"?\s+enable\s+row\s+level\s+security/gi;
+  const re =
+    /alter\s+table\s+(?:"?public"?\.)?"?([a-z_][a-z0-9_]*)"?\s+enable\s+row\s+level\s+security/gi;
   for (const name of RLS_POLICY_FILES) {
     const sqlText = readFileSync(rlsPolicyPath(name), 'utf8');
     for (const m of sqlText.matchAll(re)) if (m[1] && !expected.has(m[1])) expected.set(m[1], name);
   }
   if (expected.size === 0) {
-    check('rls-coverage: parsed protected tables', false, 'parsed 0 tables — parser or files broken');
+    check(
+      'rls-coverage: parsed protected tables',
+      false,
+      'parsed 0 tables — parser or files broken',
+    );
     return;
   }
 
@@ -113,12 +117,16 @@ async function checkRlsCoverage(): Promise<void> {
   check(
     `rls-coverage: all ${expected.size} registered tables exist`,
     missing.length === 0,
-    missing.length ? `MISSING (migration not applied?): ${missing.join(', ')}` : `${expected.size} tables`,
+    missing.length
+      ? `MISSING (migration not applied?): ${missing.join(', ')}`
+      : `${expected.size} tables`,
   );
   check(
     `rls-coverage: all ${expected.size} registered tables have RLS enabled`,
     unprotected.length === 0,
-    unprotected.length ? `RLS OFF (fail-open!): ${unprotected.join(', ')}` : 'rowsecurity=true for all',
+    unprotected.length
+      ? `RLS OFF (fail-open!): ${unprotected.join(', ')}`
+      : 'rowsecurity=true for all',
   );
 }
 

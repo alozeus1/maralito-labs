@@ -31,7 +31,9 @@ describe('refund state machine (Phase 8D, ADR-0015)', () => {
       expect(isLegalRefundTransition(f, t)).toBe(false);
   });
   it('assert throws on illegal', () => {
-    expect(() => assertRefundTransition('succeeded', 'processing')).toThrow(IllegalRefundTransitionError);
+    expect(() => assertRefundTransition('succeeded', 'processing')).toThrow(
+      IllegalRefundTransitionError,
+    );
   });
   it('terminals are succeeded/failed/canceled', () => {
     for (const s of ['succeeded', 'failed', 'canceled'] as const)

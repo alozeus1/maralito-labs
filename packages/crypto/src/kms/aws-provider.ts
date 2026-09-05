@@ -186,7 +186,8 @@ export function readAwsKmsEnv(env: NodeJS.ProcessEnv = process.env): AwsKmsEnvLi
   const keyId = env.MARALITO_KMS_KEY_ID;
   return {
     keyId,
-    region: env.MARALITO_KMS_REGION ?? env.AWS_REGION ?? (keyId ? regionFromKeyArn(keyId) : undefined),
+    region:
+      env.MARALITO_KMS_REGION ?? env.AWS_REGION ?? (keyId ? regionFromKeyArn(keyId) : undefined),
     accessKeyId: env.AWS_ACCESS_KEY_ID,
     secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
     sessionToken: env.AWS_SESSION_TOKEN,
@@ -213,7 +214,9 @@ export function createAwsKmsProvider(
   if (!env.accessKeyId) missing.push('AWS_ACCESS_KEY_ID');
   if (!env.secretAccessKey) missing.push('AWS_SECRET_ACCESS_KEY');
   if (missing.length > 0) {
-    throw new KmsProviderUnavailableError(`AWS KMS provider is not configured: missing ${missing.join(', ')}.`);
+    throw new KmsProviderUnavailableError(
+      `AWS KMS provider is not configured: missing ${missing.join(', ')}.`,
+    );
   }
   return new AwsKmsProvider({
     keyId: env.keyId!,
@@ -253,7 +256,10 @@ export class AwsKmsProvider implements KmsProvider {
 
     this.keyRef = opts.keyId;
     this.#region = opts.region;
-    this.#endpoint = (opts.endpoint ?? `https://kms.${opts.region}.amazonaws.com`).replace(/\/+$/, '');
+    this.#endpoint = (opts.endpoint ?? `https://kms.${opts.region}.amazonaws.com`).replace(
+      /\/+$/,
+      '',
+    );
     this.#accessKeyId = opts.accessKeyId;
     this.#secretAccessKey = opts.secretAccessKey;
     this.#sessionToken = opts.sessionToken;
@@ -289,12 +295,14 @@ export class AwsKmsProvider implements KmsProvider {
    * → verify current `KeyId`-optional semantics in the official AWS KMS API docs before go-live.
    */
   async unwrapDataKey(wrapped: string): Promise<Buffer> {
-    if (!wrapped) throw new KmsProviderUnavailableError('AWS KMS: refusing to unwrap an empty blob.');
+    if (!wrapped)
+      throw new KmsProviderUnavailableError('AWS KMS: refusing to unwrap an empty blob.');
     const res = await this.#call<{ Plaintext?: string }>('Decrypt', {
       CiphertextBlob: wrapped,
       EncryptionContext: AWS_KMS_ENCRYPTION_CONTEXT,
     });
-    if (!res.Plaintext) throw new KmsProviderUnavailableError('AWS KMS: Decrypt returned no Plaintext.');
+    if (!res.Plaintext)
+      throw new KmsProviderUnavailableError('AWS KMS: Decrypt returned no Plaintext.');
     return Buffer.from(res.Plaintext, 'base64');
   }
 
@@ -378,7 +386,9 @@ async function readAwsErrorType(res: Response): Promise<string | null> {
     const parsed = (await res.json()) as { __type?: unknown };
     const t = parsed.__type;
     // Sanitize: AWS error types are short ASCII identifiers, sometimes prefixed `com.amazonaws…#Name`.
-    return typeof t === 'string' ? (t.split('#').pop() ?? '').replace(/[^A-Za-z0-9_]/g, '').slice(0, 64) || null : null;
+    return typeof t === 'string'
+      ? (t.split('#').pop() ?? '').replace(/[^A-Za-z0-9_]/g, '').slice(0, 64) || null
+      : null;
   } catch {
     return null;
   }

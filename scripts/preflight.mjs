@@ -56,9 +56,8 @@ checkFile('.env.example has Supabase + Stripe + DB keys', '.env.example', [
 // both directions, so a policy file added to packages/db/src/rls/ without being registered (and
 // therefore applied by nothing — a FAIL-OPEN risk) fails this gate.
 {
-  const { RLS_POLICY_FILES, validateRlsRegistry } = await import(
-    '../packages/db/src/rls/registry.mjs'
-  );
+  const { RLS_POLICY_FILES, validateRlsRegistry } =
+    await import('../packages/db/src/rls/registry.mjs');
   const r = validateRlsRegistry();
   process.stdout.write('• RLS policy registry in sync (canonical, fail-closed) ... ');
   if (r.ok) {

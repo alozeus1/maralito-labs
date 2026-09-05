@@ -101,9 +101,7 @@ const FAILED_REGISTRATION: RegisterSessionResult = {
  * Audits: `auth.session_created`, plus `auth.session_revoked_device_limit` /
  * `auth.session_device_limit_reached` / `auth.session_suspicious_new_device` when the cap bites.
  */
-export async function registerSession(
-  input: RegisterSessionInput,
-): Promise<RegisterSessionResult> {
+export async function registerSession(input: RegisterSessionInput): Promise<RegisterSessionResult> {
   if (!dbConfigured() || !input.sessionToken) return FAILED_REGISTRATION;
   const policy = currentPolicy();
   const now = input.now ?? new Date();
@@ -231,12 +229,7 @@ export async function registerSession(
  * ------------------------------------------------------------------ */
 
 export type SessionDenialReason =
-  | 'no_token'
-  | 'unknown'
-  | 'revoked'
-  | 'expired_absolute'
-  | 'expired_idle'
-  | 'unavailable';
+  'no_token' | 'unknown' | 'revoked' | 'expired_absolute' | 'expired_idle' | 'unavailable';
 
 export type SessionVerification =
   | { ok: true; sessionId: string; authUserId: string; orgId: string; idleExpiresAt: Date }
@@ -452,7 +445,9 @@ export async function revokeAllSessionsForUser(input: {
           deviceLabelHash: userSessions.deviceLabelHash,
         })
         .from(userSessions)
-        .where(and(eq(userSessions.authUserId, input.authUserId), eq(userSessions.status, 'active')))
+        .where(
+          and(eq(userSessions.authUserId, input.authUserId), eq(userSessions.status, 'active')),
+        )
         .orderBy(asc(userSessions.issuedAt));
     });
     const ids = sessionIdsToRevokeOnPasswordReset(

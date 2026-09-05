@@ -123,7 +123,9 @@ describe('payments RLS isolation (real policy files on PGlite)', () => {
     expect(await asTenant(OPS, () => rows('select id from refund_status_history'))).toHaveLength(1);
   });
   it('customer reads OWN dispute; other customer sees none; staff sees org', async () => {
-    expect(await asTenant(A, () => rows('select id from payment_disputes'))).toEqual([{ id: 'dsp_a' }]);
+    expect(await asTenant(A, () => rows('select id from payment_disputes'))).toEqual([
+      { id: 'dsp_a' },
+    ]);
     expect(await asTenant(B, () => rows('select * from payment_disputes'))).toHaveLength(0);
     expect(await asTenant(OPS, () => rows('select id from payment_disputes'))).toHaveLength(1);
   });

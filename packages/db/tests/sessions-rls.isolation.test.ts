@@ -169,9 +169,13 @@ describe('user_sessions RLS — no client writes (session forgery / revocation e
   });
 
   it('a customer CANNOT un-revoke a session by flipping status back to active', async () => {
-    await rows("update user_sessions set status='revoked', revoked_reason='device_limit' where id='ses_a2'");
+    await rows(
+      "update user_sessions set status='revoked', revoked_reason='device_limit' where id='ses_a2'",
+    );
     const updated = await asTenant(A, () =>
-      rows("update user_sessions set status='active', revoked_reason=null where id='ses_a2' returning id"),
+      rows(
+        "update user_sessions set status='active', revoked_reason=null where id='ses_a2' returning id",
+      ),
     );
     expect(updated).toHaveLength(0);
     const check = await rows("select status from user_sessions where id='ses_a2'");

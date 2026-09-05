@@ -27,11 +27,20 @@ export {
   type AwsSigV4Input,
   type AwsSigV4Result,
 } from './kms/aws-provider';
-export {
-  readKmsEnv,
-  isKmsConfigured,
-  getKmsProvider,
-  type KmsEnv,
-} from './kms/config';
+export { readKmsEnv, isKmsConfigured, getKmsProvider, type KmsEnv } from './kms/config';
 export { encryptField, decryptField, type EncryptedField } from './envelope';
+/**
+ * AES-256-GCM parameters and decode guards. `AUTH_TAG_LENGTH` is pinned on every cipher and
+ * decipher in this package and validated before `setAuthTag`, so a rewritten stored tag cannot
+ * downgrade integrity verification to a truncated (forgeable) tag. `InvalidCiphertextError`
+ * distinguishes a malformed/tampered envelope from a genuine decryption failure.
+ */
+export {
+  AUTH_TAG_LENGTH,
+  IV_LENGTH,
+  KEY_LENGTH,
+  InvalidCiphertextError,
+  decodeExact,
+  assertExactLength,
+} from './gcm';
 export { encryptPII, decryptPII } from './pii';

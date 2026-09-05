@@ -174,7 +174,7 @@ customers cannot reach it. The webhook remains the sole writer of terminal *paym
 
 Toolchain: **Node 22.22.2**, **pnpm 10.34.4** (matching CI). Local runs on `356a680`.
 
-### CI — latest full-signal run [33978767779](https://github.com/alozeus1/maralito-labs/actions/runs/33978767779) @ `9c0acf0`
+### CI — final run [33982459812](https://github.com/alozeus1/maralito-labs/actions/runs/33982459812) @ `61b974d` — **all four jobs green**
 
 | Job | Result |
 |---|---|
@@ -182,7 +182,10 @@ Toolchain: **Node 22.22.2**, **pnpm 10.34.4** (matching CI). Local runs on `356a
 | `secret-scan` — gitleaks | ✅ **PASS** |
 | `sast` — semgrep `p/typescript p/react p/secrets p/owasp-top-ten` | ✅ **PASS** (0 blocking, was 4) |
 | `deps` — `pnpm audit --audit-level=high` | ✅ **PASS** (was 21 high) |
-| `deps` — `osv-scanner` | ❌ **FAIL at `9c0acf0`** — 3 moderate. `protobufjs` fixed in `356a680`; the 2 × `qs` fixed after the owner approved the narrow release-age exception (§5). Expected green on the head carrying that change. |
+| `deps` — `osv-scanner` | ✅ **PASS** (was 3 moderate) |
+
+Run conclusion: `success`. The `build` step — the one gate this sandbox cannot execute (see below) —
+passes in CI, which is the authority for it.
 
 One further CI-only failure was seen and fixed, not retried: run
 [33978923932](https://github.com/alozeus1/maralito-labs/actions/runs/33978923932) failed `quality` at
@@ -270,7 +273,7 @@ left to report.
 | Lint | ✅ **PASS** | CI + local |
 | Formatting | ✅ **PASS** | CI + local |
 | Unit tests | ✅ **PASS** | 529 passing |
-| Build | ✅ **PASS** | CI (local environment-blocked; see §5) |
+| Build | ✅ **PASS** | CI run 33982459812 (local environment-blocked; see §5) |
 | `pnpm audit` (high+) | ✅ **PASS** | 21 high → 0 |
 | OSV | ✅ **PASS** | 3 of 3 fixed. `protobufjs` by lockfile re-resolution; the 2 × `qs` via a version-scoped, owner-approved `minimumReleaseAgeExclude` (§5) |
 | Semgrep | ✅ **PASS** | 4 blocking → 0 |
@@ -326,10 +329,11 @@ and the edge bundle had never been proven to compile:
 
 | Blocker | Status |
 |---|---|
-| **P1-2** — CI green | 🟡 **SUBSTANTIALLY CLOSED** — `quality` (including **build**, which proves the edge bundle compiles), `sast` and `secret-scan` are green. `deps` remains red on the two `qs` moderates only. |
+| **P1-2** — CI green | ✅ **CLOSED** — all four jobs green on `61b974d` ([run 33982459812](https://github.com/alozeus1/maralito-labs/actions/runs/33982459812)), including the **build** that proves the edge bundle compiles with middleware importing `rate-limit.ts`. |
 
-**Net: no production blocker is closed by this change set.** One CI blocker moved from red to
-nearly-green. That is the honest extent of the progress.
+**Net: no production blocker (B1–B5) is closed by this change set.** The sixth — CI green — is
+closed. That is the honest extent of the progress: the build is provably sound and the dependency
+tree is clean, but nothing has been exercised against real infrastructure.
 
 ---
 

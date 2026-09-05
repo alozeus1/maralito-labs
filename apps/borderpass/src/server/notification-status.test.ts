@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  decideOutboxStatus,
-  isCallbackStatus,
-  CALLBACK_STATUSES,
-} from './notification-status';
+import { decideOutboxStatus, isCallbackStatus, CALLBACK_STATUSES } from './notification-status';
 
 describe('decideOutboxStatus — idempotent, non-regressing delivery-status reconciliation', () => {
   it('applies a legal advance from a non-terminal state', () => {
@@ -22,8 +18,14 @@ describe('decideOutboxStatus — idempotent, non-regressing delivery-status reco
   });
 
   it('rejects a terminal-state regression as a conflict (never overwrites a terminal state)', () => {
-    expect(decideOutboxStatus('delivered', 'bounced')).toEqual({ kind: 'conflict', from: 'delivered' });
-    expect(decideOutboxStatus('bounced', 'delivered')).toEqual({ kind: 'conflict', from: 'bounced' });
+    expect(decideOutboxStatus('delivered', 'bounced')).toEqual({
+      kind: 'conflict',
+      from: 'delivered',
+    });
+    expect(decideOutboxStatus('bounced', 'delivered')).toEqual({
+      kind: 'conflict',
+      from: 'bounced',
+    });
     expect(decideOutboxStatus('failed', 'delivered')).toEqual({ kind: 'conflict', from: 'failed' });
     expect(decideOutboxStatus('complained', 'delivered')).toEqual({
       kind: 'conflict',

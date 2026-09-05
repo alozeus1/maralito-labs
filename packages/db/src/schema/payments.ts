@@ -186,10 +186,7 @@ export const refunds = pgTable(
       .$type<(typeof PAYMENT_PROVIDERS)[number]>()
       .notNull()
       .default('stripe'),
-    status: text('status')
-      .$type<(typeof REFUND_STATUSES)[number]>()
-      .notNull()
-      .default('requested'),
+    status: text('status').$type<(typeof REFUND_STATUSES)[number]>().notNull().default('requested'),
     amountMinor: integer('amount_minor').notNull(),
     currency: text('currency').$type<'USD' | 'MXN'>().notNull().default('USD'),
     stripeRefundId: text('stripe_refund_id'), // re_... (unique when set)

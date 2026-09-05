@@ -1,12 +1,6 @@
 'use server';
 import { and, eq, inArray } from 'drizzle-orm';
-import {
-  withTenant,
-  withPrivilegedDbAccess,
-  payments,
-  refunds,
-  newId,
-} from '@maralito/db';
+import { withTenant, withPrivilegedDbAccess, payments, refunds, newId } from '@maralito/db';
 import { requireAdminAccess } from '@maralito/auth';
 import { isStripeConfigured, createRefund } from '@maralito/payments';
 import { getAppSession } from '@/server/auth';
@@ -17,8 +11,7 @@ import { transitionRefund } from '@/server/refund-transitions';
 import type { PaymentStatus } from '@/domain/payments/state-machine';
 
 type Result<T = void> =
-  | { ok: true; data?: T }
-  | { ok: false; error: { code: string; message: string } };
+  { ok: true; data?: T } | { ok: false; error: { code: string; message: string } };
 
 /** Refund statuses that count toward the "already refunded" balance (everything except failed/canceled). */
 const ACTIVE_REFUND_STATUSES = ['requested', 'processing', 'succeeded'] as const;
@@ -51,11 +44,16 @@ export interface InitiateRefundInput {
  * authoritative driver of the final succeeded/failed status and the payment refunded cascade.
  * NEVER moves live money: the Stripe client is a `sk_test_` key in dev (refused otherwise by config/smoke).
  */
-export async function initiateRefund(input: InitiateRefundInput): Promise<Result<{ refundId: string }>> {
+export async function initiateRefund(
+  input: InitiateRefundInput,
+): Promise<Result<{ refundId: string }>> {
   const { s, err } = await financeGuard();
   if (!s) return { ok: false, error: err! };
   if (!isStripeConfigured())
-    return { ok: false, error: { code: 'dependency_unavailable', message: 'Payments not configured.' } };
+    return {
+      ok: false,
+      error: { code: 'dependency_unavailable', message: 'Payments not configured.' },
+    };
 
   // 1) Load the payment (org-scoped by staff RLS) + compute the already-refunded balance.
   const loaded = await withTenant({ authUserId: s.sub, orgId: s.orgId }, async (tx) => {
@@ -84,9 +82,16 @@ export async function initiateRefund(input: InitiateRefundInput): Promise<Result
     alreadyRefundedMinor: loaded.alreadyRefundedMinor,
     requestedMinor: input.amountMinor,
   });
-  if (!guard.ok) return { ok: false, error: { code: guard.code, message: `Refund not allowed (${guard.code}).` } };
+  if (!guard.ok)
+    return {
+      ok: false,
+      error: { code: guard.code, message: `Refund not allowed (${guard.code}).` },
+    };
   if (!loaded.pay.stripePaymentIntentId)
-    return { ok: false, error: { code: 'no_payment_intent', message: 'Payment has no PaymentIntent.' } };
+    return {
+      ok: false,
+      error: { code: 'no_payment_intent', message: 'Payment has no PaymentIntent.' },
+    };
 
   // 3) Create the refund row (privileged; refunds have no tenant write policy). Idempotency key is stable.
   const refundId = newId('ref');
@@ -131,23 +136,41 @@ export async function initiateRefund(input: InitiateRefundInput): Promise<Result
     });
     providerStatus = res.status;
     await withPrivilegedDbAccess('refund.record_stripe_id', async (db) => {
-      await db.update(refunds).set({ stripeRefundId: res.id, updatedAt: new Date() }).where(eq(refunds.id, refundId));
+      await db
+        .update(refunds)
+        .set({ stripeRefundId: res.id, updatedAt: new Date() })
+        .where(eq(refunds.id, refundId));
     });
   } catch {
     // Stripe call failed — mark the refund failed (advisory) and report. Payment stays paid.
     await transitionRefund(
-      { id: refundId, orgId: loaded.pay.orgId, paymentId: loaded.pay.id, orderId: loaded.pay.orderId, status: 'requested' },
+      {
+        id: refundId,
+        orgId: loaded.pay.orgId,
+        paymentId: loaded.pay.id,
+        orderId: loaded.pay.orderId,
+        status: 'requested',
+      },
       'failed',
       { userId: s.sub, role: 'finance' },
       { reason: 'stripe_error' },
     );
-    return { ok: false, error: { code: 'provider_error', message: 'Refund could not be created.' } };
+    return {
+      ok: false,
+      error: { code: 'provider_error', message: 'Refund could not be created.' },
+    };
   }
 
   // Advance requested → processing (webhook drives the terminal state + payment cascade). If Stripe already
   // reports succeeded/failed in TEST, still go via processing so the webhook remains the single settler.
   await transitionRefund(
-    { id: refundId, orgId: loaded.pay.orgId, paymentId: loaded.pay.id, orderId: loaded.pay.orderId, status: 'requested' },
+    {
+      id: refundId,
+      orgId: loaded.pay.orgId,
+      paymentId: loaded.pay.id,
+      orderId: loaded.pay.orderId,
+      status: 'requested',
+    },
     'processing',
     { userId: s.sub, role: 'finance' },
     { reason: providerStatus },

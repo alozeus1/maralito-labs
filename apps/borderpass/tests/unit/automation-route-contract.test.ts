@@ -47,7 +47,9 @@ describe('every /api/automation route obeys the shared-secret contract', () => {
     });
 
     it(`${name}: returns a JSON 401 on failure`, () => {
-      expect(code).toMatch(/NextResponse\.json\(\s*\{\s*error:\s*'unauthorized'\s*\}[\s\S]{0,60}401/);
+      expect(code).toMatch(
+        /NextResponse\.json\(\s*\{\s*error:\s*'unauthorized'\s*\}[\s\S]{0,60}401/,
+      );
       // No handler may fall back to a redirect (that is exactly the D2 failure mode).
       expect(code).not.toContain('NextResponse.redirect');
     });

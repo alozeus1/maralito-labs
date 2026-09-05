@@ -18,7 +18,10 @@ export interface EncryptedField {
 }
 
 /** Encrypt a UTF-8 plaintext into an EncryptedField using a fresh DEK wrapped by the provider. */
-export async function encryptField(plaintext: string, provider: KmsProvider): Promise<EncryptedField> {
+export async function encryptField(
+  plaintext: string,
+  provider: KmsProvider,
+): Promise<EncryptedField> {
   const dek = randomBytes(32); // 256-bit data key, unique per call
   const iv = randomBytes(12);
   const cipher = createCipheriv('aes-256-gcm', dek, iv);

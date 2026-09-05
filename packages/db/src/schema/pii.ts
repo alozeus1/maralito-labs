@@ -24,9 +24,7 @@ export const encryptedPii = pgTable(
     orgId: text('org_id')
       .notNull()
       .references(() => organizations.id),
-    subjectType: text('subject_type')
-      .$type<(typeof ENCRYPTED_PII_TYPES)[number]>()
-      .notNull(),
+    subjectType: text('subject_type').$type<(typeof ENCRYPTED_PII_TYPES)[number]>().notNull(),
     subjectRef: text('subject_ref').notNull(), // opaque ref (delivery_address_ref, customer_id, …)
     ciphertext: jsonb('ciphertext').$type<Record<string, unknown>>().notNull(), // EncryptedField envelope
     keyRef: text('key_ref').notNull(), // which KEK wrapped the DEK (rotation/provider selection)

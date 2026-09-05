@@ -1,10 +1,7 @@
 import 'server-only';
 import { eq } from 'drizzle-orm';
 import { withPrivilegedDbAccess, refunds, refundStatusHistory, newId } from '@maralito/db';
-import {
-  assertRefundTransition,
-  type RefundStatus,
-} from '@/domain/payments/refund-state-machine';
+import { assertRefundTransition, type RefundStatus } from '@/domain/payments/refund-state-machine';
 import { writeAudit } from './audit';
 import { emitRefundEvent } from './refund-events';
 
@@ -40,10 +37,7 @@ export async function transitionRefund(
   assertRefundTransition(r.status, to);
 
   await withPrivilegedDbAccess(`refund.transition:${r.status}->${to}`, async (db) => {
-    await db
-      .update(refunds)
-      .set({ status: to, updatedAt: new Date() })
-      .where(eq(refunds.id, r.id));
+    await db.update(refunds).set({ status: to, updatedAt: new Date() }).where(eq(refunds.id, r.id));
     await db.insert(refundStatusHistory).values({
       id: newId('rsh'),
       orgId: r.orgId,

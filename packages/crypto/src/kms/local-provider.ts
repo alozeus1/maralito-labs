@@ -21,7 +21,9 @@ export class LocalDevKmsProvider implements KmsProvider {
       );
     }
     if (!opts.keyMaterial || opts.keyMaterial.length < 16) {
-      throw new KmsProviderUnavailableError('BORDERPASS_KMS_KEY missing or too short (>=16 chars).');
+      throw new KmsProviderUnavailableError(
+        'BORDERPASS_KMS_KEY missing or too short (>=16 chars).',
+      );
     }
     this.keyRef = opts.keyRef ?? 'local-dev';
     // Derive a stable 32-byte KEK. Salt bound to keyRef so different keyRefs → different KEKs.

@@ -188,7 +188,21 @@ describe('session enforcement flag', () => {
   });
 
   it('defaults to OFF for unset and for every near-miss value', () => {
-    for (const raw of [undefined, null, '', ' ', 'off', 'ON', 'On', ' on', 'on ', 'true', '1', 'yes', 'enabled']) {
+    for (const raw of [
+      undefined,
+      null,
+      '',
+      ' ',
+      'off',
+      'ON',
+      'On',
+      ' on',
+      'on ',
+      'true',
+      '1',
+      'yes',
+      'enabled',
+    ]) {
       expect(isSessionEnforcementEnabledValue(raw)).toBe(false);
     }
   });
@@ -223,7 +237,9 @@ describe('flag OFF — shipped dark', () => {
 
   it('records nothing at login — no token read, no org lookup, no insert', async () => {
     const calls = newCalls();
-    expect(await recordLoginSessionCore(USER, loginDeps(calls, { enabled: false }))).toBe('disabled');
+    expect(await recordLoginSessionCore(USER, loginDeps(calls, { enabled: false }))).toBe(
+      'disabled',
+    );
     expect(calls).toMatchObject({ token: 0, org: 0, hints: 0, register: 0, failures: [] });
   });
 
@@ -256,7 +272,10 @@ describe('flag ON — enforcement', () => {
     expect(
       await decideSessionGuard(
         { surface: 'customer' },
-        guardDeps(calls, { enabled: true, verification: { ok: false, reason: 'expired_absolute' } }),
+        guardDeps(calls, {
+          enabled: true,
+          verification: { ok: false, reason: 'expired_absolute' },
+        }),
       ),
     ).toBe('expired_absolute');
     // Already audited by verifySession when the row was marked expired — no duplicate row here.
@@ -417,18 +436,18 @@ describe('flag ON — login registration is best-effort', () => {
 
   it('skips (without inserting) when no session token can be resolved', async () => {
     const calls = newCalls();
-    expect(await recordLoginSessionCore(USER, loginDeps(calls, { enabled: true, token: null }))).toBe(
-      'skipped',
-    );
+    expect(
+      await recordLoginSessionCore(USER, loginDeps(calls, { enabled: true, token: null })),
+    ).toBe('skipped');
     expect(calls.register).toBe(0);
     expect(calls.failures).toEqual(['token']);
   });
 
   it('skips (without inserting) when the org cannot be resolved', async () => {
     const calls = newCalls();
-    expect(await recordLoginSessionCore(USER, loginDeps(calls, { enabled: true, orgId: null }))).toBe(
-      'skipped',
-    );
+    expect(
+      await recordLoginSessionCore(USER, loginDeps(calls, { enabled: true, orgId: null })),
+    ).toBe('skipped');
     expect(calls.register).toBe(0);
     expect(calls.failures).toEqual(['org']);
   });

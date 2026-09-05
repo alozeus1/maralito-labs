@@ -36,7 +36,9 @@ const DRY_RUN = process.argv.includes('--dry-run');
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
-  console.error('❌ DATABASE_URL is not set. Export it first (e.g. `set -a; source .env.local; set +a`).');
+  console.error(
+    '❌ DATABASE_URL is not set. Export it first (e.g. `set -a; source .env.local; set +a`).',
+  );
   process.exit(1);
 }
 
@@ -52,7 +54,10 @@ function psql(sql, { file = null } = {}) {
     args.push('-f', tmp);
   }
   try {
-    return execFileSync('psql', [DATABASE_URL, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    return execFileSync('psql', [DATABASE_URL, ...args], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
   } catch (err) {
     const stderr = (err.stderr || '').toString().trim();
     const e = new Error(stderr || err.message);
@@ -66,7 +71,12 @@ const journal = JSON.parse(readFileSync(join(MIGRATIONS_DIR, 'meta', '_journal.j
 const entries = journal.entries.map((e) => {
   const sqlPath = join(MIGRATIONS_DIR, `${e.tag}.sql`);
   const sql = readFileSync(sqlPath, 'utf8');
-  return { tag: e.tag, when: e.when, sqlPath, hash: createHash('sha256').update(sql).digest('hex') };
+  return {
+    tag: e.tag,
+    when: e.when,
+    sqlPath,
+    hash: createHash('sha256').update(sql).digest('hex'),
+  };
 });
 
 // ---- 2. Ask the database what it already has ----------------------------------------------------
@@ -79,12 +89,17 @@ create table if not exists drizzle.__drizzle_migrations (
 
 const appliedRaw = psql(`select hash from drizzle.__drizzle_migrations;`);
 const applied = new Set(
-  appliedRaw.split('\n').map((l) => l.trim()).filter((l) => /^[0-9a-f]{64}$/.test(l)),
+  appliedRaw
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => /^[0-9a-f]{64}$/.test(l)),
 );
 
 const pending = entries.filter((e) => !applied.has(e.hash));
 
-console.log(`\nMigrations: ${entries.length} total · ${applied.size} already applied · ${pending.length} pending`);
+console.log(
+  `\nMigrations: ${entries.length} total · ${applied.size} already applied · ${pending.length} pending`,
+);
 for (const e of entries) {
   console.log(`  ${applied.has(e.hash) ? '✓ applied' : '· PENDING'}  ${e.tag}`);
 }

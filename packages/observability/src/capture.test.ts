@@ -21,6 +21,17 @@ import { initObservability, getObservabilityStatus } from './index';
 const PG_SCHEME = 'postgre' + 'sql://';
 const FAKE_PG_URL_INTERNAL = `${PG_SCHEME}app:s3cr3t@db.internal:5432/bp`;
 const FAKE_STRIPE_LIVE_A = ['sk', 'live', 'ABCDEFGHIJKL'].join('_');
+// `eyJ` is the base64url prefix of every JWT header and the single token both Semgrep's
+// detected-jwt-token rule and gitleaks key off. Split it so no JWT-shaped literal exists in this
+// source, then rebuild the full three-segment token at runtime. Decoded, the fixture is
+// {"alg":"none"} / {"sub":"synthetic"} with a signature segment that says it is not a signature —
+// it is not, and never was, a real credential.
+const B64_JSON_PREFIX = ['ey', 'J'].join('');
+const FAKE_JWT = [
+  `${B64_JSON_PREFIX}hbGciOiJub25lIn0`,
+  `${B64_JSON_PREFIX}zdWIiOiJzeW50aGV0aWMifQ`,
+  'not-a-real-signature',
+].join('.');
 
 const lines: string[] = [];
 
@@ -107,7 +118,7 @@ describe('capture — payload redaction (what actually goes on the wire)', () =>
     const err = new Error(
       `connect ECONNREFUSED ${FAKE_PG_URL_INTERNAL} using ${FAKE_STRIPE_LIVE_A}`,
     );
-    err.cause = { authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.SIGSIGSIGSIG' };
+    err.cause = { authorization: `Bearer ${FAKE_JWT}` };
 
     const payload = buildCapturePayload(
       { error: err },
@@ -127,9 +138,14 @@ describe('capture — payload redaction (what actually goes on the wire)', () =>
       'db.internal',
       '482913',
       'maria@example.com',
+      // The bearer token carried on err.cause must not reach the wire either.
+      FAKE_JWT,
     ]) {
       expect(wire).not.toContain(bad);
     }
+    // Guard the fixture itself: if a future edit breaks the assembled shape, the JWT would stop
+    // being a JWT and the assertion above would pass for the wrong reason.
+    expect(FAKE_JWT).toMatch(/^eyJ[A-Za-z0-9_-]{4,}\.[A-Za-z0-9_-]{4,}\.[A-Za-z0-9_-]{4,}$/);
     expect(payload.event_id).toMatch(/^[0-9a-f]{32}$/);
     expect(payload.level).toBe('error');
     expect(payload.environment).toBe('production');

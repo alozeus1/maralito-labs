@@ -9,6 +9,17 @@ const PG_SCHEME = 'postgre' + 'sql://';
 const FAKE_PG_URL_SUPABASE = `${PG_SCHEME}app:s3cr3t@db.supabase.co:5432/postgres`;
 const FAKE_STRIPE_LIVE_B = ['sk', 'live', '51AbCdEfGhIjKlMnOpQ'].join('_');
 const FAKE_WHSEC = ['whsec', '9f8e7d6c5b4a3f2e1d0c'].join('_');
+// `eyJ` is the base64url prefix of every `{"...` JWT header, and the single token both Semgrep's
+// detected-jwt-token rule and gitleaks key off. Split it so no JWT-shaped literal exists in this
+// source, then rebuild the full three-segment token at runtime. Decoded, the fixture is
+// {"alg":"none"} / {"sub":"synthetic"} with a signature segment that says it is not a signature —
+// it is not, and never was, a real credential.
+const B64_JSON_PREFIX = ['ey', 'J'].join('');
+const FAKE_JWT = [
+  `${B64_JSON_PREFIX}hbGciOiJub25lIn0`,
+  `${B64_JSON_PREFIX}zdWIiOiJzeW50aGV0aWMifQ`,
+  'not-a-real-signature',
+].join('.');
 
 /** A single hostile payload mixing every class of thing that must never leave the process. */
 const NASTY = {
@@ -32,7 +43,7 @@ const NASTY = {
   delivery_address_ref: 'ref_abc123',
   // covered by the value layer only (secrets embedded in free text)
   note: `connect via ${FAKE_PG_URL_SUPABASE} now`,
-  jwtish: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.QWxvbmVTaWduYXR1cmVYWFg',
+  jwtish: FAKE_JWT,
   stripe: `key ${FAKE_STRIPE_LIVE_B} and ${FAKE_WHSEC}`,
   contact: 'write to ops@maralito.uk or call +14155550123',
 };
@@ -87,6 +98,9 @@ describe('sanitize — value layer', () => {
 
   it('scrubs JWTs and provider secret keys', () => {
     const out = sanitize(NASTY) as Record<string, string>;
+    // Guard the fixture itself: if a future edit breaks the assembled shape, the value layer
+    // would silently stop being exercised and this assertion would pass for the wrong reason.
+    expect(FAKE_JWT).toMatch(/^eyJ[A-Za-z0-9_-]{4,}\.[A-Za-z0-9_-]{4,}\.[A-Za-z0-9_-]{4,}$/);
     expect(out.jwtish).toBe('[REDACTED_JWT]');
     expect(out.stripe).toBe('key [REDACTED_KEY] and [REDACTED_KEY]');
   });

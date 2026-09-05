@@ -1,5 +1,6 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import type { KmsProvider } from './kms/provider';
+import { AUTH_TAG_LENGTH, IV_LENGTH, KEY_LENGTH, decodeExact } from './gcm';
 
 /**
  * Envelope encryption (Phase 8B, ADR-0017). Per-record random Data-Encryption-Key (DEK), AES-256-GCM for
@@ -22,9 +23,9 @@ export async function encryptField(
   plaintext: string,
   provider: KmsProvider,
 ): Promise<EncryptedField> {
-  const dek = randomBytes(32); // 256-bit data key, unique per call
-  const iv = randomBytes(12);
-  const cipher = createCipheriv('aes-256-gcm', dek, iv);
+  const dek = randomBytes(KEY_LENGTH); // 256-bit data key, unique per call
+  const iv = randomBytes(IV_LENGTH);
+  const cipher = createCipheriv('aes-256-gcm', dek, iv, { authTagLength: AUTH_TAG_LENGTH });
   const ct = Buffer.concat([cipher.update(Buffer.from(plaintext, 'utf8')), cipher.final()]);
   const tag = cipher.getAuthTag();
   const wrappedDek = await provider.wrapDataKey(dek);
@@ -44,9 +45,14 @@ export async function decryptField(field: EncryptedField, provider: KmsProvider)
   if (field.v !== 1 || field.alg !== 'AES-256-GCM') {
     throw new Error('Unsupported encrypted field version/alg.');
   }
+  // Decode and length-check IV and tag BEFORE any key material is unwrapped. Node's GCM accepts
+  // truncated auth tags (down to 4 bytes) unless `authTagLength` is pinned, so a stored-tag
+  // rewrite could otherwise downgrade integrity verification to a forgeable 32-bit tag.
+  const iv = decodeExact(field.iv, IV_LENGTH, 'iv');
+  const tag = decodeExact(field.tag, AUTH_TAG_LENGTH, 'tag');
   const dek = await provider.unwrapDataKey(field.dek); // throws if wrappedDek tampered / wrong KEK
-  const decipher = createDecipheriv('aes-256-gcm', dek, Buffer.from(field.iv, 'base64'));
-  decipher.setAuthTag(Buffer.from(field.tag, 'base64'));
+  const decipher = createDecipheriv('aes-256-gcm', dek, iv, { authTagLength: AUTH_TAG_LENGTH });
+  decipher.setAuthTag(tag);
   const pt = Buffer.concat([
     decipher.update(Buffer.from(field.ct, 'base64')),
     decipher.final(), // throws on payload tamper

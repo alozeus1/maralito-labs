@@ -13,8 +13,18 @@ blockExoticSubdeps: true
 
 overrides:
   esbuild: 0.25.12
-  postcss: 8.5.10
+  # GHSA-6g55-p6wh-862q / GHSA-r28c-9q8g-f849 — sourceMappingURL path traversal.
+  # Also forces next's exact `postcss@8.4.31` pin up. 8.5.26 pulls nanoid >=3.3.17,
+  # clearing GHSA nanoid unbounded-loop advisories on the same chain.
+  postcss: 8.5.26
   vite: 6.4.3
+  # next declares `sharp: ^0.34.3 || ^0.35.3` (optional). The 0.34.x branch carries
+  # inherited libvips CVEs; hold the resolution on the patched 0.35.x branch.
+  sharp: 0.35.4
+  # @opentelemetry/sdk-node@0.219.0 (via inngest@3.54.2, the latest release) pins
+  # propagator-jaeger to an exact 2.8.0, which is affected by the OTel DoS advisory.
+  # No inngest release ships the fix, so lift just this package to the patched 2.x.
+  '@opentelemetry/propagator-jaeger': 2.10.0
 
 allowBuilds:
   esbuild: true

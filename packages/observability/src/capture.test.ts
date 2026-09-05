@@ -177,6 +177,14 @@ describe('capture — fail-safe', () => {
   });
 
   it('does not block the caller while the transport is in flight', async () => {
+    // The invariant is that `captureError` returns WITHOUT awaiting the transport. The wall-clock
+    // budget is only a proxy for it, so it is expressed as a fraction of the transport delay with a
+    // wide margin rather than as a small absolute number: an earlier 25ms budget against an 80ms
+    // transport left ~25ms of headroom and flaked on a contended CI runner (30ms, run 33978923932)
+    // even though nothing about the behaviour had changed. A regression that actually awaited the
+    // transport would take TRANSPORT_MS, which is 5x the budget, so discrimination is unchanged.
+    const TRANSPORT_MS = 500;
+    const CALLER_BUDGET_MS = 100;
     let settled = false;
     setCaptureTransport({
       name: 'slow',
@@ -185,14 +193,17 @@ describe('capture — fail-safe', () => {
           setTimeout(() => {
             settled = true;
             resolve();
-          }, 80),
+          }, TRANSPORT_MS),
         ),
     });
     const started = Date.now();
     captureError(new Error('slow'), { event: 'e' });
-    expect(Date.now() - started).toBeLessThan(25);
+    const elapsed = Date.now() - started;
+    // Deterministic half of the assertion: the transport cannot possibly have finished, so if
+    // `captureError` had awaited it this would be true. This holds regardless of runner speed.
     expect(settled).toBe(false);
-    await flushCaptures(500);
+    expect(elapsed).toBeLessThan(CALLER_BUDGET_MS);
+    await flushCaptures(TRANSPORT_MS * 4);
     expect(getCaptureStats().sent).toBe(1);
   });
 

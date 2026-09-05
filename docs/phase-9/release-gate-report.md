@@ -174,7 +174,7 @@ customers cannot reach it. The webhook remains the sole writer of terminal *paym
 
 Toolchain: **Node 22.22.2**, **pnpm 10.34.4** (matching CI). Local runs on `356a680`.
 
-### CI — run [33978767779](https://github.com/alozeus1/maralito-labs/actions/runs/33978767779) @ `9c0acf0`
+### CI — latest full-signal run [33978767779](https://github.com/alozeus1/maralito-labs/actions/runs/33978767779) @ `9c0acf0`
 
 | Job | Result |
 |---|---|
@@ -182,7 +182,18 @@ Toolchain: **Node 22.22.2**, **pnpm 10.34.4** (matching CI). Local runs on `356a
 | `secret-scan` — gitleaks | ✅ **PASS** |
 | `sast` — semgrep `p/typescript p/react p/secrets p/owasp-top-ten` | ✅ **PASS** (0 blocking, was 4) |
 | `deps` — `pnpm audit --audit-level=high` | ✅ **PASS** (was 21 high) |
-| `deps` — `osv-scanner` | ❌ **FAIL** — 3 moderate. `protobufjs` fixed in `356a680`; **2 × `qs` BLOCKED**, see below. |
+| `deps` — `osv-scanner` | ❌ **FAIL** — 3 moderate. `protobufjs` fixed in `356a680` (run 33978923932 confirms only the 2 `qs` findings remain); **2 × `qs` BLOCKED**, see below. |
+
+One further CI-only failure was seen and fixed, not retried: run
+[33978923932](https://github.com/alozeus1/maralito-labs/actions/runs/33978923932) failed `quality` at
+`capture.test.ts:193 — expected 30 to be less than 25`. That is a **wall-clock** assertion with ~25ms
+of headroom, in a file whose implementation (`capture.ts`) this branch does not touch, and the
+identical test code had passed in the previous run — the only diff between them being one lockfile
+line. It was runner contention, not a regression. Rather than re-run the job, the brittleness was
+removed: the budget is now a fraction of the transport delay (500ms transport / 100ms caller budget)
+instead of a small absolute number, the deterministic half of the assertion (`settled === false`) is
+asserted first so the invariant holds on an arbitrarily slow runner, and mutation-testing confirms a
+caller that actually blocked on the transport still fails (603ms vs 100ms).
 
 ### Local
 

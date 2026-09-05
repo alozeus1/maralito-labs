@@ -42,6 +42,11 @@ This reordering has three consequences worth stating plainly:
 3. **B2 (Stripe LIVE) stays last, unchanged.** Money goes live only after PII handling, comms and
    legal are real. This matches the Phase-9 §5 sequencing and `stripe-live-checklist.md`.
 
+**One fact blocks both external dependencies.** The legal entity is a placeholder
+(`[RAZÓN SOCIAL / ENTIDAD LEGAL PENDIENTE]`) in both legal documents, and Stripe requires the correct
+legal entity to open a business account. Confirming it is the single highest-leverage unblock in Phase
+10 and costs no engineering time. Kickoff packets for both are in `docs/phase-10/`.
+
 ### What changed since the Phase-9 blocker table
 
 The table in `production-readiness-review.md` §3 predates the Phase 9 production-readiness work and is
@@ -201,7 +206,9 @@ was deferred "once `infra/` exists"; this is when it exists, so add that CI job 
 it. Mostly built; the long pole is external.
 
 1. **Start counsel review on day 1.** `src/content/legal/{terms,privacy}.ts` is drafted; review is
-   calendar time you do not control, and B2 depends on it.
+   calendar time you do not control, and B2 depends on it. **Packet ready to send:**
+   `docs/phase-10/counsel-review-brief.md` — self-contained, no repo access needed, with the ten open
+   questions carried over from `legal-consent.md` §5.
 2. Wire consent capture at sign-up into the existing `consents` table via `src/server/consent.ts`.
    Record consent **version** and timestamp, not a boolean — a bare boolean cannot answer "what did
    this customer agree to."
@@ -240,8 +247,10 @@ PII) and on B5 (consent).
 document; it already carries preconditions, the round-trip, kill-switch and first-week watch.
 
 Do not begin until B0, B1, B3, B4, B5 and H are closed. Stripe account/business verification has
-external lead time — **submit it early**, run it in parallel, but do not flip live keys until the
-preconditions are genuinely met.
+external lead time — **submit it early**, but note it is *not* fully parallel: Stripe requires a
+reachable refund policy and terms, which B5 supplies, so the account will not fully approve until the
+legal pages are live. **Prep sheet ready:** `docs/phase-10/stripe-verification-prep.md`. Do not flip
+live keys until the §1 preconditions are genuinely met.
 
 **Acceptance criteria** — per the checklist, at minimum:
 - [ ] Every §1 precondition ✅.

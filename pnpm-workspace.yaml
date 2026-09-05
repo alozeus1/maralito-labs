@@ -4,6 +4,18 @@ packages:
 
 # Supply-chain controls supported by the pinned pnpm 10 release.
 minimumReleaseAge: 10080
+# qs 6.16.0 is the patched release for GHSA-4mjr-xmp4-gh2g (DoS via attacker-controlled
+# isBuffer) and GHSA-x5fp-wj9c-mxmx (array-limit bypass), both of which osv-scanner reports
+# against qs 6.15.3 reached via `@maralito/payments > stripe`. stripe's own `^6.11.0` range
+# already admits it, so no override is needed — only this waiting period held it back.
+# Published 2026-08-29T23:50:15Z, i.e. ~6d17h old when this exception was added, so the
+# 7-day window closes 2026-09-05T23:50:15Z and the exception is a no-op from then on.
+# Owner-approved on 2026-09-05 to take the security fix a few hours early. Version-scoped
+# on purpose (same shape as trustPolicyExclude below): it applies to this one reviewed
+# version and expires by construction — any FUTURE qs release still serves the full 7 days.
+# Remove this entry once the lockfile has moved past 6.16.0.
+minimumReleaseAgeExclude:
+  - 'qs@6.16.0'
 trustPolicy: no-downgrade
 # undici-types 6.21.0 is an old, integrity-pinned type-only package whose
 # historical npm publish lacks trust metadata; keep the exception version-scoped.

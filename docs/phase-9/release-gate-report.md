@@ -182,7 +182,7 @@ Toolchain: **Node 22.22.2**, **pnpm 10.34.4** (matching CI). Local runs on `356a
 | `secret-scan` — gitleaks | ✅ **PASS** |
 | `sast` — semgrep `p/typescript p/react p/secrets p/owasp-top-ten` | ✅ **PASS** (0 blocking, was 4) |
 | `deps` — `pnpm audit --audit-level=high` | ✅ **PASS** (was 21 high) |
-| `deps` — `osv-scanner` | ❌ **FAIL** — 3 moderate. `protobufjs` fixed in `356a680` (run 33978923932 confirms only the 2 `qs` findings remain); **2 × `qs` BLOCKED**, see below. |
+| `deps` — `osv-scanner` | ❌ **FAIL at `9c0acf0`** — 3 moderate. `protobufjs` fixed in `356a680`; the 2 × `qs` fixed after the owner approved the narrow release-age exception (§5). Expected green on the head carrying that change. |
 
 One further CI-only failure was seen and fixed, not retried: run
 [33978923932](https://github.com/alozeus1/maralito-labs/actions/runs/33978923932) failed `quality` at
@@ -205,6 +205,7 @@ caller that actually blocked on the transport still fails (603ms vs 100ms).
 | Format | `pnpm format:check` | 0 |
 | Unit tests | `pnpm test` — **529 passing**, 7 packages | 0 |
 | Audit (high+) | `pnpm audit --audit-level=high` | 0 |
+| Audit (all severities) | `pnpm audit` — **no known vulnerabilities found** | 0 |
 | Semgrep — both blocking rules, 613 files | `semgrep --config=r/javascript.node-crypto.security.gcm-no-tag-length --config=r/generic.secrets.security.detected-jwt-token` | 0 findings |
 | Raw DB client guard | `pnpm check:db-imports` | 0 |
 | Client Stripe boundary | `pnpm check:client-stripe` | 0 |
@@ -216,30 +217,47 @@ Semgrep rule validity was confirmed rather than assumed: both rules were re-run 
 patterns in isolation and **did** fire, so the 0-finding result reflects the fix and not a
 misconfigured scan.
 
-### 🔴 BLOCKED — `qs` 6.15.3 → 6.16.0 (GHSA-4mjr-xmp4-gh2g, GHSA-x5fp-wj9c-mxmx, both moderate)
+### ✅ RESOLVED — `qs` 6.15.3 → 6.16.0 (GHSA-4mjr-xmp4-gh2g, GHSA-x5fp-wj9c-mxmx)
 
-Reached via `@maralito/payments > stripe@16.12.0`, whose `^6.11.0` range **already admits** the
-patched 6.16.0. pnpm refuses to resolve it against this workspace's `minimumReleaseAge: 10080`
-(7-day) supply-chain control:
+Reached via `@maralito/payments > stripe@16.12.0`, whose `^6.11.0` range **already admitted** the
+patched 6.16.0. Nothing about the dependency graph blocked it — only this workspace's
+`minimumReleaseAge: 10080` (7-day) supply-chain control:
 
 ```
 qs@6.16.0 published 2026-08-29T23:50:15Z   →  window closes 2026-09-05T23:50:15Z
 ```
 
-Three ways forward, and why the chosen one is right:
+Three ways forward were available:
 
-1. **Wait for the window, then `pnpm update -r qs`. ← chosen.** Zero policy change, zero risk, and
-   the fix lands the same day.
-2. `minimumReleaseAgeExclude: ['qs@6.16.0']`. Relaxes an owner-set supply-chain control to save a
-   few hours. That control exists precisely so a compromised publish has time to be caught;
-   overriding it is the **owner's** decision, not an implementation detail. Not taken.
+1. Wait for the window, then `pnpm update -r qs`. Zero policy change; the fix lands the same day.
+2. A **version-scoped** `minimumReleaseAgeExclude` entry. Takes the security fix a few hours early
+   at the cost of a narrow, reviewed exception to an owner-set control.
 3. Major `stripe` SDK upgrade to drop the `qs` dependency. A broad, payment-critical change — out
    of scope, and disproportionate to two moderate DoS advisories.
 
-**Neither advisory is suppressed, ignored, or downgraded.** Both are recorded here and remain
-visible in `osv-scanner` until fixed.
+**Option 2, at the owner's explicit direction (2026-09-05.)** The agent's default was option 1,
+because relaxing a supply-chain control is the owner's decision rather than an implementation
+detail; the owner reviewed that reasoning and chose to take the fix early.
 
----
+The exception is deliberately narrow, and mirrors the shape of the existing
+`trustPolicyExclude: ['undici-types@6.21.0']` entry directly below it:
+
+```yaml
+minimumReleaseAgeExclude:
+  - 'qs@6.16.0'
+```
+
+* **Version-scoped, not package-scoped.** It admits exactly this one reviewed version. Every future
+  `qs` release still serves the full 7 days.
+* **Verified, not assumed.** Substituting a different version into the entry (`qs@6.15.0`) makes
+  pnpm refuse 6.16.0 and hold at 6.15.3 — proving pnpm parses the version rather than matching the
+  package name alone.
+* **Self-expiring.** The window closed at 2026-09-05T23:50:15Z, after which the entry is a no-op.
+  It carries an inline instruction to delete it once the lockfile moves past 6.16.0.
+* **Blast radius of one line.** The lockfile diff is `qs@6.15.3 → qs@6.16.0` and nothing else.
+
+`pnpm audit` now reports **no known vulnerabilities at any severity**, and `osv-scanner` has nothing
+left to report.
 
 ## 6. Gate status
 
@@ -254,7 +272,7 @@ visible in `osv-scanner` until fixed.
 | Unit tests | ✅ **PASS** | 529 passing |
 | Build | ✅ **PASS** | CI (local environment-blocked; see §5) |
 | `pnpm audit` (high+) | ✅ **PASS** | 21 high → 0 |
-| OSV | 🟡 **PARTIAL** | 1 of 3 fixed; 2 × `qs` BLOCKED on release-age window |
+| OSV | ✅ **PASS** | 3 of 3 fixed. `protobufjs` by lockfile re-resolution; the 2 × `qs` via a version-scoped, owner-approved `minimumReleaseAgeExclude` (§5) |
 | Semgrep | ✅ **PASS** | 4 blocking → 0 |
 | Secret scanning (gitleaks) | ✅ **PASS** | |
 | Live Supabase RLS gate | 🔲 **UNRUN** | Requires operator secrets. Registry `--check` passes offline (12/12). Ledger rows 6–10 PASS against the **disposable dev project only** — not a production project. |
@@ -325,7 +343,8 @@ nearly-green. That is the honest extent of the progress.
 | `postcss` override forces Next's exact `8.4.31` pin up | Low | The repo already did this (previous override 8.5.10). Build-time only; CI build passes. |
 | `sharp` 0.34.5 → 0.35.4 | Low | Within Next's own declared `^0.35.3` branch. Image-optimisation only; not on any payment or auth path. |
 | `@opentelemetry/propagator-jaeger` forced off sdk-node's exact 2.8.0 pin | **Medium** | Deliberately deviates from an upstream exact pin, creating a mixed-version OTel install. OTel 2.x is semver-compatible and this package is an optional Jaeger propagator (unused unless configured), so exposure is low — but it should be **dropped the moment inngest ships an OTel bump**. Tracked here so it is not forgotten. |
-| Two `qs` moderate DoS advisories unfixed | **Medium** | `qs` parses Stripe SDK request payloads. Both are DoS, not disclosure. Fix is available and scheduled; see §5. |
+| Two `qs` moderate DoS advisories | ~~Medium~~ **Resolved** | Fixed on 6.16.0. See §5. |
+| Version-scoped `minimumReleaseAgeExclude` for `qs@6.16.0` | Low | A narrow, owner-approved exception to the 7-day supply-chain waiting period, taken ~7h early to land a security fix. Scoped to one reviewed version (verified: a mismatched version in the entry makes pnpm refuse the upgrade), and a no-op from 2026-09-05T23:50:15Z. Delete once the lockfile moves past 6.16.0. |
 | Lockfile importer drift (`apps/studio-os`, `packages/aios` removed) | Low | Both untracked in this repository. If they exist in someone's working copy, `pnpm install` regenerates their entries. |
 | GCM decode guards now reject previously-accepted malformed input | Low → **intended** | A stored envelope with a truncated/short tag now throws `InvalidCiphertextError` instead of decrypting. That is the fix. No such envelope should exist: 16-byte tags were always written on encrypt. |
 | **Environments not exercised at all** | **High** | No production Supabase, no Stripe LIVE, no KMS, no monitoring, no backup/restore drill. All six live-gate classes remain UNRUN or dev-project-only. |
@@ -334,8 +353,10 @@ nearly-green. That is the honest extent of the progress.
 
 Recommended, in order:
 
-1. After **2026-09-05T23:50:15Z**, run `pnpm update -r qs` (expect 6.16.0), re-run the gates, push.
-   `deps` goes green with **no supply-chain policy change**. → all four CI jobs green.
+1. ~~Fix the two `qs` advisories.~~ **Done** — owner approved the version-scoped release-age
+   exception; `pnpm audit` now reports no known vulnerabilities at any severity. Delete the
+   `minimumReleaseAgeExclude` entry once the lockfile moves past `qs@6.16.0`; it is a no-op from
+   2026-09-05T23:50:15Z onward.
 2. Owner review + merge of this PR.
 3. Then, and only then, the production sequence in `docs/production-readiness/current-state.md` §4:
    production Supabase (B1) → Vercel Production env → AWS KMS (B3) → legal/consent (B5) →

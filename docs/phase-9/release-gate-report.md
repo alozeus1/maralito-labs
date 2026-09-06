@@ -262,6 +262,24 @@ minimumReleaseAgeExclude:
 `pnpm audit` now reports **no known vulnerabilities at any severity**, and `osv-scanner` has nothing
 left to report.
 
+#### Exception removed 2026-09-06 (window closed)
+
+The `minimumReleaseAgeExclude` entry was deleted at 2026-09-06T00:06Z, 16 minutes after the 7-day
+window closed at 2026-09-05T23:50:15Z. It is gone; `minimumReleaseAge: 10080` now applies to `qs`
+with no carve-out, exactly as it does to every other package.
+
+**Removal proven inert rather than assumed.** An attempt at 18:39Z on 2026-09-05 was aborted because
+the window had not yet closed: with the entry removed, `pnpm update -r qs` downgraded to 6.15.3 and
+re-introduced both advisories. That same check was re-run after expiry:
+
+| Command | qs | Lockfile diff |
+|---|---|---|
+| `pnpm install --frozen-lockfile` | 6.16.0 | none |
+| `pnpm install --no-frozen-lockfile` | 6.16.0 | none |
+| `pnpm update -r qs` — *the case that failed at 18:39Z* | **6.16.0** | **none** |
+
+Zero lockfile change is the evidence: nothing in the tree depended on the exception any more.
+
 ## 6. Gate status
 
 ### 6.1 Requested gate set
@@ -348,7 +366,7 @@ tree is clean, but nothing has been exercised against real infrastructure.
 | `sharp` 0.34.5 → 0.35.4 | Low | Within Next's own declared `^0.35.3` branch. Image-optimisation only; not on any payment or auth path. |
 | `@opentelemetry/propagator-jaeger` forced off sdk-node's exact 2.8.0 pin | **Medium** | Deliberately deviates from an upstream exact pin, creating a mixed-version OTel install. OTel 2.x is semver-compatible and this package is an optional Jaeger propagator (unused unless configured), so exposure is low — but it should be **dropped the moment inngest ships an OTel bump**. Tracked here so it is not forgotten. |
 | Two `qs` moderate DoS advisories | ~~Medium~~ **Resolved** | Fixed on 6.16.0. See §5. |
-| Version-scoped `minimumReleaseAgeExclude` for `qs@6.16.0` | Low | A narrow, owner-approved exception to the 7-day supply-chain waiting period, taken ~7h early to land a security fix. Scoped to one reviewed version (verified: a mismatched version in the entry makes pnpm refuse the upgrade), and a no-op from 2026-09-05T23:50:15Z. Delete once the lockfile moves past 6.16.0. |
+| ~~Version-scoped `minimumReleaseAgeExclude` for `qs@6.16.0`~~ | **Closed** | Removed 2026-09-06T00:06Z, after the window closed. `minimumReleaseAge` now applies to `qs` with no carve-out. Removal proven inert: `pnpm update -r qs` holds at 6.16.0 with zero lockfile change (§5). |
 | Lockfile importer drift (`apps/studio-os`, `packages/aios` removed) | Low | Both untracked in this repository. If they exist in someone's working copy, `pnpm install` regenerates their entries. |
 | GCM decode guards now reject previously-accepted malformed input | Low → **intended** | A stored envelope with a truncated/short tag now throws `InvalidCiphertextError` instead of decrypting. That is the fix. No such envelope should exist: 16-byte tags were always written on encrypt. |
 | **Environments not exercised at all** | **High** | No production Supabase, no Stripe LIVE, no KMS, no monitoring, no backup/restore drill. All six live-gate classes remain UNRUN or dev-project-only. |
@@ -357,10 +375,9 @@ tree is clean, but nothing has been exercised against real infrastructure.
 
 Recommended, in order:
 
-1. ~~Fix the two `qs` advisories.~~ **Done** — owner approved the version-scoped release-age
-   exception; `pnpm audit` now reports no known vulnerabilities at any severity. Delete the
-   `minimumReleaseAgeExclude` entry once the lockfile moves past `qs@6.16.0`; it is a no-op from
-   2026-09-05T23:50:15Z onward.
+1. ~~Fix the two `qs` advisories, then remove the temporary release-age exception.~~ **Done** —
+   both advisories cleared, and the exception was deleted on 2026-09-06 once its window closed, with
+   the removal proven inert (§5). No supply-chain control is now relaxed for any package.
 2. Owner review + merge of this PR.
 3. Then, and only then, the production sequence in `docs/production-readiness/current-state.md` §4:
    production Supabase (B1) → Vercel Production env → AWS KMS (B3) → legal/consent (B5) →
